@@ -1,10 +1,49 @@
-import { useState } from "react";
-import { Plus, CalendarDays, X } from "lucide-react";
-import { leaveHistory } from "../../data/employeeData";
+
+import { useState, useEffect, useCallback } from "react";
+import {
+  Plus,
+  CalendarDays,
+  X,
+  Trash2,
+  RefreshCw,
+} from "lucide-react";
+
+const API_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost:5000"
+).replace(/\/api\/?$/, "").replace(/\/$/, "");
+
+const getToken = () =>
+  localStorage.getItem("token") ||
+  localStorage.getItem("authToken") ||
+  localStorage.getItem("accessToken");
+
+const formatDate = (value) => {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+const statusInfo = {
+  pending: { label: "Chờ duyệt", className: "pending" },
+  approved: { label: "Đã duyệt", className: "approved" },
+  rejected: { label: "Từ chối", className: "rejected" },
+};
 
 export default function LeaveRequest() {
   const [showModal, setShowModal] = useState(false);
-  const [requests, setRequests] = useState(leaveHistory);
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState("");
+  const [error, setError] = useState("");
 
   const [form, setForm] = useState({
     type: "Nghỉ phép năm",
@@ -13,41 +52,137 @@ export default function LeaveRequest() {
     reason: "",
   });
 
-  const submitRequest = (e) => {
+  // LẤY ĐƠN CỦA NHÂN VIÊN ĐANG ĐĂNG NHẬP
+  const fetchRequests = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const token = getToken();
+
+      if (!token) {
+        throw new Error("Không tìm thấy token. Vui lòng đăng nhập lại.");
+      }
+
+      const response = await fetch(`${API_URL}/api/leave/me`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Không thể tải đơn xin nghỉ.");
+      }
+
+      setRequests(data.requests || []);
+    } catch (err) {
+      setError(err.message || "Có lỗi khi tải dữ liệu.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
+
+  // GỬI ĐƠN
+  const submitRequest = async (e) => {
     e.preventDefault();
 
-    if (form.to < form.from) {
-      alert("Ngày kết thúc không được trước ngày bắt đầu!");
+    if (!form.from || !form.to || !form.reason.trim()) {
+      alert("Vui lòng điền đầy đủ thông tin.");
       return;
     }
 
-    const newRequest = {
-      id: `NP${String(requests.length + 1).padStart(3, "0")}`,
-      ...form,
-      status: "pending",
-    };
+    if (form.to < form.from) {
+      alert("Ngày kết thúc không được trước ngày bắt đầu.");
+      return;
+    }
 
-    setRequests((prev) => [newRequest, ...prev]);
+    try {
+      setSubmitting(true);
 
-    setForm({
-      type: "Nghỉ phép năm",
-      from: "",
-      to: "",
-      reason: "",
-    });
+      const token = getToken();
 
-    setShowModal(false);
-    alert("Đã tạo đơn xin nghỉ thành công!");
+      const response = await fetch(`${API_URL}/api/leave`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Không thể gửi đơn.");
+      }
+
+      setForm({
+        type: "Nghỉ phép năm",
+        from: "",
+        to: "",
+        reason: "",
+      });
+
+      setShowModal(false);
+
+      await fetchRequests();
+
+      alert("Đã gửi đơn xin nghỉ thành công!");
+    } catch (err) {
+      alert(err.message || "Có lỗi khi gửi đơn.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const statusLabel = {
-    pending: "Chờ duyệt",
-    approved: "Đã duyệt",
-    rejected: "Từ chối",
+  // XÓA ĐƠN ĐANG CHỜ DUYỆT
+  const deleteRequest = async (id) => {
+    const confirmed = window.confirm(
+      "Bạn có chắc chắn muốn xóa đơn xin nghỉ này không?"
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(id);
+
+      const token = getToken();
+
+      const response = await fetch(
+        `${API_URL}/api/leave/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Không thể xóa đơn.");
+      }
+
+      await fetchRequests();
+
+      alert("Đã xóa đơn xin nghỉ thành công.");
+    } catch (err) {
+      alert(err.message || "Có lỗi khi xóa đơn.");
+    } finally {
+      setDeletingId("");
+    }
   };
 
   return (
     <div className="employee-page">
+      {/* TIÊU ĐỀ */}
       <div className="employee-section-title">
         <div>
           <h1>Xin nghỉ phép</h1>
@@ -55,6 +190,7 @@ export default function LeaveRequest() {
         </div>
 
         <button
+          type="button"
           className="employee-primary-button"
           onClick={() => setShowModal(true)}
         >
@@ -63,14 +199,30 @@ export default function LeaveRequest() {
         </button>
       </div>
 
+      {/* LỊCH SỬ ĐƠN */}
       <div className="employee-panel">
         <div className="employee-panel-heading">
           <div>
             <h2>Lịch sử đơn xin nghỉ</h2>
             <p>Các đơn nghỉ phép đã gửi.</p>
           </div>
-          <CalendarDays color="#3986e8" />
+
+          <button
+            type="button"
+            className="employee-secondary-button"
+            onClick={fetchRequests}
+            disabled={loading}
+          >
+            <RefreshCw size={16} />
+            Làm mới
+          </button>
         </div>
+
+        {error && (
+          <div className="leave-api-error">
+            {error}
+          </div>
+        )}
 
         <div className="employee-table-scroll">
           <table className="employee-table">
@@ -82,29 +234,79 @@ export default function LeaveRequest() {
                 <th>ĐẾN NGÀY</th>
                 <th>LÝ DO</th>
                 <th>TRẠNG THÁI</th>
+                <th>THAO TÁC</th>
               </tr>
             </thead>
 
             <tbody>
-              {requests.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.id}</td>
-                  <td>{item.type}</td>
-                  <td>{item.from}</td>
-                  <td>{item.to}</td>
-                  <td>{item.reason}</td>
-                  <td>
-                    <span className={`leave-status ${item.status}`}>
-                      {statusLabel[item.status]}
-                    </span>
+              {loading ? (
+                <tr>
+                  <td colSpan="7" className="leave-empty">
+                    Đang tải dữ liệu...
                   </td>
                 </tr>
-              ))}
+              ) : requests.length > 0 ? (
+                requests.map((item) => {
+                  const status =
+                    statusInfo[item.status] || {
+                      label: "Không xác định",
+                      className: "pending",
+                    };
+
+                  return (
+                    <tr key={item._id}>
+                      <td>{item._id.slice(-8).toUpperCase()}</td>
+                      <td>{item.type}</td>
+                      <td>{formatDate(item.from)}</td>
+                      <td>{formatDate(item.to)}</td>
+                      <td>{item.reason}</td>
+
+                      <td>
+                        <span className={`leave-status ${status.className}`}>
+                          {status.label}
+                        </span>
+
+                        {item.status === "rejected" && item.managerNote && (
+                          <small className="leave-manager-note">
+                            Lý do: {item.managerNote}
+                          </small>
+                        )}
+                      </td>
+
+                      <td>
+                        {item.status === "pending" ? (
+                          <button
+                            type="button"
+                            className="leave-delete-button"
+                            disabled={deletingId === item._id}
+                            onClick={() => deleteRequest(item._id)}
+                          >
+                            <Trash2 size={16} />
+                            {deletingId === item._id ? "Đang xóa..." : "Xóa đơn"}
+                          </button>
+                        ) : (
+                          <span className="leave-no-action">
+                            Không thể xóa
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan="7" className="leave-empty">
+                    <CalendarDays size={32} />
+                    <p>Bạn chưa có đơn xin nghỉ nào.</p>
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
 
+      {/* MODAL TẠO ĐƠN */}
       {showModal && (
         <div
           className="employee-modal-overlay"
@@ -132,6 +334,7 @@ export default function LeaveRequest() {
 
             <div className="employee-form-group">
               <label>Loại nghỉ phép</label>
+
               <select
                 value={form.type}
                 onChange={(e) =>
@@ -148,18 +351,27 @@ export default function LeaveRequest() {
             <div className="employee-form-grid">
               <div className="employee-form-group">
                 <label>Từ ngày</label>
+
                 <input
                   type="date"
                   required
                   value={form.from}
                   onChange={(e) =>
-                    setForm({ ...form, from: e.target.value })
+                    setForm({
+                      ...form,
+                      from: e.target.value,
+                      to:
+                        form.to && form.to < e.target.value
+                          ? ""
+                          : form.to,
+                    })
                   }
                 />
               </div>
 
               <div className="employee-form-group">
                 <label>Đến ngày</label>
+
                 <input
                   type="date"
                   required
@@ -174,9 +386,11 @@ export default function LeaveRequest() {
 
             <div className="employee-form-group">
               <label>Lý do nghỉ</label>
+
               <textarea
                 required
                 rows="4"
+                maxLength={1000}
                 placeholder="Nhập lý do xin nghỉ..."
                 value={form.reason}
                 onChange={(e) =>
@@ -190,6 +404,7 @@ export default function LeaveRequest() {
                 type="button"
                 className="employee-secondary-button"
                 onClick={() => setShowModal(false)}
+                disabled={submitting}
               >
                 Hủy
               </button>
@@ -197,8 +412,9 @@ export default function LeaveRequest() {
               <button
                 type="submit"
                 className="employee-primary-button"
+                disabled={submitting}
               >
-                Gửi đơn xin nghỉ
+                {submitting ? "Đang gửi..." : "Gửi đơn xin nghỉ"}
               </button>
             </div>
           </form>

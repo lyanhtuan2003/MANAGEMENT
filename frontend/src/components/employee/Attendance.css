@@ -1,0 +1,351 @@
+/* ========================================
+   THÔNG TIN LỊCH LÀM VIỆC
+======================================== */
+
+.attendance-schedule-info {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 15px;
+  margin: 18px 0;
+  border-radius: 10px;
+  background: #f6f8fc;
+  color: #626d85;
+  font-size: 13px;
+}
+
+.attendance-schedule-info strong {
+  color: #252a40;
+}
+
+/* ========================================
+   GIỜ VÀO - GIỜ RA
+======================================== */
+
+.attendance-time {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 50px;
+  padding: 25px 10px;
+}
+
+.attendance-time-box {
+  text-align: center;
+  min-width: 130px;
+}
+
+.attendance-time-box span {
+  font-size: 11px;
+  font-weight: 700;
+  color: #9298aa;
+  letter-spacing: 1px;
+}
+
+.attendance-time-box h2 {
+  color: #3986e8;
+  font-size: 35px;
+  margin: 10px 0;
+  font-weight: 700;
+}
+
+.attendance-time-divider {
+  width: 1px;
+  height: 65px;
+  background: #e5e8f0;
+}
+
+/* ========================================
+   NÚT CHẤM CÔNG
+======================================== */
+
+.attendance-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.attendance-button {
+  flex: 1;
+  min-height: 47px;
+  border: 0;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.check-in-button {
+  color: white;
+  background: linear-gradient(135deg, #397cf0, #6256df);
+}
+
+.check-out-button {
+  color: white;
+  background: #20a875;
+}
+
+.attendance-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  filter: brightness(0.96);
+}
+
+.attendance-button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   THÔNG BÁO
+======================================== */
+
+.attendance-alert {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 14px;
+  margin: 12px 0;
+  border-radius: 9px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.attendance-alert.error {
+  background: #fff0f0;
+  color: #dc3545;
+}
+
+.attendance-alert.success {
+  background: #eaf8f0;
+  color: #219e69;
+}
+
+.attendance-alert.warning {
+  background: #fff4e5;
+  color: #d88a2c;
+}
+
+/* ========================================
+   KHU VỰC LỊCH SỬ CHẤM CÔNG
+======================================== */
+
+.attendance-history-tools {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+/* Khung chọn tháng */
+
+.attendance-month-wrapper {
+  width: 210px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  transition: all 0.2s ease;
+}
+
+.attendance-month-wrapper:hover {
+  border-color: #93c5fd;
+}
+
+.attendance-month-wrapper:focus-within {
+  border-color: #3986e8;
+  box-shadow: 0 0 0 3px rgba(57, 134, 232, 0.12);
+}
+
+.attendance-month-icon {
+  flex-shrink: 0;
+  color: #3986e8;
+}
+
+/* Ô input tháng */
+
+.attendance-month-input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: #334155;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  color-scheme: light;
+}
+
+.attendance-month-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.65;
+  width: 16px;
+  height: 16px;
+}
+
+.attendance-month-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Nút làm mới */
+
+.attendance-refresh {
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #3986e8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.attendance-refresh:hover:not(:disabled) {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #2563eb;
+}
+
+.attendance-refresh:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.attendance-refresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   BẢNG LỊCH SỬ
+======================================== */
+
+.attendance-empty {
+  text-align: center;
+  padding: 30px !important;
+  color: #999eae;
+}
+
+.attendance-empty svg {
+  margin: 0 auto 8px;
+}
+
+.attendance-empty p {
+  margin: 0;
+}
+
+.attendance-late {
+  color: #d88a2c;
+  font-weight: 600;
+}
+
+.attendance-status {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 600;
+  background: #f1f2f6;
+  color: #858a9d;
+}
+
+.attendance-status.present {
+  color: #219e69;
+  background: #e8f8ef;
+}
+
+.attendance-status.working {
+  color: #4387ed;
+  background: #eaf1ff;
+}
+
+.attendance-status.late {
+  color: #d88a2c;
+  background: #fff4e5;
+}
+
+/* ========================================
+   LOADING
+======================================== */
+
+.attendance-loading {
+  text-align: center;
+  color: #9298aa;
+  font-size: 12px;
+  margin-top: 15px;
+}
+
+.attendance-spinner,
+.attendance-refresh-spinning {
+  animation: attendance-spin 1s linear infinite;
+}
+
+@keyframes attendance-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========================================
+   RESPONSIVE
+======================================== */
+
+@media (max-width: 600px) {
+  .attendance-time {
+    gap: 18px;
+  }
+
+  .attendance-time-box {
+    min-width: 100px;
+  }
+
+  .attendance-time-box h2 {
+    font-size: 27px;
+  }
+
+  .attendance-actions {
+    flex-direction: column;
+  }
+
+  .attendance-schedule-info {
+    flex-direction: column;
+  }
+
+  .attendance-history-tools {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .attendance-month-wrapper {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+}

@@ -1,0 +1,206 @@
+
+.ec-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(20, 28, 48, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+.ec-modal {
+  position: relative;
+  width: 100%;
+  max-width: 410px;
+  padding: 32px 27px 25px;
+  background: #fff;
+  border-radius: 18px;
+  text-align: center;
+  box-shadow: 0 20px 70px rgba(20, 30, 55, 0.18);
+  animation: ec-show 0.22s ease;
+}
+
+@keyframes ec-show {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.ec-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: #f5f6fa;
+  color: #8490a5;
+  cursor: pointer;
+}
+
+.ec-icon {
+  width: 65px;
+  height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 19px;
+  border-radius: 50%;
+}
+
+.ec-icon.danger {
+  color: #e34f5c;
+  background: #fff0f1;
+}
+
+.ec-icon.warning {
+  color: #d99a26;
+  background: #fff6e5;
+}
+
+.ec-modal h3 {
+  margin: 0 0 10px;
+  color: #202d46;
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.ec-modal p {
+  margin: 0;
+  color: #8490a5;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.ec-actions {
+  display: flex;
+  gap: 11px;
+  margin-top: 25px;
+}
+
+.ec-actions button {
+  flex: 1;
+  height: 43px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.ec-cancel {
+  background: #f5f6fa;
+  color: #66738b;
+  border: 1px solid #e8eaf0;
+}
+
+.ec-cancel:hover {
+  background: #eaecf2;
+}
+
+.ec-confirm {
+  border: none;
+  background: #6554e8;
+  color: #fff;
+}
+
+.ec-confirm:hover {
+  filter: brightness(.93);
+  transform: translateY(-1px);
+}
+
+.ec-confirm.danger-btn {
+  background: #e34f5c;
+}
+
+/* TOAST */
+
+.ec-toast {
+  position: fixed;
+  top: 25px;
+  right: 25px;
+  z-index: 10005;
+  width: min(390px, calc(100vw - 40px));
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 16px;
+  border: 1px solid #e9edf2;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 10px 35px rgba(25, 35, 55, .13);
+  animation: ec-toast-show .25s ease;
+  box-sizing: border-box;
+}
+
+@keyframes ec-toast-show {
+  from {
+    opacity: 0;
+    transform: translateX(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.ec-toast-success > svg {
+  color: #16a36a;
+  flex-shrink: 0;
+}
+
+.ec-toast-error > svg {
+  color: #e34f5c;
+  flex-shrink: 0;
+}
+
+.ec-toast-warning > svg {
+  color: #d99a26;
+  flex-shrink: 0;
+}
+
+.ec-toast > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.ec-toast strong {
+  display: block;
+  margin-bottom: 5px;
+  color: #26334b;
+  font-size: 13px;
+}
+
+.ec-toast span {
+  display: block;
+  color: #8490a5;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.ec-toast button {
+  border: none;
+  background: transparent;
+  color: #929caf;
+  cursor: pointer;
+}
+
+@media (max-width: 480px) {
+  .ec-toast {
+    top: 12px;
+    right: 12px;
+  }
+
+  .ec-modal {
+    padding: 28px 18px 20px;
+  }
+}

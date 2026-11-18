@@ -1,3 +1,4 @@
+
 import {
   LayoutDashboard,
   Clock,
@@ -8,6 +9,7 @@ import {
   LogOut,
   X,
   Building2,
+  KeyRound,
 } from "lucide-react";
 
 const menus = [
@@ -25,9 +27,33 @@ export default function EmployeeSidebar({
   open,
   setOpen,
   onLogout,
+  user,
 }) {
+  const employeeName = user?.name || "Nhân viên";
+  const employeeCode = user?.employeeCode || "Tài khoản nhân viên";
+
+  const avatar = employeeName
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(-2)
+    .map((word) => word.charAt(0).toUpperCase())
+    .join("");
+
+  const handleNavigate = (page) => {
+    setActivePage(page);
+    setOpen(false);
+  };
+
+  const handleLogout = () => {
+    if (typeof onLogout === "function") {
+      onLogout();
+    }
+  };
+
   return (
     <>
+      {/* OVERLAY MOBILE */}
       {open && (
         <div
           className="employee-overlay"
@@ -35,7 +61,9 @@ export default function EmployeeSidebar({
         />
       )}
 
+      {/* SIDEBAR */}
       <aside className={`employee-sidebar ${open ? "sidebar-open" : ""}`}>
+        {/* LOGO */}
         <div className="employee-brand">
           <div className="employee-brand-icon">
             <Building2 size={23} />
@@ -47,31 +75,33 @@ export default function EmployeeSidebar({
           </div>
 
           <button
+            type="button"
             className="sidebar-close"
             onClick={() => setOpen(false)}
+            aria-label="Đóng menu"
           >
             <X size={20} />
           </button>
         </div>
 
+        {/* TIÊU ĐỀ MENU */}
         <div className="employee-menu-label">
           MENU NHÂN VIÊN
         </div>
 
+        {/* DANH SÁCH MENU */}
         <nav className="employee-nav">
           {menus.map((item) => {
             const Icon = item.icon;
 
             return (
               <button
+                type="button"
                 key={item.id}
                 className={`employee-nav-item ${
                   activePage === item.id ? "active" : ""
                 }`}
-                onClick={() => {
-                  setActivePage(item.id);
-                  setOpen(false);
-                }}
+                onClick={() => handleNavigate(item.id)}
               >
                 <Icon size={19} />
                 <span>{item.label}</span>
@@ -80,17 +110,43 @@ export default function EmployeeSidebar({
           })}
         </nav>
 
+        {/* KHU VỰC TÀI KHOẢN */}
         <div className="employee-sidebar-bottom">
+          {/* THÔNG TIN NHÂN VIÊN */}
           <div className="employee-sidebar-user">
-            <div className="employee-avatar">AN</div>
+            <div className="employee-avatar">
+              {avatar || "NV"}
+            </div>
 
             <div className="employee-user-info">
-              <strong>Nguyễn Văn An</strong>
-              <span>Nhân viên</span>
+              <strong title={employeeName}>
+                {employeeName}
+              </strong>
+
+              <span title={employeeCode}>
+                {employeeCode}
+              </span>
             </div>
           </div>
 
-          <button className="employee-logout" onClick={onLogout}>
+          {/* ĐỔI MẬT KHẨU */}
+          <button
+            type="button"
+            className={`employee-logout employee-change-password ${
+              activePage === "changePassword" ? "active" : ""
+            }`}
+            onClick={() => handleNavigate("changePassword")}
+          >
+            <KeyRound size={18} />
+            <span>Đổi mật khẩu</span>
+          </button>
+
+          {/* ĐĂNG XUẤT */}
+          <button
+            type="button"
+            className="employee-logout"
+            onClick={handleLogout}
+          >
             <LogOut size={18} />
             <span>Đăng xuất</span>
           </button>
