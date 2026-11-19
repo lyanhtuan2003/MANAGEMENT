@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 
 import EmployeeSidebar from "../../components/employee/EmployeeSidebar";
 import EmployeeHeader from "../../components/employee/EmployeeHeader";
@@ -12,13 +12,18 @@ import MyProjects from "../../components/employee/MyProjects";
 import MyProfile from "../../components/employee/MyProfile";
 import ChangePassword from "../../components/employee/ChangePassword";
 
+// Trang quản lý thu chi dành riêng cho kế toán
+import AccountantCompanyFinance from "../../components/accountant/AccountantCompanyFinance";
+
 import "./EmployeeDashboard.css";
 
 // ========================================
 // TIÊU ĐỀ CÁC TRANG
 // ========================================
+
 const pageTitles = {
   overview: "Tổng quan",
+  finance: "Quản lý thu chi",
   attendance: "Chấm công",
   payroll: "Bảng lương",
   leave: "Xin nghỉ phép",
@@ -30,6 +35,7 @@ const pageTitles = {
 // ========================================
 // LẤY THÔNG TIN NGƯỜI DÙNG
 // ========================================
+
 const getStoredUser = () => {
   try {
     return JSON.parse(localStorage.getItem("user") || "{}");
@@ -40,18 +46,40 @@ const getStoredUser = () => {
 };
 
 // ========================================
-// EMPLOYEE DASHBOARD
+// LẤY VAI TRÒ
 // ========================================
-export default function EmployeeDashboard({ onLogout }) {
+
+const getStoredRole = () => {
+  const user = getStoredUser();
+
+  return (
+    localStorage.getItem("userRole") ||
+    user?.role ||
+    "employee"
+  );
+};
+
+// ========================================
+// EMPLOYEE / ACCOUNTANT DASHBOARD
+// ========================================
+
+export default function EmployeeDashboard({
+  onLogout,
+  role: roleProp,
+}) {
   const [activePage, setActivePage] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState(getStoredUser);
+
+  const role = roleProp || getStoredRole();
+  const isAccountant = role === "accountant";
 
   const mustChangePassword = Boolean(user?.mustChangePassword);
 
   // ========================================
   // ĐĂNG XUẤT
   // ========================================
+
   const handleLogout = useCallback(() => {
     if (typeof onLogout === "function") {
       onLogout();
@@ -74,12 +102,13 @@ export default function EmployeeDashboard({ onLogout }) {
       localStorage.removeItem(key);
     });
 
-    window.location.reload();
+    window.location.href = "/login";
   }, [onLogout]);
 
   // ========================================
-  // CẬP NHẬT THÔNG TIN SAU KHI ĐỔI MẬT KHẨU
+  // CẬP NHẬT SAU KHI ĐỔI MẬT KHẨU
   // ========================================
+
   const handlePasswordChanged = useCallback(
     (updatedUser) => {
       const nextUser = {
@@ -100,21 +129,40 @@ export default function EmployeeDashboard({ onLogout }) {
   // ========================================
   // CHUYỂN TRANG
   // ========================================
-  const handleChangePage = useCallback((page) => {
-    setActivePage(page);
-    setSidebarOpen(false);
-  }, []);
+
+  const handleChangePage = useCallback(
+    (page) => {
+      // Nhân viên không được mở trang thu chi
+      if (page === "finance" && role !== "accountant") {
+        return;
+      }
+
+      setActivePage(page);
+      setSidebarOpen(false);
+    },
+    [role]
+  );
 
   // ========================================
-  // MỞ TRANG DỰ ÁN TỪ THÔNG BÁO
+  // MỞ DỰ ÁN TỪ THÔNG BÁO
   // ========================================
+
   const handleOpenProjects = useCallback(() => {
     handleChangePage("projects");
   }, [handleChangePage]);
 
   // ========================================
-  // HIỂN THỊ NỘI DUNG TỪNG TRANG
+  // TIÊU ĐỀ THEO VAI TRÒ
   // ========================================
+
+  const currentTitle = useMemo(() => {
+    return pageTitles[activePage] || "Tổng quan";
+  }, [activePage]);
+
+  // ========================================
+  // HIỂN THỊ TỪNG TRANG
+  // ========================================
+
   const renderPage = () => {
     switch (activePage) {
       case "overview":
@@ -123,6 +171,17 @@ export default function EmployeeDashboard({ onLogout }) {
             setActivePage={handleChangePage}
           />
         );
+
+      case "finance":
+        if (!isAccountant) {
+          return (
+            <EmployeeOverview
+              setActivePage={handleChangePage}
+            />
+          );
+        }
+
+        return <AccountantCompanyFinance />;
 
       case "attendance":
         return <Attendance />;
@@ -159,8 +218,9 @@ export default function EmployeeDashboard({ onLogout }) {
   };
 
   // ========================================
-  // BẮT BUỘC ĐỔI MẬT KHẨU KHI ĐĂNG NHẬP
+  // BẮT BUỘC ĐỔI MẬT KHẨU
   // ========================================
+
   if (mustChangePassword) {
     return (
       <ChangePassword
@@ -175,9 +235,10 @@ export default function EmployeeDashboard({ onLogout }) {
   // ========================================
   // GIAO DIỆN CHÍNH
   // ========================================
+
   return (
     <div className="employee-app">
-      {/* SIDEBAR */}
+
       <EmployeeSidebar
         activePage={activePage}
         setActivePage={handleChangePage}
@@ -185,29 +246,28 @@ export default function EmployeeDashboard({ onLogout }) {
         setOpen={setSidebarOpen}
         onLogout={handleLogout}
         user={user}
+        role={role}
       />
 
-      {/* MAIN CONTENT */}
       <main className="employee-main">
-        {/* HEADER VÀ THÔNG BÁO */}
+
         <EmployeeHeader
           setOpen={setSidebarOpen}
-          title={pageTitles[activePage] || "Tổng quan"}
+          title={currentTitle}
           user={user}
           onOpenProjects={handleOpenProjects}
         />
 
-        {/* NỘI DUNG TRANG */}
         <div className="employee-content">
           {renderPage()}
         </div>
 
-        {/* FOOTER */}
         <footer className="employee-footer">
           <span>
             © 2026 Internal Management. All rights reserved.
           </span>
         </footer>
+
       </main>
     </div>
   );

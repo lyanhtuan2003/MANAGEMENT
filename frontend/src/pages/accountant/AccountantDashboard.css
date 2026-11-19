@@ -1,0 +1,386 @@
+
+.accountant-app {
+  min-height: 100vh;
+  display: flex;
+  background: #f5f7fb;
+  color: #26344d;
+  font-family: inherit;
+}
+
+.accountant-sidebar {
+  width: 235px;
+  height: 100vh;
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-right: 1px solid #e9edf4;
+  transition: transform 0.25s ease;
+}
+
+.accountant-brand {
+  min-height: 85px;
+  padding: 17px 14px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.accountant-brand-icon {
+  width: 43px;
+  height: 43px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: #3985ee;
+  color: #fff;
+}
+
+.accountant-brand h2 {
+  margin: 0 0 3px;
+  color: #25334c;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.accountant-brand span {
+  color: #8995aa;
+  font-size: 10px;
+}
+
+.accountant-close {
+  display: none;
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.accountant-menu-title {
+  padding: 25px 18px 13px;
+  color: #9aa5b8;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.accountant-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 0 8px;
+}
+
+.accountant-nav-item {
+  min-height: 45px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 0 12px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: #687894;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.accountant-nav-item:hover {
+  background: #f3f7ff;
+  color: #3985ee;
+}
+
+.accountant-nav-item.active {
+  background: #eaf2ff;
+  color: #3985ee;
+  font-weight: 700;
+}
+
+.accountant-sidebar-bottom {
+  margin-top: auto;
+  padding: 13px 10px 20px;
+  border-top: 1px solid #edf0f5;
+}
+
+.accountant-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 5px 15px;
+}
+
+.accountant-avatar {
+  width: 39px;
+  height: 39px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #eaf2ff;
+  color: #3985ee;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.accountant-user div:last-child {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.accountant-user strong {
+  overflow: hidden;
+  color: #334155;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.accountant-user span {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+.accountant-logout {
+  width: 100%;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #ef5350;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.accountant-logout:hover {
+  background: #fff1f0;
+}
+
+.accountant-main {
+  width: calc(100% - 235px);
+  min-height: 100vh;
+  margin-left: 235px;
+  display: flex;
+  flex-direction: column;
+}
+
+.accountant-content {
+  flex: 1;
+  padding: 25px 30px;
+  overflow-x: hidden;
+}
+
+.accountant-mobile-bar {
+  display: none;
+  min-height: 55px;
+  align-items: center;
+  gap: 12px;
+  padding: 0 15px;
+  background: #fff;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.accountant-mobile-bar button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: #334155;
+  cursor: pointer;
+}
+
+.accountant-mobile-bar strong {
+  font-size: 14px;
+}
+
+.accountant-footer {
+  padding: 16px 25px;
+  border-top: 1px solid #e9edf4;
+  color: #98a2b3;
+  text-align: center;
+  font-size: 11px;
+}
+
+/* OVERVIEW */
+
+.accountant-overview {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.accountant-welcome {
+  min-height: 190px;
+  padding: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-radius: 15px;
+  background: linear-gradient(120deg, #3985ee, #75b4f5);
+  color: #fff;
+}
+
+.accountant-welcome span {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  opacity: 0.85;
+}
+
+.accountant-welcome h2 {
+  margin: 12px 0 8px;
+  font-size: 25px;
+  font-weight: 750;
+}
+
+.accountant-welcome p {
+  max-width: 520px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  opacity: 0.9;
+}
+
+.accountant-welcome-icon {
+  width: 75px;
+  height: 75px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.accountant-shortcut {
+  padding: 23px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  border: 1px solid #e9edf4;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.accountant-shortcut h3 {
+  margin: 0 0 7px;
+  font-size: 16px;
+}
+
+.accountant-shortcut p {
+  margin: 0;
+  color: #8a95a8;
+  font-size: 12px;
+}
+
+.accountant-shortcut button {
+  min-height: 42px;
+  padding: 0 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: 8px;
+  background: #3985ee;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.accountant-shortcut button:hover {
+  background: #256bd0;
+}
+
+.accountant-overlay {
+  display: none;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 900px) {
+  .accountant-content {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 700px) {
+  .accountant-sidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+
+  .accountant-sidebar.show {
+    transform: translateX(0);
+    box-shadow: 10px 0 35px rgba(15, 23, 42, 0.15);
+  }
+
+  .accountant-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .accountant-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: block;
+    background: rgba(15, 23, 42, 0.4);
+  }
+
+  .accountant-main {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .accountant-mobile-bar {
+    display: flex;
+  }
+
+  .accountant-content {
+    padding: 15px;
+  }
+
+  .accountant-welcome {
+    min-height: 160px;
+    padding: 20px;
+  }
+
+  .accountant-welcome h2 {
+    font-size: 21px;
+  }
+
+  .accountant-welcome-icon {
+    width: 52px;
+    height: 52px;
+  }
+
+  .accountant-shortcut {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .accountant-shortcut button {
+    width: 100%;
+  }
+}

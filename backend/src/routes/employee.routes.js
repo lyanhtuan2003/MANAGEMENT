@@ -19,9 +19,17 @@ import {
 
 const router = express.Router();
 
-// Tất cả API yêu cầu đăng nhập và quyền quản lý
+// ======================================
+// XÁC THỰC VÀ PHÂN QUYỀN
+// Chỉ Manager được quản lý nhân viên
+// ======================================
+
 router.use(protect);
 router.use(authorize("manager"));
+
+// ======================================
+// QUẢN LÝ NHÂN VIÊN
+// ======================================
 
 // Tạo nhân viên
 router.post("/", createEmployee);
@@ -29,13 +37,13 @@ router.post("/", createEmployee);
 // Danh sách nhân viên
 router.get("/", getEmployees);
 
-// Cấp lại mật khẩu
+// Cấp lại mật khẩu nhân viên
 router.patch("/:id/reset-password", resetEmployeePassword);
 
-// Khóa tài khoản
+// Khóa tài khoản nhân viên
 router.patch("/:id/lock", lockEmployee);
 
-// Mở khóa tài khoản
+// Mở khóa tài khoản nhân viên
 router.patch("/:id/unlock", unlockEmployee);
 
 // Chi tiết nhân viên

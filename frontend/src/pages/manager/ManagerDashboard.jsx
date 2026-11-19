@@ -10,20 +10,37 @@ import ManagerProjects from "../../components/manager/ManagerProjects";
 import ManagerRewards from "../../components/manager/ManagerRewards";
 import ManagerAttendance from "../../components/manager/ManagerAttendance";
 import ManagerPayroll from "../../components/manager/ManagerPayroll";
+import ManagerCompanyFinance from "../../components/manager/ManagerCompanyFinance";
 
 import { initialProjects } from "../../data/managerData";
 
 import "./manager.css";
 
-const RAW_API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const API_BASE_URL = `${RAW_API_URL.replace(/\/+$/, "").replace(/\/api$/, "")}/api`;
+// ========================================
+// API CONFIG
+// ========================================
+
+const RAW_API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const API_BASE_URL = `${RAW_API_URL
+  .replace(/\/+$/, "")
+  .replace(/\/api$/, "")}/api`;
 
 const NOTIFICATION_KEY = "manager_notifications";
+
+// ========================================
+// TOKEN
+// ========================================
 
 const getToken = () =>
   localStorage.getItem("token") ||
   localStorage.getItem("authToken") ||
   localStorage.getItem("accessToken");
+
+// ========================================
+// LOCAL STORAGE
+// ========================================
 
 const readStorage = (key, fallback = []) => {
   try {
@@ -33,6 +50,10 @@ const readStorage = (key, fallback = []) => {
     return fallback;
   }
 };
+
+// ========================================
+// FORMAT DATE
+// ========================================
 
 const formatDate = (value) => {
   if (!value) return "";
@@ -46,23 +67,60 @@ const formatDate = (value) => {
   });
 };
 
+// ========================================
+// MANAGER DASHBOARD
+// ========================================
+
 export default function ManagerDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState("overview");
   const [open, setOpen] = useState(false);
+
+  // ======================================
+  // NHÂN VIÊN
+  // ======================================
 
   const [employees, setEmployees] = useState([]);
   const [employeesLoading, setEmployeesLoading] = useState(false);
   const [employeesError, setEmployeesError] = useState("");
 
+  // ======================================
+  // ĐƠN NGHỈ PHÉP
+  // ======================================
+
   const [requests, setRequests] = useState([]);
   const [leaveLoading, setLeaveLoading] = useState(false);
   const [leaveError, setLeaveError] = useState("");
 
+  // ======================================
+  // DỰ ÁN
+  // ======================================
+
   const [projects, setProjects] = useState(initialProjects);
+
+  // ======================================
+  // THÔNG BÁO
+  // ======================================
 
   const [notifications, setNotifications] = useState(() =>
     readStorage(NOTIFICATION_KEY, [])
   );
+
+  // ======================================
+  // ĐỔI TAB
+  // HỖ TRỢ CẢ finance VÀ company-finance
+  // ======================================
+
+  const handleChangeTab = useCallback((tab) => {
+    const normalizedTab =
+      tab === "finance" ? "company-finance" : tab;
+
+    setActiveTab(normalizedTab);
+    setOpen(false);
+  }, []);
+
+  // ======================================
+  // API: LẤY DANH SÁCH NHÂN VIÊN
+  // ======================================
 
   const fetchEmployees = useCallback(async () => {
     try {
@@ -71,7 +129,9 @@ export default function ManagerDashboard({ onLogout }) {
 
       const token = getToken();
 
-      if (!token) throw new Error("Không tìm thấy token đăng nhập.");
+      if (!token) {
+        throw new Error("Không tìm thấy token đăng nhập.");
+      }
 
       const response = await fetch(`${API_BASE_URL}/employees`, {
         headers: {
@@ -83,17 +143,29 @@ export default function ManagerDashboard({ onLogout }) {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.message || "Không thể tải nhân viên.");
+        throw new Error(
+          data.message || "Không thể tải danh sách nhân viên."
+        );
       }
 
-      setEmployees(Array.isArray(data.employees) ? data.employees : []);
+      setEmployees(
+        Array.isArray(data.employees)
+          ? data.employees
+          : Array.isArray(data.data)
+            ? data.data
+            : []
+      );
     } catch (error) {
-      console.error(error);
+      console.error("Lỗi tải nhân viên:", error);
       setEmployeesError(error.message);
     } finally {
       setEmployeesLoading(false);
     }
   }, []);
+
+  // ======================================
+  // API: LẤY ĐƠN NGHỈ PHÉP
+  // ======================================
 
   const fetchLeaveRequests = useCallback(async () => {
     try {
@@ -102,7 +174,9 @@ export default function ManagerDashboard({ onLogout }) {
 
       const token = getToken();
 
-      if (!token) throw new Error("Không tìm thấy token đăng nhập.");
+      if (!token) {
+        throw new Error("Không tìm thấy token đăng nhập.");
+      }
 
       const response = await fetch(`${API_BASE_URL}/leave/manager`, {
         headers: {
@@ -114,54 +188,106 @@ export default function ManagerDashboard({ onLogout }) {
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        throw new Error(data.message || "Không thể tải đơn nghỉ phép.");
+        throw new Error(
+          data.message || "Không thể tải đơn nghỉ phép."
+        );
       }
 
-      setRequests(Array.isArray(data.requests) ? data.requests : []);
+      setRequests(
+        Array.isArray(data.requests)
+          ? data.requests
+          : Array.isArray(data.data)
+            ? data.data
+            : []
+      );
     } catch (error) {
-      console.error(error);
+      console.error("Lỗi tải đơn nghỉ phép:", error);
       setLeaveError(error.message);
     } finally {
       setLeaveLoading(false);
     }
   }, []);
 
+  // ======================================
+  // LOAD DATA
+  // ======================================
+
   useEffect(() => {
     fetchEmployees();
     fetchLeaveRequests();
   }, [fetchEmployees, fetchLeaveRequests]);
+
+  // ======================================
+  // ĐỒNG BỘ THÔNG BÁO
+  // ======================================
 
   const syncNotifications = useCallback(() => {
     setNotifications(readStorage(NOTIFICATION_KEY, []));
   }, []);
 
   useEffect(() => {
-    const handleUpdate = () => syncNotifications();
+    const handleUpdate = () => {
+      syncNotifications();
+    };
 
     window.addEventListener("storage", handleUpdate);
-    window.addEventListener("manager-notifications-updated", handleUpdate);
-    window.addEventListener("manager-attendance-updated", handleUpdate);
+    window.addEventListener(
+      "manager-notifications-updated",
+      handleUpdate
+    );
+    window.addEventListener(
+      "manager-attendance-updated",
+      handleUpdate
+    );
 
     syncNotifications();
 
     return () => {
       window.removeEventListener("storage", handleUpdate);
-      window.removeEventListener("manager-notifications-updated", handleUpdate);
-      window.removeEventListener("manager-attendance-updated", handleUpdate);
+      window.removeEventListener(
+        "manager-notifications-updated",
+        handleUpdate
+      );
+      window.removeEventListener(
+        "manager-attendance-updated",
+        handleUpdate
+      );
     };
   }, [syncNotifications]);
 
+  // ======================================
+  // LƯU THÔNG BÁO
+  // ======================================
+
   const saveNotifications = useCallback((updated) => {
-    localStorage.setItem(NOTIFICATION_KEY, JSON.stringify(updated));
+    localStorage.setItem(
+      NOTIFICATION_KEY,
+      JSON.stringify(updated)
+    );
+
     setNotifications(updated);
-    window.dispatchEvent(new Event("manager-notifications-updated"));
+
+    window.dispatchEvent(
+      new Event("manager-notifications-updated")
+    );
   }, []);
+
+  // ======================================
+  // ĐÁNH DẤU TẤT CẢ ĐÃ ĐỌC
+  // ======================================
 
   const markAllNotificationsRead = useCallback(() => {
     saveNotifications(
-      notifications.map((item) => ({ ...item, read: true }))
+      notifications.map((item) => ({
+        ...item,
+        read: true,
+      }))
     );
   }, [notifications, saveNotifications]);
+
+  // ======================================
+  // CLICK THÔNG BÁO
+  // ======================================
 
   const handleNotificationClick = useCallback(
     (notification) => {
@@ -169,31 +295,53 @@ export default function ManagerDashboard({ onLogout }) {
 
       saveNotifications(
         notifications.map((item) =>
-          item.id === notification.id ? { ...item, read: true } : item
+          item.id === notification.id
+            ? { ...item, read: true }
+            : item
         )
       );
 
       switch (notification.type) {
         case "leave_request":
-          setActiveTab("leaves");
+          handleChangeTab("leaves");
           fetchLeaveRequests();
           break;
 
         case "attendance":
         case "attendance_update":
-          setActiveTab("attendance");
+          handleChangeTab("attendance");
+          break;
+
+        case "company-finance":
+        case "finance":
+          handleChangeTab("company-finance");
           break;
 
         default:
           break;
       }
     },
-    [notifications, saveNotifications, fetchLeaveRequests]
+    [
+      notifications,
+      saveNotifications,
+      fetchLeaveRequests,
+      handleChangeTab,
+    ]
   );
 
+  // ======================================
+  // ĐĂNG XUẤT
+  // ======================================
+
   const handleLogout = useCallback(() => {
-    if (typeof onLogout === "function") onLogout();
+    if (typeof onLogout === "function") {
+      onLogout();
+    }
   }, [onLogout]);
+
+  // ======================================
+  // ĐƠN NGHỈ ĐANG CHỜ
+  // ======================================
 
   const pendingRequests = requests.filter(
     (request) =>
@@ -201,13 +349,9 @@ export default function ManagerDashboard({ onLogout }) {
       request.status === "Chờ duyệt"
   );
 
-  const today = new Date().toLocaleDateString("vi-VN", {
-    weekday: "long",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    timeZone: "Asia/Ho_Chi_Minh",
-  });
+  // ======================================
+  // TIÊU ĐỀ
+  // ======================================
 
   const titles = {
     overview: "Tổng quan hệ thống",
@@ -217,13 +361,19 @@ export default function ManagerDashboard({ onLogout }) {
     leaves: "Quản lý đơn nghỉ phép",
     projects: "Quản lý dự án",
     rewards: "Quản lý thưởng và phạt",
+    "company-finance": "Quản lý thu chi công ty",
+    finance: "Quản lý thu chi công ty",
   };
+
+  // ======================================
+  // GIAO DIỆN
+  // ======================================
 
   return (
     <div className="manager-layout">
       <ManagerSidebar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={handleChangeTab}
         open={open}
         setOpen={setOpen}
         onLogout={handleLogout}
@@ -238,12 +388,17 @@ export default function ManagerDashboard({ onLogout }) {
         />
 
         <div className="manager-content">
+          {/* ==================================
+              TỔNG QUAN
+          ================================== */}
 
           {activeTab === "overview" && (
             <>
               <ManagerStats />
 
               <div className="overview-grid">
+                {/* ĐƠN NGHỈ CHỜ DUYỆT */}
+
                 <div className="manager-panel">
                   <div className="panel-heading">
                     <div>
@@ -255,7 +410,7 @@ export default function ManagerDashboard({ onLogout }) {
                       type="button"
                       className="text-btn"
                       onClick={() => {
-                        setActiveTab("leaves");
+                        handleChangeTab("leaves");
                         fetchLeaveRequests();
                       }}
                     >
@@ -264,11 +419,17 @@ export default function ManagerDashboard({ onLogout }) {
                   </div>
 
                   {leaveLoading ? (
-                    <div className="empty-state">Đang tải đơn nghỉ phép...</div>
+                    <div className="empty-state">
+                      Đang tải đơn nghỉ phép...
+                    </div>
                   ) : leaveError ? (
-                    <div className="empty-state">{leaveError}</div>
+                    <div className="empty-state">
+                      {leaveError}
+                    </div>
                   ) : pendingRequests.length === 0 ? (
-                    <div className="empty-state">Không có đơn chờ duyệt</div>
+                    <div className="empty-state">
+                      Không có đơn chờ duyệt
+                    </div>
                   ) : (
                     pendingRequests.slice(0, 4).map((request) => (
                       <div
@@ -276,23 +437,35 @@ export default function ManagerDashboard({ onLogout }) {
                         key={request._id || request.id}
                       >
                         <div className="avatar">
-                          {(request.employeeName || request.employee || "N").charAt(0)}
+                          {(
+                            request.employeeName ||
+                            request.employee ||
+                            "N"
+                          ).charAt(0)}
                         </div>
 
                         <div className="overview-leave-info">
                           <strong>
-                            {request.employeeName || request.employee || "Nhân viên"}
+                            {request.employeeName ||
+                              request.employee ||
+                              "Nhân viên"}
                           </strong>
+
                           <span>
-                            {request.type} · {formatDate(request.from)}
+                            {request.type} ·{" "}
+                            {formatDate(request.from)}
                           </span>
                         </div>
 
-                        <span className="status-badge pending">Chờ duyệt</span>
+                        <span className="status-badge pending">
+                          Chờ duyệt
+                        </span>
                       </div>
                     ))
                   )}
                 </div>
+
+                {/* TIẾN ĐỘ DỰ ÁN */}
 
                 <div className="manager-panel">
                   <div className="panel-heading">
@@ -304,14 +477,17 @@ export default function ManagerDashboard({ onLogout }) {
                     <button
                       type="button"
                       className="text-btn"
-                      onClick={() => setActiveTab("projects")}
+                      onClick={() => handleChangeTab("projects")}
                     >
                       Xem tất cả
                     </button>
                   </div>
 
                   {projects.slice(0, 4).map((project) => (
-                    <div className="overview-project" key={project.id}>
+                    <div
+                      className="overview-project"
+                      key={project.id}
+                    >
                       <div className="overview-project-heading">
                         <strong>{project.name}</strong>
                         <span>{project.progress}%</span>
@@ -320,13 +496,17 @@ export default function ManagerDashboard({ onLogout }) {
                       <div className="progress-track">
                         <div
                           className="progress-fill"
-                          style={{ width: `${project.progress}%` }}
+                          style={{
+                            width: `${project.progress}%`,
+                          }}
                         />
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
+
+              {/* NHÂN VIÊN MỚI NHẤT */}
 
               <div className="manager-panel">
                 {employeesLoading && (
@@ -336,7 +516,9 @@ export default function ManagerDashboard({ onLogout }) {
                 )}
 
                 {employeesError && (
-                  <p className="manager-data-error">{employeesError}</p>
+                  <p className="manager-data-error">
+                    {employeesError}
+                  </p>
                 )}
 
                 <div className="panel-heading">
@@ -348,7 +530,7 @@ export default function ManagerDashboard({ onLogout }) {
                   <button
                     type="button"
                     className="text-btn"
-                    onClick={() => setActiveTab("employees")}
+                    onClick={() => handleChangeTab("employees")}
                   >
                     Quản lý nhân viên
                   </button>
@@ -380,15 +562,23 @@ export default function ManagerDashboard({ onLogout }) {
                                 <div className="avatar">
                                   {(emp.name || "N").charAt(0)}
                                 </div>
+
                                 <div>
                                   <strong>{emp.name}</strong>
-                                  <small>{emp.employeeCode || "Chưa có mã"}</small>
+                                  <small>
+                                    {emp.employeeCode || "Chưa có mã"}
+                                  </small>
                                 </div>
                               </div>
                             </td>
 
-                            <td>{emp.department || "Chưa cập nhật"}</td>
-                            <td>{emp.position || "Chưa cập nhật"}</td>
+                            <td>
+                              {emp.department || "Chưa cập nhật"}
+                            </td>
+
+                            <td>
+                              {emp.position || "Chưa cập nhật"}
+                            </td>
 
                             <td>
                               <span
@@ -404,7 +594,9 @@ export default function ManagerDashboard({ onLogout }) {
                                   working: "Đang làm việc",
                                   probation: "Thử việc",
                                   resigned: "Đã nghỉ việc",
-                                }[emp.status] || emp.status || "Chưa xác định"}
+                                }[emp.status] ||
+                                  emp.status ||
+                                  "Chưa xác định"}
                               </span>
                             </td>
                           </tr>
@@ -417,6 +609,10 @@ export default function ManagerDashboard({ onLogout }) {
             </>
           )}
 
+          {/* ==================================
+              QUẢN LÝ NHÂN VIÊN
+          ================================== */}
+
           {activeTab === "employees" && (
             <ManagerEmployees
               employees={employees}
@@ -427,11 +623,23 @@ export default function ManagerDashboard({ onLogout }) {
             />
           )}
 
+          {/* ==================================
+              CHẤM CÔNG
+          ================================== */}
+
           {activeTab === "attendance" && (
             <ManagerAttendance employees={employees} />
           )}
 
+          {/* ==================================
+              BẢNG LƯƠNG
+          ================================== */}
+
           {activeTab === "payroll" && <ManagerPayroll />}
+
+          {/* ==================================
+              DUYỆT NGHỈ PHÉP
+          ================================== */}
 
           {activeTab === "leaves" && (
             <ManagerLeaveRequests
@@ -442,6 +650,10 @@ export default function ManagerDashboard({ onLogout }) {
             />
           )}
 
+          {/* ==================================
+              DỰ ÁN
+          ================================== */}
+
           {activeTab === "projects" && (
             <ManagerProjects
               projects={projects}
@@ -449,8 +661,22 @@ export default function ManagerDashboard({ onLogout }) {
             />
           )}
 
+          {/* ==================================
+              THƯỞNG VÀ PHẠT
+          ================================== */}
+
           {activeTab === "rewards" && (
             <ManagerRewards employees={employees} />
+          )}
+
+          {/* ==================================
+              QUẢN LÝ THU CHI
+              DÙNG CHUNG COMPONENT VỚI KẾ TOÁN
+          ================================== */}
+
+          {(activeTab === "company-finance" ||
+            activeTab === "finance") && (
+            <ManagerCompanyFinance />
           )}
         </div>
       </main>

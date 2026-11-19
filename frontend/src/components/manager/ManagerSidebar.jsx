@@ -10,6 +10,7 @@ import {
   LogOut,
   Clock,
   Wallet,
+  ArrowLeftRight,
 } from "lucide-react";
 
 // ========================================
@@ -52,6 +53,11 @@ const menus = [
     label: "Thưởng & phạt",
     icon: Gift,
   },
+  {
+    id: "company-finance",
+    label: "Quản lý thu chi",
+    icon: ArrowLeftRight,
+  },
 ];
 
 // ========================================
@@ -64,10 +70,21 @@ export default function ManagerSidebar({
   open,
   setOpen,
   onLogout,
+  user,
 }) {
-  // ======================================
+  const managerName = user?.name || "Quản trị viên";
+
+  const avatar = managerName
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(-2)
+    .map((word) => word.charAt(0).toUpperCase())
+    .join("");
+
+  // ========================================
   // ĐĂNG XUẤT
-  // ======================================
+  // ========================================
 
   const handleLogout = () => {
     if (typeof onLogout === "function") {
@@ -76,32 +93,41 @@ export default function ManagerSidebar({
     }
 
     const confirmed = window.confirm(
-      "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản Sếp?"
+      "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản quản lý?"
     );
 
-    if (confirmed) {
-      localStorage.removeItem("token");
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
-      localStorage.removeItem("userRole");
+    if (!confirmed) return;
 
-      window.location.href = "/login";
+    [
+      "token",
+      "authToken",
+      "accessToken",
+      "user",
+      "userRole",
+    ].forEach((key) => {
+      localStorage.removeItem(key);
+    });
+
+    window.location.reload();
+  };
+
+  // ========================================
+  // CHUYỂN TAB
+  // ========================================
+
+  const handleNavigate = (id) => {
+    if (typeof setActiveTab === "function") {
+      setActiveTab(id);
+    }
+
+    if (typeof setOpen === "function") {
+      setOpen(false);
     }
   };
 
-  // ======================================
-  // CHUYỂN TAB
-  // ======================================
-
-  const handleNavigate = (id) => {
-    setActiveTab(id);
-    setOpen(false);
-  };
-
-  // ======================================
+  // ========================================
   // GIAO DIỆN
-  // ======================================
+  // ========================================
 
   return (
     <>
@@ -128,7 +154,6 @@ export default function ManagerSidebar({
             <span>Management System</span>
           </div>
 
-          {/* ĐÓNG MENU MOBILE */}
           <button
             type="button"
             className="sidebar-close"
@@ -139,7 +164,7 @@ export default function ManagerSidebar({
           </button>
         </div>
 
-        {/* TIÊU ĐỀ */}
+        {/* TIÊU ĐỀ MENU */}
         <div className="sidebar-section">
           QUẢN LÝ
         </div>
@@ -148,7 +173,11 @@ export default function ManagerSidebar({
         <nav className="manager-nav">
           {menus.map((item) => {
             const Icon = item.icon;
-            const isActive = activeTab === item.id;
+
+            const isActive =
+              activeTab === item.id ||
+              (item.id === "company-finance" &&
+                activeTab === "finance");
 
             return (
               <button
@@ -161,7 +190,6 @@ export default function ManagerSidebar({
                 aria-current={isActive ? "page" : undefined}
               >
                 <Icon size={19} />
-
                 <span>{item.label}</span>
               </button>
             );
@@ -170,14 +198,13 @@ export default function ManagerSidebar({
 
         {/* KHU VỰC TÀI KHOẢN */}
         <div className="sidebar-bottom">
-          {/* PROFILE */}
           <div className="manager-profile-mini">
             <div className="avatar">
-              S
+              {avatar || "S"}
             </div>
 
             <div className="profile-info">
-              <strong>Quản trị viên</strong>
+              <strong>{managerName}</strong>
               <span>Quản lý hệ thống</span>
             </div>
           </div>
@@ -187,10 +214,9 @@ export default function ManagerSidebar({
             type="button"
             className="manager-logout-btn"
             onClick={handleLogout}
-            title="Đăng xuất tài khoản Sếp"
+            title="Đăng xuất tài khoản quản lý"
           >
             <LogOut size={18} />
-
             <span>Đăng xuất</span>
           </button>
         </div>

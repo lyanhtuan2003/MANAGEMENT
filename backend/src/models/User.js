@@ -32,9 +32,10 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
 
+    // Vai trò người dùng
     role: {
       type: String,
-      enum: ["manager", "employee"],
+      enum: ["manager", "accountant", "employee"],
       default: "employee",
     },
 
@@ -86,19 +87,28 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Tự động mã hóa mật khẩu trước khi lưu
+// ======================================
+// MÃ HÓA MẬT KHẨU
+// ======================================
+
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
 
   this.password = await bcrypt.hash(this.password, 12);
 });
 
-// Kiểm tra mật khẩu
+// ======================================
+// KIỂM TRA MẬT KHẨU
+// ======================================
+
 userSchema.methods.comparePassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
 
-// Sinh mã nhân viên
+// ======================================
+// SINH MÃ NHÂN VIÊN
+// ======================================
+
 userSchema.statics.generateEmployeeCode = async function () {
   let employeeCode;
   let exists = true;
@@ -113,7 +123,10 @@ userSchema.statics.generateEmployeeCode = async function () {
   return employeeCode;
 };
 
-// Sinh mật khẩu tạm
+// ======================================
+// SINH MẬT KHẨU TẠM
+// ======================================
+
 userSchema.statics.generateTemporaryPassword = function () {
   return crypto.randomBytes(12).toString("base64url");
 };

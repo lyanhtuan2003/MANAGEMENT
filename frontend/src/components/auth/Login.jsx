@@ -12,14 +12,44 @@ import {
   ShieldCheck,
   Sparkles,
   LoaderCircle,
+  Wallet,
 } from "lucide-react";
 
 import "./Login.css";
 
-// API Backend
-const API_URL = (
-  import.meta.env.VITE_API_URL || "http://localhost:5000"
-).replace(/\/+$/, "");
+// ========================================
+// API BACKEND
+// ========================================
+
+const RAW_API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const API_URL = `${RAW_API_URL
+  .replace(/\/+$/, "")
+  .replace(/\/api$/, "")}/api`;
+
+// ========================================
+// CÁC VAI TRÒ HỢP LỆ
+// ========================================
+
+const ROLES = {
+  employee: {
+    label: "Nhân viên",
+    error: "Đây không phải tài khoản nhân viên.",
+  },
+  manager: {
+    label: "Quản lý",
+    error: "Tài khoản này không có quyền quản lý.",
+  },
+  accountant: {
+    label: "Kế toán",
+    error: "Đây không phải tài khoản kế toán.",
+  },
+};
+
+// ========================================
+// LOGIN
+// ========================================
 
 export default function Login({ onLogin }) {
   const [role, setRole] = useState("employee");
@@ -31,7 +61,19 @@ export default function Login({ onLogin }) {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // XỬ LÝ ĐĂNG NHẬP
+  // ========================================
+  // CHỌN VAI TRÒ
+  // ========================================
+
+  const handleSelectRole = (selectedRole) => {
+    setRole(selectedRole);
+    setError("");
+  };
+
+  // ========================================
+  // ĐĂNG NHẬP
+  // ========================================
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -49,7 +91,7 @@ export default function Login({ onLogin }) {
     try {
       setLoading(true);
 
-      const response = await fetch(`${API_URL}/api/auth/login`, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -60,7 +102,7 @@ export default function Login({ onLogin }) {
         }),
       });
 
-      // Đọc dữ liệu từ Backend
+      // Đọc dữ liệu backend
       let data;
 
       try {
@@ -69,7 +111,7 @@ export default function Login({ onLogin }) {
         throw new Error("Máy chủ trả về dữ liệu không hợp lệ.");
       }
 
-      // Kiểm tra đăng nhập
+      // Kiểm tra kết quả đăng nhập
       if (!response.ok || !data.success) {
         throw new Error(
           data.message || "Email hoặc mật khẩu không chính xác."
@@ -78,62 +120,102 @@ export default function Login({ onLogin }) {
 
       // Kiểm tra token
       if (!data.token) {
-        throw new Error("Không nhận được mã xác thực từ máy chủ.");
-      }
-
-      // Kiểm tra user
-      if (!data.user || !data.user.id || !data.user.role) {
-        throw new Error("Thông tin tài khoản không hợp lệ.");
-      }
-
-      // Kiểm tra vai trò
-      if (data.user.role !== role) {
         throw new Error(
-          role === "manager"
-            ? "Tài khoản này không có quyền quản lý."
-            : "Đây không phải tài khoản nhân viên."
+          "Không nhận được mã xác thực từ máy chủ."
         );
       }
 
-      // Kiểm tra trạng thái tài khoản
-      if (
-        data.user.isActive === false ||
-        data.user.status === "resigned"
-      ) {
-        throw new Error("Tài khoản của bạn đã bị khóa hoặc ngừng hoạt động.");
+      // Kiểm tra thông tin người dùng
+      if (!data.user || !data.user.role) {
+        throw new Error(
+          "Thông tin tài khoản không hợp lệ."
+        );
       }
 
-      // Xóa thông tin đăng nhập cũ
-      localStorage.removeItem("token");
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("accessToken");
-      localStorage.removeItem("user");
-      localStorage.removeItem("userRole");
+      // Kiểm tra ID người dùng
+      if (!data.user.id && !data.user._id) {
+        throw new Error(
+          "Tài khoản không có mã định danh hợp lệ."
+        );
+      }
 
-      // LƯU JWT
+      // ========================================
+      // KIỂM TRA VAI TRÒ
+      // ========================================
+
+      const actualRole = data.user.role;
+
+      if (!ROLES[actualRole]) {
+        throw new Error(
+          "Vai trò tài khoản không được hệ thống hỗ trợ."
+        );
+      }
+
+      if (actualRole !== role) {
+        throw new Error(ROLES[role].error);
+      }
+
+      // ========================================
+      // KIỂM TRA TRẠNG THÁI TÀI KHOẢN
+      // ========================================
+
+      if (
+        data.user.isActive === false ||
+        data.user.status === "resigned" ||
+        data.user.status === "locked"
+      ) {
+        throw new Error(
+          "Tài khoản của bạn đã bị khóa hoặc ngừng hoạt động."
+        );
+      }
+
+      // ========================================
+      // XÓA PHIÊN ĐĂNG NHẬP CŨ
+      // ========================================
+
+      [
+        "token",
+        "authToken",
+        "accessToken",
+        "user",
+        "userRole",
+      ].forEach((key) => {
+        localStorage.removeItem(key);
+      });
+
+      // ========================================
+      // LƯU TOKEN
+      // ========================================
+
       localStorage.setItem("token", data.token);
-
-      // Tương thích component cũ
       localStorage.setItem("authToken", data.token);
 
-      // Lưu thông tin người dùng
+      // ========================================
+      // LƯU THÔNG TIN NGƯỜI DÙNG
+      // ========================================
+
       localStorage.setItem(
         "user",
         JSON.stringify(data.user)
       );
 
-      // Lưu vai trò
-      localStorage.setItem(
-        "userRole",
-        data.user.role
-      );
+      // ========================================
+      // LƯU VAI TRÒ
+      // ========================================
 
-      // Chuyển vào Dashboard
-      if (typeof onLogin === "function") {
-        onLogin(data.user.role, data.user);
-      } else {
-        throw new Error("Không thể khởi tạo phiên đăng nhập.");
+      localStorage.setItem("userRole", actualRole);
+
+      // ========================================
+      // CHUYỂN VÀO DASHBOARD
+      // ========================================
+
+      if (typeof onLogin !== "function") {
+        throw new Error(
+          "Không thể khởi tạo phiên đăng nhập."
+        );
       }
+
+      onLogin(actualRole, data.user);
 
     } catch (err) {
       console.error("Login error:", err);
@@ -149,13 +231,21 @@ export default function Login({ onLogin }) {
     }
   };
 
+  // ========================================
+  // GIAO DIỆN
+  // ========================================
+
   return (
     <main className="login-page">
 
-      {/* BÊN TRÁI */}
+      {/* ==================================
+          BÊN TRÁI
+      ================================== */}
+
       <section className="login-left">
 
         <div className="login-brand">
+
           <div className="brand-icon">
             <BriefcaseBusiness size={25} />
           </div>
@@ -163,6 +253,7 @@ export default function Login({ onLogin }) {
           <span>
             INTERNAL<span className="brand-highlight">.</span>
           </span>
+
         </div>
 
         <div className="login-intro">
@@ -201,6 +292,7 @@ export default function Login({ onLogin }) {
             </div>
 
           </div>
+
         </div>
 
         <div className="login-left-footer">
@@ -209,13 +301,18 @@ export default function Login({ onLogin }) {
 
       </section>
 
-      {/* BÊN PHẢI */}
+      {/* ==================================
+          BÊN PHẢI
+      ================================== */}
+
       <section className="login-right">
 
         <div className="login-form-wrapper">
 
           {/* LOGO MOBILE */}
+
           <div className="mobile-brand">
+
             <div className="brand-icon">
               <BriefcaseBusiness size={22} />
             </div>
@@ -223,9 +320,11 @@ export default function Login({ onLogin }) {
             <strong>
               INTERNAL<span>.</span>
             </strong>
+
           </div>
 
           {/* TIÊU ĐỀ */}
+
           <div className="form-heading">
 
             <span>WELCOME BACK</span>
@@ -240,7 +339,10 @@ export default function Login({ onLogin }) {
 
           <form onSubmit={handleSubmit}>
 
-            {/* CHỌN VAI TRÒ */}
+            {/* ==================================
+                CHỌN VAI TRÒ
+            ================================== */}
+
             <label className="form-label">
               Chọn vai trò đăng nhập
             </label>
@@ -248,15 +350,13 @@ export default function Login({ onLogin }) {
             <div className="role-options">
 
               {/* NHÂN VIÊN */}
+
               <button
                 type="button"
                 className={`role-option ${
                   role === "employee" ? "active" : ""
                 }`}
-                onClick={() => {
-                  setRole("employee");
-                  setError("");
-                }}
+                onClick={() => handleSelectRole("employee")}
                 disabled={loading}
               >
 
@@ -276,15 +376,13 @@ export default function Login({ onLogin }) {
               </button>
 
               {/* QUẢN LÝ */}
+
               <button
                 type="button"
                 className={`role-option ${
                   role === "manager" ? "active" : ""
                 }`}
-                onClick={() => {
-                  setRole("manager");
-                  setError("");
-                }}
+                onClick={() => handleSelectRole("manager")}
                 disabled={loading}
               >
 
@@ -303,9 +401,38 @@ export default function Login({ onLogin }) {
 
               </button>
 
+              {/* KẾ TOÁN */}
+
+              <button
+                type="button"
+                className={`role-option ${
+                  role === "accountant" ? "active" : ""
+                }`}
+                onClick={() => handleSelectRole("accountant")}
+                disabled={loading}
+              >
+
+                <div className="role-icon accountant-icon">
+                  <Wallet size={21} />
+                </div>
+
+                <div>
+                  <strong>Kế toán</strong>
+                  <small>Accountant</small>
+                </div>
+
+                <span className="role-radio">
+                  {role === "accountant" && <i />}
+                </span>
+
+              </button>
+
             </div>
 
-            {/* EMAIL */}
+            {/* ==================================
+                EMAIL
+            ================================== */}
+
             <label
               className="form-label"
               htmlFor="login-email"
@@ -333,7 +460,10 @@ export default function Login({ onLogin }) {
 
             </div>
 
-            {/* MẬT KHẨU */}
+            {/* ==================================
+                MẬT KHẨU
+            ================================== */}
+
             <label
               className="form-label"
               htmlFor="login-password"
@@ -381,7 +511,10 @@ export default function Login({ onLogin }) {
 
             </div>
 
-            {/* THÔNG BÁO LỖI */}
+            {/* ==================================
+                THÔNG BÁO LỖI
+            ================================== */}
+
             {error && (
               <div
                 className="login-error"
@@ -392,7 +525,10 @@ export default function Login({ onLogin }) {
               </div>
             )}
 
-            {/* NÚT ĐĂNG NHẬP */}
+            {/* ==================================
+                NÚT ĐĂNG NHẬP
+            ================================== */}
+
             <button
               type="submit"
               className="login-submit"
@@ -419,12 +555,15 @@ export default function Login({ onLogin }) {
           </form>
 
           {/* BẢO MẬT */}
+
           <div className="login-security">
+
             <ShieldCheck size={17} />
 
             <span>
               Hệ thống quản lý nội bộ an toàn
             </span>
+
           </div>
 
         </div>

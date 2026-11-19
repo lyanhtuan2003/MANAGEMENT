@@ -9,22 +9,74 @@ import EmployeeDashboard from "./pages/employee/EmployeeDashboard";
 
 import "./App.css";
 
-function App() {
-  const [role, setRole] = useState(
-    () => localStorage.getItem("userRole") || ""
-  );
+// ========================================
+// CÁC VAI TRÒ HỢP LỆ
+// ========================================
 
+const VALID_ROLES = [
+  "manager",
+  "accountant",
+  "employee",
+];
+
+// ========================================
+// LẤY VAI TRÒ ĐÃ LƯU
+// ========================================
+
+const getStoredRole = () => {
+  const savedRole = localStorage.getItem("userRole") || "";
+
+  return VALID_ROLES.includes(savedRole)
+    ? savedRole
+    : "";
+};
+
+// ========================================
+// XÓA THÔNG TIN ĐĂNG NHẬP
+// ========================================
+
+const clearAuthData = () => {
+  [
+    "token",
+    "authToken",
+    "accessToken",
+    "user",
+    "userRole",
+  ].forEach((key) => {
+    localStorage.removeItem(key);
+  });
+};
+
+// ========================================
+// APP
+// ========================================
+
+function App() {
+  const [role, setRole] = useState(getStoredRole);
+
+  // ========================================
   // ĐĂNG NHẬP
-  const handleLogin = useCallback((selectedRole) => {
-    if (!["manager", "employee"].includes(selectedRole)) {
+  // ========================================
+
+  const handleLogin = useCallback((selectedRole, user) => {
+    if (!VALID_ROLES.includes(selectedRole)) {
+      console.error("Vai trò đăng nhập không hợp lệ:", selectedRole);
       return;
     }
 
     localStorage.setItem("userRole", selectedRole);
+
+    if (user) {
+      localStorage.setItem("user", JSON.stringify(user));
+    }
+
     setRole(selectedRole);
   }, []);
 
-  // ĐĂNG XUẤT CHUNG CHO TOÀN HỆ THỐNG
+  // ========================================
+  // ĐĂNG XUẤT CÓ XÁC NHẬN
+  // ========================================
+
   const handleLogout = useCallback(() => {
     const confirmed = window.confirm(
       "Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?"
@@ -32,51 +84,60 @@ function App() {
 
     if (!confirmed) return;
 
-    const keys = [
-      "token",
-      "authToken",
-      "accessToken",
-      "user",
-      "userRole",
-    ];
-
-    keys.forEach((key) => localStorage.removeItem(key));
-
+    clearAuthData();
     setRole("");
   }, []);
 
-  const isValidRole = ["manager", "employee"].includes(role);
+  // ========================================
+  // PHIÊN HẾT HẠN
+  // ========================================
+
+  const handleSessionExpired = useCallback(() => {
+    clearAuthData();
+    setRole("");
+  }, []);
+
+  // ========================================
+  // KIỂM TRA VAI TRÒ
+  // ========================================
+
+  const isValidRole = VALID_ROLES.includes(role);
+
+  // ========================================
+  // CHƯA ĐĂNG NHẬP
+  // ========================================
 
   if (!isValidRole) {
     return <Login onLogin={handleLogin} />;
   }
 
+  // ========================================
+  // ĐÃ ĐĂNG NHẬP
+  // ========================================
+
   return (
     <div className="authenticated-app">
+
       <EmployeeSessionGuard
         role={role}
-        onLogout={() => {
-          // Tài khoản bị khóa hoặc phiên không còn hợp lệ:
-          // đăng xuất ngay, không cần xác nhận.
-          [
-            "token",
-            "authToken",
-            "accessToken",
-            "user",
-            "userRole",
-          ].forEach((key) => localStorage.removeItem(key));
-
-          setRole("");
-        }}
+        onLogout={handleSessionExpired}
       />
 
+      {/* QUẢN LÝ */}
       {role === "manager" && (
-        <ManagerDashboard onLogout={handleLogout} />
+        <ManagerDashboard
+          onLogout={handleLogout}
+        />
       )}
 
-      {role === "employee" && (
-        <EmployeeDashboard onLogout={handleLogout} />
+      {/* NHÂN VIÊN VÀ KẾ TOÁN DÙNG CHUNG GIAO DIỆN */}
+      {(role === "employee" || role === "accountant") && (
+        <EmployeeDashboard
+          role={role}
+          onLogout={handleLogout}
+        />
       )}
+
     </div>
   );
 }

@@ -395,3 +395,13 @@
     font-size: 11px;
   }
 }
+
+.accountant-icon {
+  background: #e9f2ff;
+  color: #3985ee;
+}
+
+.role-option:has(.accountant-icon).active {
+  border-color: #3985ee;
+  background: #f1f7ff;
+}
