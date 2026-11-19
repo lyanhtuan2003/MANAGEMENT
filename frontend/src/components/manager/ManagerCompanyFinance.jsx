@@ -1,6 +1,4 @@
-
 import { useState, useEffect, useCallback } from "react";
-
 import {
   Wallet,
   TrendingUp,
@@ -22,20 +20,18 @@ import {
 // ========================================
 // API CONFIG
 // ========================================
-
 const RAW_API_URL =
   import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const API_BASE_URL = `${RAW_API_URL
   .replace(/\/+$/, "")
-  .replace(/\/api$/, "")}/api`;
+  .replace(/\/api$/i, "")}/api`;
 
 const TRANSACTION_API = `${API_BASE_URL}/company-transactions`;
 
 // ========================================
 // LẤY TOKEN
 // ========================================
-
 const getToken = () =>
   localStorage.getItem("token") ||
   localStorage.getItem("authToken") ||
@@ -44,7 +40,6 @@ const getToken = () =>
 // ========================================
 // FORMAT TIỀN
 // ========================================
-
 const formatMoney = (amount) => {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
@@ -56,7 +51,6 @@ const formatMoney = (amount) => {
 // ========================================
 // FORMAT NGÀY GIỜ
 // ========================================
-
 const formatDateTime = (value) => {
   if (!value) return "--";
 
@@ -77,10 +71,8 @@ const formatDateTime = (value) => {
 // ========================================
 // LẤY NGÀY HIỆN TẠI CHO INPUT
 // ========================================
-
 const getLocalDateTime = () => {
   const date = new Date();
-
   const offset = date.getTimezoneOffset() * 60000;
 
   return new Date(date.getTime() - offset)
@@ -91,7 +83,6 @@ const getLocalDateTime = () => {
 // ========================================
 // LẤY TÊN NGƯỜI TẠO
 // ========================================
-
 const getCreatorName = (transaction) => {
   if (transaction.createdBy?.name) {
     return transaction.createdBy.name;
@@ -107,12 +98,10 @@ const getCreatorName = (transaction) => {
 // ========================================
 // COMPONENT
 // ========================================
-
 export default function ManagerCompanyFinance() {
   // ======================================
   // STATE
   // ======================================
-
   const [transactions, setTransactions] = useState([]);
 
   const [summary, setSummary] = useState({
@@ -146,7 +135,6 @@ export default function ManagerCompanyFinance() {
   // ======================================
   // HEADERS
   // ======================================
-
   const getHeaders = useCallback(() => {
     const token = getToken();
 
@@ -165,33 +153,34 @@ export default function ManagerCompanyFinance() {
   // ======================================
   // TẠO QUERY
   // ======================================
+  const buildQuery = useCallback(
+    (includeSearch = true) => {
+      const params = new URLSearchParams();
 
-  const buildQuery = useCallback((includeSearch = true) => {
-    const params = new URLSearchParams();
+      if (fromDate) {
+        params.append("from", fromDate);
+      }
 
-    if (fromDate) {
-      params.append("from", fromDate);
-    }
+      if (toDate) {
+        params.append("to", toDate);
+      }
 
-    if (toDate) {
-      params.append("to", toDate);
-    }
+      if (includeSearch && typeFilter) {
+        params.append("type", typeFilter);
+      }
 
-    if (includeSearch && typeFilter) {
-      params.append("type", typeFilter);
-    }
+      if (includeSearch && search.trim()) {
+        params.append("search", search.trim());
+      }
 
-    if (includeSearch && search.trim()) {
-      params.append("search", search.trim());
-    }
-
-    return params.toString();
-  }, [fromDate, toDate, typeFilter, search]);
+      return params.toString();
+    },
+    [fromDate, toDate, typeFilter, search]
+  );
 
   // ======================================
   // LẤY LỊCH SỬ GIAO DỊCH
   // ======================================
-
   const fetchTransactions = useCallback(async () => {
     const query = buildQuery(true);
 
@@ -219,7 +208,6 @@ export default function ManagerCompanyFinance() {
   // ======================================
   // LẤY TỔNG THU, TỔNG CHI, SỐ DƯ
   // ======================================
-
   const fetchSummary = useCallback(async () => {
     const query = buildQuery(false);
 
@@ -251,7 +239,6 @@ export default function ManagerCompanyFinance() {
   // ======================================
   // TẢI TOÀN BỘ DỮ LIỆU
   // ======================================
-
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
@@ -263,7 +250,10 @@ export default function ManagerCompanyFinance() {
       ]);
     } catch (err) {
       console.error("Lỗi tải dữ liệu tài chính:", err);
-      setError(err.message || "Không thể tải dữ liệu tài chính.");
+
+      setError(
+        err.message || "Không thể tải dữ liệu tài chính."
+      );
     } finally {
       setLoading(false);
     }
@@ -272,7 +262,6 @@ export default function ManagerCompanyFinance() {
   // ======================================
   // TỰ ĐỘNG TẢI LẠI KHI LỌC
   // ======================================
-
   useEffect(() => {
     loadData();
   }, [loadData]);
@@ -280,7 +269,6 @@ export default function ManagerCompanyFinance() {
   // ======================================
   // MỞ MODAL THÊM GIAO DỊCH
   // ======================================
-
   const openCreateModal = () => {
     setEditingId(null);
 
@@ -299,10 +287,8 @@ export default function ManagerCompanyFinance() {
   // ======================================
   // MỞ MODAL SỬA GIAO DỊCH
   // ======================================
-
   const openEditModal = (transaction) => {
     const date = new Date(transaction.transactionDate);
-
     const offset = date.getTimezoneOffset() * 60000;
 
     setEditingId(transaction._id);
@@ -324,7 +310,6 @@ export default function ManagerCompanyFinance() {
   // ======================================
   // ĐÓNG MODAL
   // ======================================
-
   const closeModal = () => {
     if (saving) return;
 
@@ -335,7 +320,6 @@ export default function ManagerCompanyFinance() {
   // ======================================
   // THAY ĐỔI FORM
   // ======================================
-
   const handleFormChange = (event) => {
     const { name, value } = event.target;
 
@@ -348,7 +332,6 @@ export default function ManagerCompanyFinance() {
   // ======================================
   // THÊM / CẬP NHẬT GIAO DỊCH
   // ======================================
-
   const handleSubmit = async (event) => {
     event.preventDefault();
 
@@ -414,7 +397,10 @@ export default function ManagerCompanyFinance() {
       await loadData();
     } catch (err) {
       console.error("Lỗi lưu giao dịch:", err);
-      setError(err.message || "Có lỗi xảy ra khi lưu giao dịch.");
+
+      setError(
+        err.message || "Có lỗi xảy ra khi lưu giao dịch."
+      );
     } finally {
       setSaving(false);
     }
@@ -423,13 +409,17 @@ export default function ManagerCompanyFinance() {
   // ======================================
   // RENDER
   // ======================================
-
   return (
     <div className="company-finance">
       <style>{`
         .company-finance {
           width: 100%;
+          max-width: 100%;
+          min-width: 0;
+          min-height: 100%;
+          padding: 24px 24px 36px;
           color: #25324b;
+          box-sizing: border-box;
         }
 
         .company-finance * {
@@ -600,7 +590,10 @@ export default function ManagerCompanyFinance() {
 
         .cf-filters {
           display: grid;
-          grid-template-columns: minmax(180px, 1.7fr) minmax(145px, .7fr) repeat(2, minmax(135px, .6fr));
+          grid-template-columns:
+            minmax(180px, 1.7fr)
+            minmax(145px, .7fr)
+            repeat(2, minmax(135px, .6fr));
           gap: 10px;
           margin-bottom: 18px;
         }
@@ -838,12 +831,20 @@ export default function ManagerCompanyFinance() {
         }
 
         @media (max-width: 900px) {
+          .company-finance {
+            padding: 22px 20px 32px;
+          }
+
           .cf-filters {
             grid-template-columns: repeat(2, minmax(0, 1fr));
           }
         }
 
         @media (max-width: 650px) {
+          .company-finance {
+            padding: 18px 14px 28px;
+          }
+
           .cf-stats {
             grid-template-columns: 1fr;
           }
@@ -873,7 +874,6 @@ export default function ManagerCompanyFinance() {
       {/* ==================================
           TIÊU ĐỀ
       ================================== */}
-
       <div className="cf-heading">
         <div>
           <h2>Quản lý thu chi công ty</h2>
@@ -907,7 +907,6 @@ export default function ManagerCompanyFinance() {
       {/* ==================================
           THÔNG BÁO
       ================================== */}
-
       {error && !modalOpen && (
         <div className="cf-message cf-error">
           <AlertCircle size={17} />
@@ -919,6 +918,7 @@ export default function ManagerCompanyFinance() {
         <div className="cf-message cf-success">
           <AlertCircle size={17} />
           {success}
+
           <button
             type="button"
             onClick={() => setSuccess("")}
@@ -937,7 +937,6 @@ export default function ManagerCompanyFinance() {
       {/* ==================================
           THỐNG KÊ
       ================================== */}
-
       <div className="cf-stats">
         <div className="cf-stat">
           <div className="cf-stat-icon income">
@@ -946,9 +945,11 @@ export default function ManagerCompanyFinance() {
 
           <div>
             <div className="cf-stat-label">Tổng thu</div>
+
             <div className="cf-stat-value">
               {formatMoney(summary.totalIncome)}
             </div>
+
             <div className="cf-stat-note">
               {summary.incomeCount} khoản thu
             </div>
@@ -962,9 +963,11 @@ export default function ManagerCompanyFinance() {
 
           <div>
             <div className="cf-stat-label">Tổng chi</div>
+
             <div className="cf-stat-value">
               {formatMoney(summary.totalExpense)}
             </div>
+
             <div className="cf-stat-note">
               {summary.expenseCount} khoản chi
             </div>
@@ -978,9 +981,11 @@ export default function ManagerCompanyFinance() {
 
           <div>
             <div className="cf-stat-label">Số dư</div>
+
             <div className="cf-stat-value">
               {formatMoney(summary.balance)}
             </div>
+
             <div className="cf-stat-note">
               Tổng thu trừ tổng chi
             </div>
@@ -991,7 +996,6 @@ export default function ManagerCompanyFinance() {
       {/* ==================================
           LỊCH SỬ GIAO DỊCH
       ================================== */}
-
       <div className="cf-card">
         <div className="cf-card-heading">
           <div>
@@ -1007,7 +1011,6 @@ export default function ManagerCompanyFinance() {
         </div>
 
         {/* BỘ LỌC */}
-
         <div className="cf-filters">
           <div className="cf-input-wrap">
             <Search size={17} />
@@ -1055,7 +1058,6 @@ export default function ManagerCompanyFinance() {
         </div>
 
         {/* BẢNG DỮ LIỆU */}
-
         {loading ? (
           <div className="cf-loading">
             <LoaderCircle size={20} />
@@ -1160,6 +1162,7 @@ export default function ManagerCompanyFinance() {
           }}
         >
           <AlertCircle size={15} />
+
           Giao dịch không thể xóa. Bạn chỉ có thể chỉnh sửa nếu cần điều chỉnh thông tin.
         </div>
       </div>
@@ -1167,7 +1170,6 @@ export default function ManagerCompanyFinance() {
       {/* ==================================
           MODAL THÊM / SỬA GIAO DỊCH
       ================================== */}
-
       {modalOpen && (
         <div
           className="cf-modal-overlay"
@@ -1185,7 +1187,9 @@ export default function ManagerCompanyFinance() {
           >
             <div className="cf-modal-heading">
               <h3 id="cf-modal-title">
-                {editingId ? "Chỉnh sửa giao dịch" : "Tạo giao dịch mới"}
+                {editingId
+                  ? "Chỉnh sửa giao dịch"
+                  : "Tạo giao dịch mới"}
               </h3>
 
               <button
@@ -1288,7 +1292,9 @@ export default function ManagerCompanyFinance() {
                   ) : (
                     <>
                       <Save size={16} />
-                      {editingId ? "Lưu thay đổi" : "Tạo giao dịch"}
+                      {editingId
+                        ? "Lưu thay đổi"
+                        : "Tạo giao dịch"}
                     </>
                   )}
                 </button>

@@ -32,26 +32,29 @@ const userSchema = new mongoose.Schema(
       select: false,
     },
 
-    // Vai trò người dùng
     role: {
       type: String,
       enum: ["manager", "accountant", "employee"],
       default: "employee",
+      index: true,
     },
 
     position: {
       type: String,
       default: "",
+      trim: true,
     },
 
     department: {
       type: String,
       default: "",
+      trim: true,
     },
 
     phone: {
       type: String,
       default: "",
+      trim: true,
     },
 
     avatar: {
@@ -69,14 +72,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["working", "probation", "resigned"],
       default: "working",
+      index: true,
     },
 
     isActive: {
       type: Boolean,
       default: true,
+      index: true,
     },
 
-    // Bắt buộc đổi mật khẩu khi đăng nhập
     mustChangePassword: {
       type: Boolean,
       default: false,
@@ -107,20 +111,19 @@ userSchema.methods.comparePassword = async function (password) {
 
 // ======================================
 // SINH MÃ NHÂN VIÊN
+// Dùng chung cho nhân viên và kế toán
 // ======================================
 
 userSchema.statics.generateEmployeeCode = async function () {
-  let employeeCode;
-  let exists = true;
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const employeeCode = `NV${crypto.randomInt(100000, 1000000)}`;
 
-  while (exists) {
-    const randomNumber = crypto.randomInt(100000, 999999);
-    employeeCode = `NV${randomNumber}`;
+    const exists = await this.exists({ employeeCode });
 
-    exists = await this.exists({ employeeCode });
+    if (!exists) return employeeCode;
   }
 
-  return employeeCode;
+  throw new Error("Không thể tạo mã nhân viên duy nhất.");
 };
 
 // ======================================

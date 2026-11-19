@@ -12,20 +12,26 @@ import {
 import {
   protect,
   authorize,
+  authorizeEmployee,
 } from "../middleware/auth.js";
 
 const router = express.Router();
 
+// ======================================
 // TẤT CẢ API DỰ ÁN ĐỀU YÊU CẦU ĐĂNG NHẬP
+// ======================================
+
 router.use(protect);
 
 // ======================================
-// NHÂN VIÊN: XEM DỰ ÁN CỦA MÌNH
+// NHÂN VIÊN VÀ KẾ TOÁN
+// XEM DỰ ÁN ĐƯỢC PHÂN CÔNG CHO MÌNH
 // GET /api/projects/me
 // ======================================
+
 router.get(
   "/me",
-  authorize("employee"),
+  authorizeEmployee,
   getMyProjects
 );
 
@@ -33,6 +39,7 @@ router.get(
 // QUẢN LÝ: XEM DANH SÁCH DỰ ÁN
 // GET /api/projects/manager
 // ======================================
+
 router.get(
   "/manager",
   authorize("manager"),
@@ -43,6 +50,7 @@ router.get(
 // QUẢN LÝ: TẠO DỰ ÁN
 // POST /api/projects/manager
 // ======================================
+
 router.post(
   "/manager",
   authorize("manager"),
@@ -53,6 +61,7 @@ router.post(
 // QUẢN LÝ: CẬP NHẬT DỰ ÁN
 // PUT /api/projects/manager/:id
 // ======================================
+
 router.put(
   "/manager/:id",
   authorize("manager"),
@@ -63,6 +72,7 @@ router.put(
 // QUẢN LÝ: XÓA DỰ ÁN
 // DELETE /api/projects/manager/:id
 // ======================================
+
 router.delete(
   "/manager/:id",
   authorize("manager"),

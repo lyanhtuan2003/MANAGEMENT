@@ -1,6 +1,8 @@
+
 import Attendance from "../models/Attendance.js";
 import AttendanceSetting from "../models/AttendanceSetting.js";
 import User from "../models/User.js";
+import Notification from "../models/Notification.js";
 
 const TIME_ZONE = "Asia/Ho_Chi_Minh";
 
@@ -9,7 +11,12 @@ const DEFAULT_SCHEDULE = {
   endTime: "17:30",
 };
 
+const STAFF_ROLES = ["employee", "accountant"];
+
+// =====================================================
 // LẤY NGÀY GIỜ VIỆT NAM
+// =====================================================
+
 const getVietnamDateTime = () => {
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: TIME_ZONE,
@@ -37,7 +44,10 @@ const getVietnamDateTime = () => {
   };
 };
 
-// CHUYỂN GIỜ HH:mm THÀNH PHÚT
+// =====================================================
+// CHUYỂN HH:mm THÀNH PHÚT
+// =====================================================
+
 const toMinutes = (time) => {
   if (
     typeof time !== "string" ||
@@ -55,7 +65,10 @@ const toMinutes = (time) => {
   return hour * 60 + minute;
 };
 
+// =====================================================
 // TÍNH ĐI MUỘN
+// =====================================================
+
 const calculateLate = (checkIn, startTime) => {
   const actual = toMinutes(checkIn);
   const expected = toMinutes(startTime);
@@ -67,7 +80,10 @@ const calculateLate = (checkIn, startTime) => {
   return Math.max(0, actual - expected);
 };
 
+// =====================================================
 // TÍNH VỀ SỚM
+// =====================================================
+
 const calculateEarlyLeave = (checkOut, endTime) => {
   const actual = toMinutes(checkOut);
   const expected = toMinutes(endTime);
@@ -79,7 +95,10 @@ const calculateEarlyLeave = (checkOut, endTime) => {
   return Math.max(0, expected - actual);
 };
 
-// LẤY LỊCH LÀM VIỆC
+// =====================================================
+// LẤY LỊCH LÀM VIỆC HIỆN TẠI
+// =====================================================
+
 const getSchedule = async () => {
   let setting = await AttendanceSetting.findOne({
     key: "workSchedule",
@@ -108,11 +127,17 @@ const getSchedule = async () => {
   };
 };
 
+// =====================================================
 // KIỂM TRA THÁNG
+// =====================================================
+
 const validMonth = (month) =>
   /^\d{4}-(0[1-9]|1[0-2])$/.test(month || "");
 
-// DỮ LIỆU NHÂN VIÊN LƯU VÀO BẢN GHI
+// =====================================================
+// LƯU THÔNG TIN NHÂN VIÊN VÀO BẢN GHI
+// =====================================================
+
 const employeeSnapshot = (user) => ({
   employeeId: user._id,
   employeeCode: user.employeeCode || "",
@@ -120,19 +145,26 @@ const employeeSnapshot = (user) => ({
   department: user.department || "",
 });
 
-// KIỂM TRA TÀI KHOẢN NHÂN VIÊN
+// =====================================================
+// KIỂM TRA NHÂN VIÊN VÀ KẾ TOÁN CÓ ĐƯỢC CHẤM CÔNG
+// =====================================================
+
 const ensureEmployeeCanAttend = (user, res) => {
-  if (!user || user.role !== "employee") {
+  const role = String(user?.role || "")
+    .trim()
+    .toLowerCase();
+
+  if (!user || !STAFF_ROLES.includes(role)) {
     res.status(403).json({
       success: false,
       message:
-        "Chỉ nhân viên mới được sử dụng chức năng chấm công.",
+        "Chỉ nhân viên và kế toán mới được sử dụng chức năng chấm công.",
     });
 
     return false;
   }
 
-  if (!user.isActive || user.status === "resigned") {
+  if (user.isActive === false || user.status === "resigned") {
     res.status(403).json({
       success: false,
       message:
@@ -146,7 +178,7 @@ const ensureEmployeeCanAttend = (user, res) => {
 };
 
 // =====================================================
-// 1. NHÂN VIÊN LẤY DỮ LIỆU CHẤM CÔNG
+// 1. NHÂN VIÊN VÀ KẾ TOÁN LẤY DỮ LIỆU CHẤM CÔNG
 // GET /api/attendance/me
 // =====================================================
 
@@ -199,7 +231,7 @@ export const getMyAttendance = async (req, res) => {
 };
 
 // =====================================================
-// 2. NHÂN VIÊN CHẤM CÔNG VÀO
+// 2. NHÂN VIÊN VÀ KẾ TOÁN CHẤM CÔNG VÀO
 // POST /api/attendance/check-in
 // =====================================================
 
@@ -208,7 +240,6 @@ export const checkIn = async (req, res) => {
     if (!ensureEmployeeCanAttend(req.user, res)) return;
 
     const now = getVietnamDateTime();
-
     const schedule = await getSchedule();
 
     let record = await Attendance.findOne({
@@ -249,12 +280,10 @@ export const checkIn = async (req, res) => {
 
     return res.status(201).json({
       success: true,
-
       message:
         lateMinutes > 0
           ? `Chấm công vào thành công. Bạn đi muộn ${lateMinutes} phút.`
           : "Chấm công vào thành công.",
-
       record,
     });
   } catch (error) {
@@ -275,7 +304,7 @@ export const checkIn = async (req, res) => {
 };
 
 // =====================================================
-// 3. NHÂN VIÊN CHẤM CÔNG RA
+// 3. NHÂN VIÊN VÀ KẾ TOÁN CHẤM CÔNG RA
 // PATCH /api/attendance/check-out
 // =====================================================
 
@@ -318,12 +347,10 @@ export const checkOut = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-
       message:
         record.earlyLeaveMinutes > 0
           ? `Chấm công ra thành công. Bạn về sớm ${record.earlyLeaveMinutes} phút.`
           : "Chấm công ra thành công.",
-
       record,
     });
   } catch (error) {
@@ -359,10 +386,12 @@ export const getManagerAttendance = async (req, res) => {
       getSchedule(),
 
       User.find({
-        role: "employee",
+        role: {
+          $in: STAFF_ROLES,
+        },
       })
         .select(
-          "name email employeeCode department position status isActive"
+          "name email employeeCode department position status isActive role"
         )
         .sort({ name: 1 }),
 
@@ -382,14 +411,14 @@ export const getManagerAttendance = async (req, res) => {
       position: employee.position || "",
       status: employee.status,
       isActive: employee.isActive,
+      role: employee.role,
     }));
 
+    // Sử dụng số phút đã lưu trong MongoDB.
+    // Không tính lại theo lịch làm việc hiện tại.
+
     const lateRecords = records.filter(
-      (record) =>
-        calculateLate(
-          record.checkIn,
-          schedule.startTime
-        ) > 0
+      (record) => Number(record.lateMinutes || 0) > 0
     );
 
     const summary = {
@@ -401,13 +430,9 @@ export const getManagerAttendance = async (req, res) => {
 
       lateCount: lateRecords.length,
 
-      lateMinutes: lateRecords.reduce(
+      lateMinutes: records.reduce(
         (sum, record) =>
-          sum +
-          calculateLate(
-            record.checkIn,
-            schedule.startTime
-          ),
+          sum + Number(record.lateMinutes || 0),
         0
       ),
     };
@@ -425,8 +450,7 @@ export const getManagerAttendance = async (req, res) => {
 
     return res.status(500).json({
       success: false,
-      message:
-        "Không thể tải dữ liệu quản lý chấm công.",
+      message: "Không thể tải dữ liệu quản lý chấm công.",
     });
   }
 };
@@ -454,10 +478,11 @@ export const updateSchedule = async (req, res) => {
     if (end <= start) {
       return res.status(400).json({
         success: false,
-        message:
-          "Giờ kết thúc phải sau giờ bắt đầu.",
+        message: "Giờ kết thúc phải sau giờ bắt đầu.",
       });
     }
+
+    // Lưu lịch làm việc mới
 
     const setting = await AttendanceSetting.findOneAndUpdate(
       {
@@ -468,7 +493,6 @@ export const updateSchedule = async (req, res) => {
           startTime,
           endTime,
         },
-
         $setOnInsert: {
           key: "workSchedule",
         },
@@ -481,15 +505,66 @@ export const updateSchedule = async (req, res) => {
       }
     );
 
+    const newSchedule = {
+      startTime: setting.startTime,
+      endTime: setting.endTime,
+    };
+
+    // Gửi thông báo cho nhân viên và kế toán đang hoạt động
+
+    let notificationSent = false;
+    let notificationCount = 0;
+
+    try {
+      const employees = await User.find({
+        role: {
+          $in: STAFF_ROLES,
+        },
+        isActive: true,
+        status: {
+          $ne: "resigned",
+        },
+      }).select("_id");
+
+      if (employees.length > 0) {
+        const notifications = employees.map((employee) => ({
+          recipient: employee._id,
+          type: "work_schedule_updated",
+          title: "Thông báo thay đổi giờ làm việc",
+          message:
+            `Quản lý đã cập nhật khung giờ làm việc mới: ` +
+            `${newSchedule.startTime} - ${newSchedule.endTime}. ` +
+            `Khung giờ mới được áp dụng cho các lượt chấm công phát sinh sau khi cập nhật. ` +
+            `Lịch sử chấm công trước đó được giữ nguyên.`,
+          isRead: false,
+        }));
+
+        const inserted = await Notification.insertMany(
+          notifications,
+          {
+            ordered: false,
+          }
+        );
+
+        notificationCount = inserted.length;
+      }
+
+      notificationSent = true;
+    } catch (notificationError) {
+      console.error(
+        "Send attendance schedule notifications error:",
+        notificationError
+      );
+    }
+
     return res.status(200).json({
       success: true,
-      message:
-        "Cập nhật thời gian làm việc thành công.",
-
-      schedule: {
-        startTime: setting.startTime,
-        endTime: setting.endTime,
-      },
+      notificationSent,
+      notificationCount,
+      message: notificationSent
+        ? "Cập nhật giờ làm việc thành công. Đã gửi thông báo cho nhân viên và kế toán."
+        : "Đã cập nhật giờ làm việc nhưng chưa gửi được thông báo.",
+      schedule: newSchedule,
     });
   } catch (error) {
     console.error("Update schedule error:", error);

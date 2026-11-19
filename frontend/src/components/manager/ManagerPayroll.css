@@ -405,3 +405,442 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ========================================
+   MANAGER PAYROLL
+======================================== */
+
+.manager-payroll-page {
+  min-width: 0;
+  width: 100%;
+}
+
+.manager-payroll-count {
+  padding: 7px 12px;
+  border-radius: 20px;
+  background: #edf3ff;
+  color: #2864ed;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.manager-payroll-table {
+  min-width: 1450px;
+}
+
+.manager-money-basic {
+  color: #263653;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.manager-money-total {
+  color: #2563eb;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.manager-payroll-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.manager-payroll-status.paid {
+  color: #11985a;
+  background: #e9f8ef;
+}
+
+.manager-payroll-status.draft {
+  color: #d18a17;
+  background: #fff5df;
+}
+
+.manager-payroll-status.not-created {
+  color: #64748b;
+  background: #f1f5f9;
+}
+
+.manager-payroll-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 16px;
+  padding: 12px;
+  background: #f7f9fd;
+  border-radius: 9px;
+  color: #75839c;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.manager-payroll-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.manager-payroll-detail-info {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.manager-payroll-detail-info > div {
+  min-width: 0;
+  padding: 13px;
+  background: #f7f9fc;
+  border-radius: 9px;
+}
+
+.manager-payroll-detail-info span {
+  display: block;
+  margin-bottom: 7px;
+  color: #8491a6;
+  font-size: 12px;
+}
+
+.manager-payroll-detail-info strong {
+  display: block;
+  color: #263653;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.manager-payroll-detail h4 {
+  margin: 20px 0 12px;
+  color: #263653;
+  font-size: 14px;
+}
+
+.manager-payroll-breakdown {
+  padding: 5px 14px;
+  border: 1px solid #e8edf5;
+  border-radius: 10px;
+}
+
+.manager-payroll-breakdown > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  padding: 13px 0;
+  border-bottom: 1px solid #edf0f5;
+  font-size: 13px;
+}
+
+.manager-payroll-breakdown > div:last-child {
+  border-bottom: none;
+}
+
+.manager-payroll-breakdown span {
+  color: #75839c;
+}
+
+.manager-payroll-breakdown strong {
+  color: #263653;
+  white-space: nowrap;
+}
+
+.manager-payroll-breakdown .manager-payroll-final {
+  margin-top: 5px;
+  padding: 16px 0;
+}
+
+.manager-payroll-final span {
+  color: #263653;
+  font-weight: 750;
+}
+
+.manager-payroll-final strong {
+  color: #2563eb;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.manager-payroll-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #edf0f5;
+}
+
+.manager-payroll-modal-footer > span {
+  color: #8491a6;
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+  .manager-payroll-detail-info {
+    grid-template-columns: 1fr;
+  }
+
+  .manager-payroll-modal-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .manager-payroll-modal-footer button {
+    width: 100%;
+  }
+}
+
+/* =========================================
+   PAYROLL ACTION BUTTONS
+========================================= */
+
+.manager-create-payroll-button,
+.manager-payroll-pay-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 11px;
+  border: none;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.manager-create-payroll-button:hover,
+.manager-payroll-pay-button:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.manager-create-payroll-button:disabled,
+.manager-payroll-pay-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.manager-success-message {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 15px;
+  margin: 12px 0;
+  color: #087a45;
+  background: #eafaf1;
+  border: 1px solid #b8ebcf;
+  border-radius: 9px;
+  font-size: 14px;
+}
+
+.manager-payroll-table {
+  min-width: 1250px;
+}
+
+.manager-payroll-table th,
+.manager-payroll-table td {
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .manager-create-payroll-button,
+  .manager-payroll-pay-button {
+    padding: 7px 9px;
+    font-size: 11px;
+  }
+}
+
+/* Custom payroll payment confirmation */
+.manager-payment-confirm-backdrop {
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(4px);
+  animation: payrollFadeIn 0.18s ease-out;
+}
+
+.manager-payment-confirm {
+  position: relative;
+  width: min(100%, 440px);
+  padding: 30px;
+  border: 1px solid #eceaf4;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(20, 18, 45, 0.22);
+  animation: payrollModalIn 0.22s ease-out;
+}
+
+.manager-payment-confirm-icon {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 19px;
+  color: #6541c8;
+  background: #f0ebff;
+  border-radius: 16px;
+}
+
+.manager-payment-confirm-close {
+  position: absolute;
+  top: 17px;
+  right: 17px;
+}
+
+.manager-payment-confirm h3 {
+  margin: 0 34px 9px 0;
+  color: #19162b;
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -0.35px;
+}
+
+.manager-payment-confirm-description {
+  margin: 0;
+  color: #667085;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.manager-payment-confirm-description strong {
+  color: #29243b;
+  font-weight: 700;
+}
+
+.manager-payment-confirm-summary {
+  display: grid;
+  gap: 13px;
+  margin: 22px 0 15px;
+  padding: 17px;
+  border: 1px solid #eeeaf7;
+  border-radius: 14px;
+  background: #faf9fd;
+}
+
+.manager-payment-confirm-summary > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: #667085;
+  font-size: 13px;
+}
+
+.manager-payment-confirm-summary strong {
+  color: #29243b;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: right;
+}
+
+.manager-payment-confirm-summary .manager-payment-confirm-total {
+  margin-top: 3px;
+  padding-top: 13px;
+  border-top: 1px solid #e9e5f1;
+}
+
+.manager-payment-confirm-summary .manager-payment-confirm-total strong {
+  color: #5b35bd;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.manager-payment-confirm-note {
+  margin: 0 0 23px;
+  color: #858196;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.manager-payment-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.manager-payment-confirm-actions button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  border-radius: 11px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+
+.manager-payment-confirm-actions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.manager-payment-confirm-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.manager-payment-cancel {
+  color: #555064;
+  border: 1px solid #e5e1ed;
+  background: #fff;
+}
+
+.manager-payment-cancel:hover:not(:disabled) {
+  background: #f7f6fa;
+}
+
+.manager-payment-submit {
+  color: #fff;
+  border: 1px solid #6240c4;
+  background: #6240c4;
+  box-shadow: 0 5px 13px rgba(98, 64, 196, 0.2);
+}
+
+.manager-payment-submit:hover:not(:disabled) {
+  background: #5030ad;
+  box-shadow: 0 7px 17px rgba(98, 64, 196, 0.27);
+}
+
+@keyframes payrollFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes payrollModalIn {
+  from { opacity: 0; transform: translateY(9px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (max-width: 480px) {
+  .manager-payment-confirm {
+    padding: 24px 20px 20px;
+    border-radius: 17px;
+  }
+
+  .manager-payment-confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .manager-payment-confirm-actions button {
+    width: 100%;
+  }
+}
+
+
+/* Ensure the payment confirmation is a standalone fixed overlay */
+.manager-payment-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+}

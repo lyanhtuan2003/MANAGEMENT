@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import {
   Bell,
@@ -15,11 +14,16 @@ export default function ManagerHeader({
   notifications = [],
   onMarkAllRead,
   onNotificationClick,
+  user,
 }) {
   const [showNotifications, setShowNotifications] = useState(false);
 
+  const isRead = (item) => {
+    return item.isRead ?? item.read ?? false;
+  };
+
   const unreadCount = notifications.filter(
-    (item) => !item.read
+    (item) => !isRead(item)
   ).length;
 
   const handleNotificationClick = (item) => {
@@ -42,25 +46,32 @@ export default function ManagerHeader({
     });
   };
 
+  const getNotificationId = (item) => {
+    return item._id || item.id;
+  };
+
   return (
     <header className="manager-header">
       <div className="manager-header-left">
         <button
           type="button"
           className="mobile-menu-btn"
-          onClick={() => setOpen(true)}
+          onClick={() => setOpen?.(true)}
+          aria-label="Mở menu"
         >
           <Menu size={23} />
         </button>
 
         <div className="manager-search">
           <Search size={18} />
-          <input placeholder="Tìm kiếm thông tin..." />
+          <input
+            type="text"
+            placeholder="Tìm kiếm thông tin..."
+          />
         </div>
       </div>
 
       <div className="manager-header-right">
-        {/* THÔNG BÁO */}
         <div className="manager-notification-wrapper">
           <button
             type="button"
@@ -106,6 +117,7 @@ export default function ManagerHeader({
                     type="button"
                     className="manager-notification-close"
                     onClick={() => setShowNotifications(false)}
+                    aria-label="Đóng"
                   >
                     <X size={18} />
                   </button>
@@ -116,6 +128,7 @@ export default function ManagerHeader({
                     type="button"
                     className="manager-notification-read-all"
                     onClick={onMarkAllRead}
+                    disabled={unreadCount === 0}
                   >
                     <CheckCheck size={15} />
                     Đánh dấu tất cả đã đọc
@@ -124,51 +137,53 @@ export default function ManagerHeader({
 
                 <div className="manager-notification-list">
                   {notifications.length > 0 ? (
-                    notifications.map((item) => (
-                      <button
-                        type="button"
-                        key={item.id}
-                        className={`manager-notification-item ${
-                          item.read ? "" : "unread"
-                        }`}
-                        onClick={() =>
-                          handleNotificationClick(item)
-                        }
-                      >
-                        <div className="manager-notification-icon">
-                          <CalendarDays size={19} />
-                        </div>
+                    notifications.map((item) => {
+                      const read = isRead(item);
 
-                        <div className="manager-notification-content">
-                          <strong>
-                            {item.title || "Có đơn nghỉ phép mới"}
-                          </strong>
+                      return (
+                        <button
+                          type="button"
+                          key={getNotificationId(item)}
+                          className={`manager-notification-item ${
+                            read ? "" : "unread"
+                          }`}
+                          onClick={() =>
+                            handleNotificationClick(item)
+                          }
+                        >
+                          <div className="manager-notification-icon">
+                            <CalendarDays size={19} />
+                          </div>
 
-                          <p>
-                            {item.message ||
-                              `${item.employee || "Nhân viên"} vừa gửi đơn xin nghỉ phép.`}
-                          </p>
+                          <div className="manager-notification-content">
+                            <strong>
+                              {item.title || "Thông báo mới"}
+                            </strong>
 
-                          <span>
-                            <Clock size={12} />
-                            {formatTime(item.createdAt)}
-                          </span>
-                        </div>
+                            <p>
+                              {item.message ||
+                                "Bạn có một thông báo mới."}
+                            </p>
 
-                        {!item.read && (
-                          <span className="manager-unread-dot" />
-                        )}
-                      </button>
-                    ))
+                            <span>
+                              <Clock size={12} />
+                              {formatTime(item.createdAt)}
+                            </span>
+                          </div>
+
+                          {!read && (
+                            <span className="manager-unread-dot" />
+                          )}
+                        </button>
+                      );
+                    })
                   ) : (
                     <div className="manager-notification-empty">
                       <Bell size={35} />
-
                       <strong>Chưa có thông báo</strong>
-
                       <p>
-                        Khi nhân viên gửi đơn xin nghỉ phép,
-                        thông báo sẽ xuất hiện tại đây.
+                        Khi có thông báo mới, nội dung sẽ xuất hiện
+                        tại đây.
                       </p>
                     </div>
                   )}
@@ -178,12 +193,17 @@ export default function ManagerHeader({
           )}
         </div>
 
-        {/* TÀI KHOẢN SẾP */}
         <div className="header-user">
-          <div className="avatar">S</div>
+          <div className="avatar">
+            {(user?.name || user?.fullName || "S")
+              .charAt(0)
+              .toUpperCase()}
+          </div>
 
           <div className="header-user-info">
-            <strong>Quản lý</strong>
+            <strong>
+              {user?.name || user?.fullName || "Quản lý"}
+            </strong>
             <span>Administrator</span>
           </div>
         </div>

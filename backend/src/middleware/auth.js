@@ -1,5 +1,26 @@
+
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+
+// ======================================
+// CẤU HÌNH ROLE
+// ======================================
+
+const VALID_ROLES = [
+  "manager",
+  "accountant",
+  "employee",
+];
+
+// ======================================
+// CHUẨN HÓA ROLE
+// ======================================
+
+const normalizeRole = (role) => {
+  return String(role || "")
+    .trim()
+    .toLowerCase();
+};
 
 // ======================================
 // XÁC THỰC NGƯỜI DÙNG
@@ -9,7 +30,6 @@ export const protect = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    // Kiểm tra token
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res.status(401).json({
         success: false,
@@ -26,7 +46,6 @@ export const protect = async (req, res, next) => {
       });
     }
 
-    // Kiểm tra JWT_SECRET
     if (!process.env.JWT_SECRET) {
       console.error("JWT_SECRET chưa được cấu hình.");
 
@@ -37,45 +56,105 @@ export const protect = async (req, res, next) => {
     }
 
     // Giải mã token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
 
-    if (!decoded.id) {
+    // Hỗ trợ nhiều cách đặt tên ID trong JWT
+    const userId =
+      decoded.id ||
+      decoded.userId ||
+      decoded._id;
+
+    if (!userId) {
       return res.status(401).json({
         success: false,
-        message: "Thông tin đăng nhập không hợp lệ.",
+        message: "Token không chứa thông tin tài khoản.",
       });
     }
 
-    // Tìm người dùng trong MongoDB
-    const user = await User.findById(decoded.id);
+    if (!User.schema.path("_id")) {
+      return res.status(500).json({
+        success: false,
+        message: "Cấu hình dữ liệu người dùng không hợp lệ.",
+      });
+    }
 
-    // Kiểm tra tài khoản
-    if (!user || user.isActive === false) {
+    // Lấy thông tin mới nhất từ MongoDB
+    const user = await User.findById(userId);
+
+    if (!user) {
       return res.status(401).json({
         success: false,
-        message: "Tài khoản không tồn tại hoặc đã bị khóa.",
+        message: "Tài khoản không tồn tại.",
+      });
+    }
+
+    // Kiểm tra tài khoản bị khóa
+    if (user.isActive === false) {
+      return res.status(403).json({
+        success: false,
+        message: "Tài khoản của bạn đã bị khóa.",
+      });
+    }
+
+    // Chuẩn hóa quyền
+    const role = normalizeRole(user.role);
+
+    if (!VALID_ROLES.includes(role)) {
+      return res.status(403).json({
+        success: false,
+        message: "Tài khoản chưa được phân quyền hợp lệ.",
       });
     }
 
     // Gắn thông tin người dùng vào request
     req.user = user;
+    req.userRole = role;
 
     next();
   } catch (error) {
     console.error("Lỗi xác thực:", error.message);
 
-    return res.status(401).json({
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({
+        success: false,
+        message: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+      });
+    }
+
+    if (
+      error.name === "JsonWebTokenError" ||
+      error.name === "NotBeforeError"
+    ) {
+      return res.status(401).json({
+        success: false,
+        message: "Token không hợp lệ.",
+      });
+    }
+
+    if (error.name === "CastError") {
+      return res.status(401).json({
+        success: false,
+        message: "Thông tin tài khoản không hợp lệ.",
+      });
+    }
+
+    return res.status(500).json({
       success: false,
-      message: "Phiên đăng nhập không hợp lệ hoặc đã hết hạn.",
+      message: "Lỗi máy chủ khi xác thực tài khoản.",
     });
   }
 };
 
 // ======================================
-// PHÂN QUYỀN THEO VAI TRÒ
+// PHÂN QUYỀN THEO ROLE
 // ======================================
 
 export const authorize = (...roles) => {
+  const allowedRoles = roles.map(normalizeRole);
+
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
@@ -84,7 +163,11 @@ export const authorize = (...roles) => {
       });
     }
 
-    if (!roles.includes(req.user.role)) {
+    const currentRole = normalizeRole(
+      req.userRole || req.user.role
+    );
+
+    if (!allowedRoles.includes(currentRole)) {
       return res.status(403).json({
         success: false,
         message: "Bạn không có quyền truy cập chức năng này.",
@@ -96,7 +179,7 @@ export const authorize = (...roles) => {
 };
 
 // ======================================
-// QUYỀN DÀNH CHO QUẢN LÝ VÀ KẾ TOÁN
+// QUẢN LÝ VÀ KẾ TOÁN
 // ======================================
 
 export const authorizeCompanyFinance = authorize(
@@ -105,14 +188,29 @@ export const authorizeCompanyFinance = authorize(
 );
 
 // ======================================
-// QUYỀN CHỈ DÀNH CHO QUẢN LÝ
+// CHỈ QUẢN LÝ
 // ======================================
 
-export const authorizeManager = authorize("manager");
+export const authorizeManager = authorize(
+  "manager"
+);
 
 // ======================================
-// QUYỀN DÀNH CHO NHÂN VIÊN
+// NHÂN VIÊN VÀ KẾ TOÁN
+// XEM BẢNG LƯƠNG CÁ NHÂN
 // ======================================
 
-export const authorizeEmployee = authorize("employee");
+export const authorizeEmployee = authorize(
+  "employee",
+  "accountant"
+);
 
+// ======================================
+// TẤT CẢ NGƯỜI DÙNG ĐÃ ĐĂNG NHẬP
+// ======================================
+
+export const authorizeAll = authorize(
+  "manager",
+  "accountant",
+  "employee"
+);

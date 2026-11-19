@@ -1,379 +1,1883 @@
 
-import { useCallback, useEffect, useState } from "react";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+
+
+
 import {
-  CalendarDays,
+
   Users,
+
+  CalendarCheck,
+
   Gift,
-  CircleDollarSign,
+
+  Wallet,
+
+  RefreshCw,
+
   Search,
+
   Eye,
+
   X,
-  LogIn,
-  LogOut,
+
+  Clock,
+
   CheckCircle2,
+
   AlertCircle,
+
+  PlusCircle,
+
+  Banknote,
+
 } from "lucide-react";
+
+
 
 import "./ManagerPayroll.css";
 
-const RAW_API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const API_URL = `${RAW_API_URL.replace(/\/+$/, "").replace(/\/api$/, "")}/api`;
+
+
+// =====================================================
+
+// API CONFIG
+
+// =====================================================
+
+
+
+const RAW_API_URL =
+
+  import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+
+
+const API_URL = `${RAW_API_URL.replace(/\/+$/, "").replace(/\/api$/i, "")}/api`;
+
+
 
 const getToken = () =>
+
   localStorage.getItem("token") ||
+
   localStorage.getItem("authToken") ||
+
   localStorage.getItem("accessToken");
 
+
+
+// =====================================================
+
+// FORMAT
+
+// =====================================================
+
+
+
 const money = (value) =>
-  `${Number(value || 0).toLocaleString("vi-VN")} đ`;
+
+  `${Number(value || 0).toLocaleString("vi-VN")} ₫`;
+
+
+
+const numberFormat = (value) =>
+
+  Number(value || 0).toLocaleString("vi-VN");
+
+
 
 const getCurrentMonth = () => {
-  const date = new Date();
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+
+  const now = new Date();
+
+
+
+  return `${now.getFullYear()}-${String(
+
+    now.getMonth() + 1
+
+  ).padStart(2, "0")}`;
+
 };
 
-export default function ManagerPayroll() {
-  const [month, setMonth] = useState(getCurrentMonth());
-  const [rows, setRows] = useState([]);
-  const [summary, setSummary] = useState({});
-  const [keyword, setKeyword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [selected, setSelected] = useState(null);
-  const [detail, setDetail] = useState(null);
-  const [detailLoading, setDetailLoading] = useState(false);
 
-  const apiRequest = async (url) => {
-    const token = getToken();
 
-    if (!token) throw new Error("Phiên đăng nhập đã hết hạn.");
+const getSelectedMonthText = (value) => {
 
-    const response = await fetch(`${API_URL}${url}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+  const [year, month] = value.split("-");
 
-    const data = await response.json();
+  return `${month}/${year}`;
 
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "Không thể tải dữ liệu.");
-    }
+};
 
-    return data;
-  };
 
-  const loadData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError("");
 
-      const data = await apiRequest(
-        `/payroll/manager?month=${Number(month.slice(5))}&year=${Number(month.slice(0, 4))}`
-      );
+// =====================================================
 
-      setRows(data.payrolls || []);
-      setSummary(data.summary || {});
-    } catch (err) {
-      setError(err.message);
-      setRows([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [month]);
+// STAT CARD
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+// =====================================================
 
-  const openDetail = async (item) => {
-    try {
-      setSelected(item);
-      setDetail(null);
-      setDetailLoading(true);
 
-      const data = await apiRequest(
-        `/payroll/manager/${item.employee._id}/detail?month=${month}`
-      );
 
-      setDetail(data);
-    } catch (err) {
-      alert(err.message);
-      setSelected(null);
-    } finally {
-      setDetailLoading(false);
-    }
-  };
+function StatCard({
 
-  const filteredRows = rows.filter((item) => {
-    const employee = item.employee || {};
-    const search = keyword.trim().toLowerCase();
+  icon: Icon,
 
-    if (!search) return true;
+  title,
 
-    return [
-      employee.name,
-      employee.employeeCode,
-      employee.department,
-      employee.position,
-    ].some((value) => String(value || "").toLowerCase().includes(search));
-  });
+  value,
+
+  color,
+
+  note,
+
+  isMoney = false,
+
+}) {
 
   return (
-    <div className="manager-payroll-page">
-      <div className="manager-payroll-heading">
+
+    <div className="manager-stat-card">
+
+      <div className={`stat-icon ${color}`}>
+
+        <Icon size={22} />
+
+      </div>
+
+
+
+      <div className="stat-content">
+
+        <span>{title}</span>
+
+
+
+        <h2>
+
+          {isMoney ? money(value) : numberFormat(value)}
+
+        </h2>
+
+
+
+        <small>{note}</small>
+
+      </div>
+
+    </div>
+
+  );
+
+}
+
+
+
+// =====================================================
+
+// MAIN COMPONENT
+
+// =====================================================
+
+
+
+export default function ManagerPayroll() {
+
+  const [month, setMonth] = useState(getCurrentMonth);
+
+
+
+  const [employees, setEmployees] = useState([]);
+
+  const [summary, setSummary] = useState({});
+
+
+
+  const [keyword, setKeyword] = useState("");
+
+
+
+  const [loading, setLoading] = useState(false);
+
+  const [error, setError] = useState("");
+
+  const [success, setSuccess] = useState("");
+
+
+
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [paymentConfirmItem, setPaymentConfirmItem] = useState(null);
+
+
+
+  const [creatingId, setCreatingId] = useState("");
+
+  const [payingId, setPayingId] = useState("");
+
+
+
+  // ===================================================
+
+  // API REQUEST
+
+  // ===================================================
+
+
+
+  const request = useCallback(async (url, options = {}) => {
+
+    const token = getToken();
+
+
+
+    if (!token) {
+
+      throw new Error(
+
+        "Không tìm thấy token đăng nhập. Vui lòng đăng nhập lại."
+
+      );
+
+    }
+
+
+
+    const {
+
+      method = "GET",
+
+      body,
+
+      signal,
+
+    } = options;
+
+
+
+    const response = await fetch(`${API_URL}${url}`, {
+
+      method,
+
+      headers: {
+
+        Authorization: `Bearer ${token}`,
+
+        "Content-Type": "application/json",
+
+      },
+
+      ...(body !== undefined
+
+        ? { body: JSON.stringify(body) }
+
+        : {}),
+
+      ...(signal ? { signal } : {}),
+
+    });
+
+
+
+    const result = await response.json().catch(() => ({}));
+
+
+
+    if (!response.ok || result.success === false) {
+
+      throw new Error(
+
+        result.message || `Lỗi máy chủ (${response.status}).`
+
+      );
+
+    }
+
+
+
+    return result;
+
+  }, []);
+
+
+
+  // ===================================================
+
+  // LOAD PAYROLL
+
+  // GET /api/payroll/manager?month=&year=
+
+  // ===================================================
+
+
+
+  const loadPayroll = useCallback(
+
+    async (signal) => {
+
+      try {
+
+        setLoading(true);
+
+        setError("");
+
+
+
+        const [year, selectedMonth] = month.split("-");
+
+
+
+        if (
+
+          !year ||
+
+          !selectedMonth ||
+
+          Number(selectedMonth) < 1 ||
+
+          Number(selectedMonth) > 12
+
+        ) {
+
+          throw new Error("Vui lòng chọn tháng hợp lệ.");
+
+        }
+
+
+
+        const params = new URLSearchParams({
+
+          month: String(Number(selectedMonth)),
+
+          year: String(Number(year)),
+
+        });
+
+
+
+        const result = await request(
+
+          `/payroll/manager?${params.toString()}`,
+
+          { signal }
+
+        );
+
+
+
+        if (signal?.aborted) return;
+
+
+
+        if (
+
+          Number(result.month) !== Number(selectedMonth) ||
+
+          Number(result.year) !== Number(year)
+
+        ) {
+
+          throw new Error(
+
+            "Dữ liệu trả về không đúng tháng đã chọn."
+
+          );
+
+        }
+
+
+
+        const list = Array.isArray(result.payrolls)
+
+          ? result.payrolls
+
+          : [];
+
+
+
+        setEmployees(list);
+
+        setSummary(result.summary || {});
+
+
+
+        setSelectedItem((current) => {
+
+          if (!current) return null;
+
+
+
+          const currentId = String(current.employee?._id || "");
+
+
+
+          return (
+
+            list.find(
+
+              (item) =>
+
+                String(item.employee?._id || "") === currentId
+
+            ) || null
+
+          );
+
+        });
+
+      } catch (err) {
+
+        if (err.name === "AbortError") return;
+
+
+
+        setError(
+
+          err.message || "Không thể tải dữ liệu bảng lương."
+
+        );
+
+
+
+        setEmployees([]);
+
+        setSummary({});
+
+        setSelectedItem(null);
+
+      } finally {
+
+        if (!signal?.aborted) {
+
+          setLoading(false);
+
+        }
+
+      }
+
+    },
+
+    [month, request]
+
+  );
+
+
+
+  // ===================================================
+
+  // AUTO LOAD WHEN MONTH CHANGES
+
+  // ===================================================
+
+
+
+  useEffect(() => {
+
+    const controller = new AbortController();
+
+
+
+    loadPayroll(controller.signal);
+
+
+
+    return () => {
+
+      controller.abort();
+
+    };
+
+  }, [loadPayroll]);
+
+
+
+  // ===================================================
+
+  // FILTER EMPLOYEES
+
+  // ===================================================
+
+
+
+  const filteredEmployees = useMemo(() => {
+
+    const search = keyword.trim().toLowerCase();
+
+
+
+    return employees.filter((item) => {
+
+      const employee = item.employee || {};
+
+
+
+      const content = [
+
+        employee.name,
+
+        employee.employeeCode,
+
+        employee.department,
+
+        employee.position,
+
+      ]
+
+        .join(" ")
+
+        .toLowerCase();
+
+
+
+      return !search || content.includes(search);
+
+    });
+
+  }, [employees, keyword]);
+
+
+
+  // ===================================================
+
+  // CREATE PAYROLL
+
+  // POST /api/payroll/manager
+
+  // ===================================================
+
+
+
+  const handleCreatePayroll = async (item) => {
+
+    const employee = item.employee || {};
+
+    const employeeId = employee._id;
+
+
+
+    if (!employeeId) {
+
+      setError("Không tìm thấy ID nhân viên.");
+
+      return;
+
+    }
+
+
+
+    if (item.status !== "not_created" || item.payroll?._id) {
+
+      setError("Bảng lương nhân viên này đã được tạo.");
+
+      return;
+
+    }
+
+
+
+    if (creatingId || payingId) return;
+
+
+
+    const [year, selectedMonth] = month.split("-");
+
+
+
+    try {
+
+      setCreatingId(String(employeeId));
+
+      setError("");
+
+      setSuccess("");
+
+
+
+      const result = await request("/payroll/manager", {
+
+        method: "POST",
+
+        body: {
+
+          employeeId,
+
+          month: Number(selectedMonth),
+
+          year: Number(year),
+
+
+
+          // Mặc định phụ cấp bằng 0.
+
+          // Có thể cập nhật sau khi tạo.
+
+          allowance: 0,
+
+
+
+          // Khấu trừ bổ sung mặc định bằng 0.
+
+          additionalDeduction: 0,
+
+
+
+          note: "",
+
+        },
+
+      });
+
+
+
+      setSuccess(
+
+        result.message ||
+
+          `Đã tạo bảng lương cho ${employee.name || "nhân viên"}.`
+
+      );
+
+
+
+      // Tải lại dữ liệu để trạng thái chuyển sang Chờ trả.
+
+      await loadPayroll();
+
+    } catch (err) {
+
+      setError(err.message || "Không thể tạo bảng lương.");
+
+    } finally {
+
+      setCreatingId("");
+
+    }
+
+  };
+
+
+
+  // ===================================================
+
+  // MARK PAYROLL PAID
+
+  // PATCH /api/payroll/manager/:id/pay
+
+  // ===================================================
+
+
+
+  const handleMarkPaid = (item) => {
+    const payrollId = item.payroll?._id;
+
+    if (!payrollId) {
+      setError("Không tìm thấy mã bảng lương.");
+      return;
+    }
+
+    if (item.status === "paid") {
+      setError("Bảng lương này đã được thanh toán.");
+      return;
+    }
+
+    if (creatingId || payingId) return;
+
+    setError("");
+    setPaymentConfirmItem(item);
+  };
+
+  const confirmMarkPaid = async () => {
+    const payrollId = paymentConfirmItem?.payroll?._id;
+    if (!payrollId || payingId) return;
+
+    try {
+      setPayingId(String(payrollId));
+      setError("");
+      setSuccess("");
+
+      const result = await request(
+        `/payroll/manager/${payrollId}/pay`,
+        { method: "PATCH" }
+      );
+
+      setSuccess(result.message || "Xác nhận thanh toán thành công.");
+      setPaymentConfirmItem(null);
+      await loadPayroll();
+    } catch (err) {
+      setError(err.message || "Không thể xác nhận thanh toán.");
+    } finally {
+      setPayingId("");
+    }
+  };
+
+  // ===================================================
+
+  // REFRESH
+
+  // ===================================================
+
+
+
+  const handleRefresh = () => {
+
+    setSuccess("");
+
+    loadPayroll();
+
+  };
+
+
+
+  // ===================================================
+
+  // OPEN / CLOSE DETAIL
+
+  // ===================================================
+
+
+
+  const openDetail = (item) => {
+
+    setSelectedItem(item);
+
+  };
+
+
+
+  const closeDetail = () => {
+
+    setSelectedItem(null);
+
+  };
+
+
+
+  // ===================================================
+
+  // RENDER
+
+  // ===================================================
+
+
+
+  return (
+
+    <section className="manager-panel manager-data-page manager-payroll-page">
+
+      {/* HEADING */}
+
+
+
+      <div className="manager-data-heading">
+
         <div>
-          <span className="manager-payroll-eyebrow">PAYROLL MANAGEMENT</span>
-          <h1>Quản lý bảng lương</h1>
-          <p>Theo dõi ngày công, tiền thưởng và tiền phạt của nhân viên.</p>
+
+          <h2>Quản lý bảng lương</h2>
+
+
+
+          <p>
+
+            Tổng hợp lương cơ bản, ngày công, thưởng và phạt
+
+            của nhân viên theo tháng.
+
+          </p>
+
         </div>
 
-        <label className="manager-payroll-month">
-          <CalendarDays size={18} />
-          <input
-            type="month"
-            value={month}
-            onChange={(event) => setMonth(event.target.value)}
+
+
+        <button
+
+          type="button"
+
+          className="manager-action-button primary"
+
+          onClick={handleRefresh}
+
+          disabled={loading || Boolean(creatingId) || Boolean(payingId)}
+
+        >
+
+          <RefreshCw
+
+            size={16}
+
+            className={loading ? "spin" : ""}
+
           />
+
+
+
+          {loading ? "Đang tải..." : "Làm mới"}
+
+        </button>
+
+      </div>
+
+
+
+      {/* FILTER */}
+
+
+
+      <div className="manager-filter-row">
+
+        <label className="manager-month-filter">
+
+          <CalendarCheck size={17} />
+
+
+
+          <input
+
+            type="month"
+
+            value={month}
+
+            onChange={(event) => {
+
+              setMonth(event.target.value);
+
+              setSuccess("");
+
+              setError("");
+
+            }}
+
+          />
+
         </label>
+
+
+
+        <div className="manager-search-filter">
+
+          <Search size={17} />
+
+
+
+          <input
+
+            value={keyword}
+
+            onChange={(event) => setKeyword(event.target.value)}
+
+            placeholder="Tìm tên, mã nhân viên, phòng ban..."
+
+          />
+
+        </div>
+
       </div>
 
-      <div className="manager-payroll-stats">
-        <div className="manager-payroll-stat">
-          <Users />
-          <span>Tổng nhân viên</span>
-          <strong>{summary.employeeCount || 0}</strong>
+
+
+      {/* ERROR */}
+
+
+
+      {error && (
+
+        <div className="manager-error-message">
+
+          <AlertCircle size={17} />
+
+          {error}
+
         </div>
 
-        <div className="manager-payroll-stat">
-          <CalendarDays />
-          <span>Tổng ngày công</span>
-          <strong>{summary.totalWorkDays || 0}</strong>
+      )}
+
+
+
+      {/* SUCCESS */}
+
+
+
+      {success && (
+
+        <div className="manager-success-message">
+
+          <CheckCircle2 size={17} />
+
+          {success}
+
         </div>
 
-        <div className="manager-payroll-stat">
-          <Gift />
-          <span>Tổng tiền thưởng</span>
-          <strong>{money(summary.totalBonus)}</strong>
-        </div>
+      )}
 
-        <div className="manager-payroll-stat">
-          <CircleDollarSign />
-          <span>Tổng tiền phạt</span>
-          <strong>{money(summary.totalPenalty)}</strong>
-        </div>
+
+
+      {/* STATISTICS */}
+
+
+
+      <div className="manager-stats">
+
+        <StatCard
+
+          icon={Users}
+
+          title="Tổng nhân viên"
+
+          value={summary.employeeCount}
+
+          color="blue"
+
+          note="Nhân viên được tổng hợp"
+
+        />
+
+
+
+        <StatCard
+
+          icon={CalendarCheck}
+
+          title="Tổng ngày công"
+
+          value={summary.totalWorkDays}
+
+          color="green"
+
+          note="Chỉ dùng để thống kê"
+
+        />
+
+
+
+        <StatCard
+
+          icon={Gift}
+
+          title="Tổng tiền thưởng"
+
+          value={summary.totalBonus}
+
+          color="purple"
+
+          note="Thưởng trong tháng"
+
+          isMoney
+
+        />
+
+
+
+        <StatCard
+
+          icon={Wallet}
+
+          title="Tổng tiền phạt"
+
+          value={summary.totalPenalty}
+
+          color="orange"
+
+          note="Phạt trong tháng"
+
+          isMoney
+
+        />
+
       </div>
 
-      <section className="manager-payroll-panel">
-        <div className="manager-payroll-panel-heading">
+
+
+      {/* PAYROLL TABLE */}
+
+
+
+      <div className="manager-table-section">
+
+        <div className="panel-heading">
+
           <div>
-            <h2>Danh sách nhân viên</h2>
-            <p>Tháng {month.slice(5)}/{month.slice(0, 4)}</p>
+
+            <h2>Bảng tổng hợp lương nhân viên</h2>
+
+
+
+            <p>
+
+              Tháng {getSelectedMonthText(month)}
+
+            </p>
+
           </div>
 
-          <div className="manager-payroll-search">
-            <Search size={17} />
-            <input
-              value={keyword}
-              onChange={(event) => setKeyword(event.target.value)}
-              placeholder="Tìm nhân viên..."
-            />
+
+
+          <div className="manager-payroll-count">
+
+            {filteredEmployees.length} nhân viên
+
           </div>
+
         </div>
 
-        {error && <div className="manager-payroll-error">{error}</div>}
 
-        {loading ? (
-          <div className="manager-payroll-empty">Đang tải dữ liệu...</div>
-        ) : (
-          <div className="manager-payroll-table-wrap">
-            <table className="manager-payroll-table">
-              <thead>
+
+        <div className="responsive-table">
+
+          <table className="manager-table manager-payroll-table">
+
+            <thead>
+
+              <tr>
+
+                <th>Nhân viên</th>
+
+                <th>Phòng ban</th>
+
+                <th>Lương cơ bản</th>
+
+                <th>Ngày công</th>
+
+                <th>Số lần đi muộn</th>
+
+                <th>Phút đi muộn</th>
+
+                <th>Số lần về sớm</th>
+
+                <th>Tiền thưởng</th>
+
+                <th>Tiền phạt</th>
+
+                <th>Tổng lương thực nhận</th>
+
+                <th>Trạng thái</th>
+
+                <th>Chi tiết</th>
+
+                <th>Thao tác</th>
+
+              </tr>
+
+            </thead>
+
+
+
+            <tbody>
+
+              {loading ? (
+
                 <tr>
-                  <th>Nhân viên</th>
-                  <th>Phòng ban</th>
-                  <th>Tổng công</th>
-                  <th>Đi muộn</th>
-                  <th>Về sớm</th>
-                  <th>Thưởng</th>
-                  <th>Phạt</th>
-                  <th>Chi tiết</th>
+
+                  <td colSpan="13" className="empty-state">
+
+                    Đang tải dữ liệu bảng lương...
+
+                  </td>
+
                 </tr>
-              </thead>
 
-              <tbody>
-                {filteredRows.length === 0 ? (
-                  <tr>
-                    <td colSpan="8" className="manager-payroll-empty">
-                      Không có dữ liệu nhân viên.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredRows.map((item) => (
-                    <tr key={item.employee._id}>
+              ) : filteredEmployees.length === 0 ? (
+
+                <tr>
+
+                  <td colSpan="13" className="empty-state">
+
+                    Không có dữ liệu bảng lương tháng{" "}
+
+                    {getSelectedMonthText(month)}.
+
+                  </td>
+
+                </tr>
+
+              ) : (
+
+                filteredEmployees.map((item, index) => {
+
+                  const employee = item.employee || {};
+
+                  const attendance = item.attendance || {};
+
+
+
+                  const isPaid = item.status === "paid";
+
+                  const isNotCreated = item.status === "not_created";
+
+
+
+                  const employeeId = String(employee._id || "");
+
+                  const payrollId = String(item.payroll?._id || "");
+
+
+
+                  const isCreating = creatingId === employeeId;
+
+                  const isPaying = payingId === payrollId;
+
+
+
+                  return (
+
+                    <tr
+
+                      key={
+
+                        employee._id ||
+
+                        item.payroll?._id ||
+
+                        `${employee.employeeCode}-${index}`
+
+                      }
+
+                    >
+
+                      {/* EMPLOYEE */}
+
+
+
                       <td>
-                        <strong>{item.employee.name}</strong>
-                        <small>{item.employee.employeeCode || "Chưa có mã"}</small>
+
+                        <div className="employee-cell">
+
+                          <div className="avatar">
+
+                            {(employee.name || "N")
+
+                              .trim()
+
+                              .charAt(0)
+
+                              .toUpperCase()}
+
+                          </div>
+
+
+
+                          <div>
+
+                            <strong>
+
+                              {employee.name || "Chưa cập nhật"}
+
+                            </strong>
+
+
+
+                            <small>
+
+                              {employee.employeeCode || "Chưa có mã"}
+
+                            </small>
+
+                          </div>
+
+                        </div>
+
                       </td>
-                      <td>{item.employee.department || "—"}</td>
-                      <td>{item.attendance.workDays} ngày</td>
-                      <td>
-                        {item.attendance.lateCount} lần
-                        <small>{item.attendance.lateMinutes} phút</small>
+
+
+
+                      {/* DEPARTMENT */}
+
+
+
+                      <td>{employee.department || "—"}</td>
+
+
+
+                      {/* BASIC SALARY */}
+
+
+
+                      <td className="manager-money-basic">
+
+                        {money(item.basicSalary)}
+
                       </td>
+
+
+
+                      {/* WORK DAYS */}
+
+
+
                       <td>
-                        {item.attendance.earlyLeaveCount} lần
-                        <small>{item.attendance.earlyLeaveMinutes} phút</small>
+
+                        {numberFormat(
+
+                          attendance.workDays ?? item.workDays
+
+                        )}
+
                       </td>
-                      <td className="positive">{money(item.bonus)}</td>
-                      <td className="negative">{money(item.penalty)}</td>
+
+
+
+                      {/* LATE COUNT */}
+
+
+
                       <td>
+
+                        {numberFormat(attendance.lateCount)}
+
+                      </td>
+
+
+
+                      {/* LATE MINUTES */}
+
+
+
+                      <td>
+
+                        {numberFormat(attendance.lateMinutes)}
+
+                      </td>
+
+
+
+                      {/* EARLY LEAVE */}
+
+
+
+                      <td>
+
+                        {numberFormat(attendance.earlyLeaveCount)}
+
+                      </td>
+
+
+
+                      {/* BONUS */}
+
+
+
+                      <td className="manager-money-positive">
+
+                        +{money(item.bonus)}
+
+                      </td>
+
+
+
+                      {/* PENALTY */}
+
+
+
+                      <td className="manager-money-negative">
+
+                        -{money(item.penalty)}
+
+                      </td>
+
+
+
+                      {/* TOTAL SALARY */}
+
+
+
+                      <td className="manager-money-total">
+
+                        {money(item.totalSalary)}
+
+                      </td>
+
+
+
+                      {/* STATUS */}
+
+
+
+                      <td>
+
+                        {isPaid ? (
+
+                          <span className="manager-payroll-status paid">
+
+                            <CheckCircle2 size={14} />
+
+                            Đã trả
+
+                          </span>
+
+                        ) : isNotCreated ? (
+
+                          <span className="manager-payroll-status not-created">
+
+                            Chưa tạo
+
+                          </span>
+
+                        ) : (
+
+                          <span className="manager-payroll-status draft">
+
+                            <Clock size={14} />
+
+                            Chờ trả
+
+                          </span>
+
+                        )}
+
+                      </td>
+
+
+
+                      {/* DETAIL */}
+
+
+
+                      <td>
+
                         <button
-                          type="button"
-                          className="manager-payroll-detail-button"
-                          onClick={() => openDetail(item)}
-                        >
-                          <Eye size={15} /> Chi tiết
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
 
-      {selected && (
+                          type="button"
+
+                          className="manager-icon-button"
+
+                          title="Xem chi tiết lương"
+
+                          onClick={() => openDetail(item)}
+
+                        >
+
+                          <Eye size={17} />
+
+                        </button>
+
+                      </td>
+
+
+
+                      {/* ACTION */}
+
+
+
+                      <td>
+
+                        {isNotCreated ? (
+
+                          <button
+
+                            type="button"
+
+                            className="manager-action-button primary manager-create-payroll-button"
+
+                            disabled={
+
+                              Boolean(creatingId) ||
+
+                              Boolean(payingId) ||
+
+                              loading
+
+                            }
+
+                            onClick={() => handleCreatePayroll(item)}
+
+                          >
+
+                            <PlusCircle size={15} />
+
+
+
+                            {isCreating
+
+                              ? "Đang tạo..."
+
+                              : "Tạo lương"}
+
+                          </button>
+
+                        ) : isPaid ? (
+
+                          <span className="manager-payroll-status paid">
+
+                            <CheckCircle2 size={14} />
+
+                            Hoàn tất
+
+                          </span>
+
+                        ) : (
+
+                          <button
+
+                            type="button"
+
+                            className="manager-action-button primary manager-payroll-pay-button"
+
+                            disabled={
+
+                              Boolean(creatingId) ||
+
+                              Boolean(payingId) ||
+
+                              loading
+
+                            }
+
+                            onClick={() => handleMarkPaid(item)}
+
+                          >
+
+                            <Banknote size={15} />
+
+
+
+                            {isPaying
+
+                              ? "Đang xử lý..."
+
+                              : "Thanh toán"}
+
+                          </button>
+
+                        )}
+
+                      </td>
+
+                    </tr>
+
+                  );
+
+                })
+
+              )}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+
+
+        {/* FOOTNOTE */}
+
+
+
+        <div className="manager-payroll-note">
+
+          <AlertCircle size={16} />
+
+
+
+          <span>
+
+            Lương cơ bản được tính đủ theo tháng.
+
+            Ngày công chỉ dùng để theo dõi, không dùng để
+
+            chia lương. Thực nhận = Lương cơ bản + Phụ cấp
+
+            + Thưởng - Phạt - Khấu trừ bổ sung.
+
+          </span>
+
+        </div>
+
+      </div>
+
+
+
+      {/* PAYMENT CONFIRMATION MODAL */}
+      {paymentConfirmItem && (
         <div
-          className="manager-payroll-backdrop"
+          className="manager-modal-backdrop manager-payment-confirm-backdrop"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget) {
-              setSelected(null);
-              setDetail(null);
+            if (event.target === event.currentTarget && !payingId) {
+              setPaymentConfirmItem(null);
             }
           }}
         >
-          <div className="manager-payroll-modal">
-            <div className="manager-payroll-modal-header">
-              <div>
-                <span>CHI TIẾT NHÂN VIÊN</span>
-                <h2>{selected.employee.name}</h2>
-                <p>{selected.employee.employeeCode} · {month}</p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setSelected(null);
-                  setDetail(null);
-                }}
-              >
-                <X />
+          <div className="manager-modal manager-payment-confirm" role="dialog" aria-modal="true" aria-labelledby="payment-confirm-title">
+            <div className="manager-payment-confirm-icon"><Banknote size={27} /></div>
+            <button type="button" className="manager-icon-button manager-payment-confirm-close" aria-label="Đóng" disabled={Boolean(payingId)} onClick={() => setPaymentConfirmItem(null)}>
+              <X size={18} />
+            </button>
+            <h3 id="payment-confirm-title">Xác nhận thanh toán lương</h3>
+            <p className="manager-payment-confirm-description">
+              Bạn có chắc chắn muốn xác nhận đã thanh toán lương cho
+              <strong> {paymentConfirmItem.employee?.name || "nhân viên này"}</strong>?
+            </p>
+            <div className="manager-payment-confirm-summary">
+              <div><span>Kỳ lương</span><strong>{getSelectedMonthText(month)}</strong></div>
+              <div><span>Mã nhân viên</span><strong>{paymentConfirmItem.employee?.employeeCode || "—"}</strong></div>
+              <div className="manager-payment-confirm-total"><span>Tổng thực nhận</span><strong>{money(paymentConfirmItem.totalSalary)}</strong></div>
+            </div>
+            <p className="manager-payment-confirm-note">
+              Sau khi xác nhận, bảng lương sẽ chuyển sang trạng thái đã thanh toán.
+            </p>
+            <div className="manager-payment-confirm-actions">
+              <button type="button" className="manager-payment-cancel" disabled={Boolean(payingId)} onClick={() => setPaymentConfirmItem(null)}>Hủy</button>
+              <button type="button" className="manager-payment-submit" disabled={Boolean(payingId)} onClick={confirmMarkPaid}>
+                {payingId ? <><RefreshCw size={16} className="spin" /> Đang xử lý...</> : <><CheckCircle2 size={17} /> Xác nhận thanh toán</>}
               </button>
             </div>
-
-            {detailLoading ? (
-              <div className="manager-payroll-empty">Đang tải chi tiết...</div>
-            ) : detail ? (
-              <>
-                <div className="manager-payroll-detail-stats">
-                  <div>
-                    <span>Tổng ngày công</span>
-                    <strong>{detail.summary.workDays}</strong>
-                  </div>
-                  <div>
-                    <span>Số lần đi muộn</span>
-                    <strong>{detail.summary.lateCount}</strong>
-                  </div>
-                  <div>
-                    <span>Số lần về sớm</span>
-                    <strong>{detail.summary.earlyLeaveCount}</strong>
-                  </div>
-                </div>
-
-                <section className="manager-payroll-detail-section">
-                  <h3>Chi tiết chấm công từng ngày</h3>
-
-                  {detail.attendance.length === 0 ? (
-                    <p className="manager-payroll-empty">Chưa có dữ liệu chấm công.</p>
-                  ) : (
-                    <div className="manager-payroll-detail-list">
-                      {detail.attendance.map((record) => (
-                        <div className="manager-payroll-day" key={record._id}>
-                          <div>
-                            <strong>{record.date}</strong>
-                            <small>{record.note || "Không có ghi chú"}</small>
-                          </div>
-
-                          <div className="manager-payroll-times">
-                            <span><LogIn size={14} /> {record.checkIn || "--:--"}</span>
-                            <span><LogOut size={14} /> {record.checkOut || "--:--"}</span>
-                          </div>
-
-                          <div className="manager-payroll-day-status">
-                            {record.lateMinutes > 0 && (
-                              <span className="late">Muộn {record.lateMinutes} phút</span>
-                            )}
-
-                            {record.earlyLeaveMinutes > 0 && (
-                              <span className="early">Sớm {record.earlyLeaveMinutes} phút</span>
-                            )}
-
-                            {record.checkIn &&
-                              record.checkOut &&
-                              !record.lateMinutes &&
-                              !record.earlyLeaveMinutes && (
-                                <span className="ontime"><CheckCircle2 size={13} /> Đúng giờ</span>
-                              )}
-
-                            {!record.checkIn && (
-                              <span className="late"><AlertCircle size={13} /> Chưa chấm công</span>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </section>
-
-                <section className="manager-payroll-detail-section">
-                  <h3>Lịch sử thưởng và phạt</h3>
-
-                  <div className="manager-payroll-reward-totals">
-                    <div>
-                      <span>Tổng thưởng</span>
-                      <strong className="positive">{money(detail.summary.totalBonus)}</strong>
-                    </div>
-                    <div>
-                      <span>Tổng phạt</span>
-                      <strong className="negative">{money(detail.summary.totalPenalty)}</strong>
-                    </div>
-                  </div>
-
-                  {detail.rewards.length === 0 ? (
-                    <p className="manager-payroll-empty">Chưa có quyết định thưởng/phạt.</p>
-                  ) : (
-                    detail.rewards.map((record) => (
-                      <div className="manager-payroll-reward" key={record._id}>
-                        <div>
-                          <strong>{record.reason}</strong>
-                          <small>
-                            {new Date(record.date).toLocaleDateString("vi-VN")}
-                          </small>
-                        </div>
-
-                        <strong className={record.type === "Thưởng" ? "positive" : "negative"}>
-                          {record.type === "Thưởng" ? "+" : "-"}{money(record.amount)}
-                        </strong>
-                      </div>
-                    ))
-                  )}
-                </section>
-              </>
-            ) : null}
           </div>
         </div>
       )}
-    </div>
+
+      {/* DETAIL MODAL */}
+
+
+
+      {selectedItem && (
+
+        <div
+
+          className="manager-modal-backdrop"
+
+          onMouseDown={(event) => {
+
+            if (event.target === event.currentTarget) {
+
+              closeDetail();
+
+            }
+
+          }}
+
+        >
+
+          <div className="manager-modal manager-payroll-detail">
+
+            {/* MODAL HEADER */}
+
+
+
+            <div className="manager-modal-heading">
+
+              <div>
+
+                <h3>Chi tiết bảng lương</h3>
+
+
+
+                <p>
+
+                  {selectedItem.employee?.name || "Nhân viên"}
+
+                  {" · "}
+
+                  {selectedItem.employee?.employeeCode || ""}
+
+                </p>
+
+              </div>
+
+
+
+              <button
+
+                type="button"
+
+                className="manager-icon-button"
+
+                onClick={closeDetail}
+
+              >
+
+                <X size={18} />
+
+              </button>
+
+            </div>
+
+
+
+            {/* EMPLOYEE INFO */}
+
+
+
+            <div className="manager-payroll-detail-info">
+
+              <div>
+
+                <span>Phòng ban</span>
+
+                <strong>
+
+                  {selectedItem.employee?.department || "—"}
+
+                </strong>
+
+              </div>
+
+
+
+              <div>
+
+                <span>Tháng tính lương</span>
+
+                <strong>
+
+                  {getSelectedMonthText(month)}
+
+                </strong>
+
+              </div>
+
+            </div>
+
+
+
+            {/* SALARY BREAKDOWN */}
+
+
+
+            <h4>Chi tiết thu nhập</h4>
+
+
+
+            <div className="manager-payroll-breakdown">
+
+              <div>
+
+                <span>Lương cơ bản</span>
+
+                <strong>
+
+                  {money(selectedItem.basicSalary)}
+
+                </strong>
+
+              </div>
+
+
+
+              <div>
+
+                <span>Phụ cấp</span>
+
+                <strong className="manager-money-positive">
+
+                  +{money(selectedItem.allowance)}
+
+                </strong>
+
+              </div>
+
+
+
+              <div>
+
+                <span>Tiền thưởng</span>
+
+                <strong className="manager-money-positive">
+
+                  +{money(selectedItem.bonus)}
+
+                </strong>
+
+              </div>
+
+
+
+              <div>
+
+                <span>Tiền phạt</span>
+
+                <strong className="manager-money-negative">
+
+                  -{money(selectedItem.penalty)}
+
+                </strong>
+
+              </div>
+
+
+
+              <div>
+
+                <span>Khấu trừ bổ sung</span>
+
+                <strong className="manager-money-negative">
+
+                  -{money(selectedItem.additionalDeduction)}
+
+                </strong>
+
+              </div>
+
+
+
+              <div className="manager-payroll-final">
+
+                <span>TỔNG LƯƠNG THỰC NHẬN</span>
+
+
+
+                <strong>
+
+                  {money(selectedItem.totalSalary)}
+
+                </strong>
+
+              </div>
+
+            </div>
+
+
+
+            {/* ATTENDANCE */}
+
+
+
+            <h4>Thống kê chấm công</h4>
+
+
+
+            <div className="manager-payroll-detail-info">
+
+              <div>
+
+                <span>Ngày công</span>
+
+                <strong>
+
+                  {numberFormat(
+
+                    selectedItem.attendance?.workDays ??
+
+                      selectedItem.workDays
+
+                  )}
+
+                </strong>
+
+              </div>
+
+
+
+              <div>
+
+                <span>Số lần đi muộn</span>
+
+                <strong>
+
+                  {numberFormat(
+
+                    selectedItem.attendance?.lateCount
+
+                  )}
+
+                </strong>
+
+              </div>
+
+
+
+              <div>
+
+                <span>Tổng phút đi muộn</span>
+
+                <strong>
+
+                  {numberFormat(
+
+                    selectedItem.attendance?.lateMinutes
+
+                  )}{" "}
+
+                  phút
+
+                </strong>
+
+              </div>
+
+
+
+              <div>
+
+                <span>Số lần về sớm</span>
+
+                <strong>
+
+                  {numberFormat(
+
+                    selectedItem.attendance?.earlyLeaveCount
+
+                  )}
+
+                </strong>
+
+              </div>
+
+            </div>
+
+
+
+            {/* NOTE */}
+
+
+
+            {selectedItem.payroll?.note && (
+
+              <div className="manager-payroll-note">
+
+                <strong>Ghi chú:</strong>
+
+                <span>{selectedItem.payroll.note}</span>
+
+              </div>
+
+            )}
+
+
+
+            {/* FOOTER */}
+
+
+
+            <div className="manager-payroll-modal-footer">
+
+              <span>
+
+                {selectedItem.status === "paid"
+
+                  ? "Bảng lương đã thanh toán"
+
+                  : selectedItem.status === "not_created"
+
+                  ? "Bảng lương chưa được tạo"
+
+                  : "Bảng lương đang chờ thanh toán"}
+
+              </span>
+
+
+
+              <button
+
+                type="button"
+
+                className="manager-action-button primary"
+
+                onClick={closeDetail}
+
+              >
+
+                Đóng
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
+
+    </section>
+
   );
+
 }

@@ -54,7 +54,7 @@ const menus = [
     icon: Gift,
   },
   {
-    id: "company-finance",
+    id: "finance",
     label: "Quản lý thu chi",
     icon: ArrowLeftRight,
   },
@@ -72,6 +72,10 @@ export default function ManagerSidebar({
   onLogout,
   user,
 }) {
+  // ========================================
+  // THÔNG TIN QUẢN LÝ
+  // ========================================
+
   const managerName = user?.name || "Quản trị viên";
 
   const avatar = managerName
@@ -87,16 +91,16 @@ export default function ManagerSidebar({
   // ========================================
 
   const handleLogout = () => {
-    if (typeof onLogout === "function") {
-      onLogout();
-      return;
-    }
-
     const confirmed = window.confirm(
       "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản quản lý?"
     );
 
     if (!confirmed) return;
+
+    if (typeof onLogout === "function") {
+      onLogout();
+      return;
+    }
 
     [
       "token",
@@ -108,11 +112,11 @@ export default function ManagerSidebar({
       localStorage.removeItem(key);
     });
 
-    window.location.reload();
+    window.location.href = "/login";
   };
 
   // ========================================
-  // CHUYỂN TAB
+  // ĐIỀU HƯỚNG MENU
   // ========================================
 
   const handleNavigate = (id) => {
@@ -132,6 +136,7 @@ export default function ManagerSidebar({
   return (
     <>
       {/* OVERLAY MOBILE */}
+
       {open && (
         <div
           className="manager-overlay"
@@ -140,10 +145,12 @@ export default function ManagerSidebar({
       )}
 
       {/* SIDEBAR */}
+
       <aside
         className={`manager-sidebar ${open ? "show" : ""}`}
       >
         {/* LOGO */}
+
         <div className="manager-brand">
           <div className="brand-icon">
             <BriefcaseBusiness size={23} />
@@ -165,19 +172,18 @@ export default function ManagerSidebar({
         </div>
 
         {/* TIÊU ĐỀ MENU */}
+
         <div className="sidebar-section">
           QUẢN LÝ
         </div>
 
         {/* DANH SÁCH MENU */}
+
         <nav className="manager-nav">
           {menus.map((item) => {
             const Icon = item.icon;
 
-            const isActive =
-              activeTab === item.id ||
-              (item.id === "company-finance" &&
-                activeTab === "finance");
+            const isActive = activeTab === item.id;
 
             return (
               <button
@@ -190,6 +196,7 @@ export default function ManagerSidebar({
                 aria-current={isActive ? "page" : undefined}
               >
                 <Icon size={19} />
+
                 <span>{item.label}</span>
               </button>
             );
@@ -197,6 +204,7 @@ export default function ManagerSidebar({
         </nav>
 
         {/* KHU VỰC TÀI KHOẢN */}
+
         <div className="sidebar-bottom">
           <div className="manager-profile-mini">
             <div className="avatar">
@@ -210,6 +218,7 @@ export default function ManagerSidebar({
           </div>
 
           {/* ĐĂNG XUẤT */}
+
           <button
             type="button"
             className="manager-logout-btn"
@@ -217,6 +226,7 @@ export default function ManagerSidebar({
             title="Đăng xuất tài khoản quản lý"
           >
             <LogOut size={18} />
+
             <span>Đăng xuất</span>
           </button>
         </div>

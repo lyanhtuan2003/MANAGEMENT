@@ -1,3 +1,4 @@
+
 import { useCallback, useState } from "react";
 
 import {
@@ -14,23 +15,59 @@ import {
 import EmployeeHeader from "../../components/employee/EmployeeHeader";
 import MyProfile from "../../components/employee/MyProfile";
 import ChangePassword from "../../components/employee/ChangePassword";
+
+// QUAN TRỌNG: Dùng component riêng của Kế toán
 import AccountantCompanyFinance from "../../components/accountant/AccountantCompanyFinance";
 
 import "./AccountantDashboard.css";
 
+// ========================================
+// LẤY THÔNG TIN NGƯỜI DÙNG
+// ========================================
+
 const getStoredUser = () => {
   try {
-    return JSON.parse(localStorage.getItem("user") || "{}");
+    const keys = ["user", "currentUser", "authUser"];
+
+    for (const key of keys) {
+      const value = localStorage.getItem(key);
+
+      if (!value) continue;
+
+      const parsed = JSON.parse(value);
+
+      if (parsed && typeof parsed === "object") {
+        return parsed.user || parsed.data?.user || parsed;
+      }
+    }
+
+    return {};
   } catch (error) {
-    console.error("Không thể đọc thông tin tài khoản:", error);
+    console.error("Lỗi đọc thông tin người dùng:", error);
     return {};
   }
 };
 
+// ========================================
+// MENU KẾ TOÁN
+// ========================================
+
 const menus = [
-  { id: "overview", label: "Tổng quan", icon: LayoutDashboard },
-  { id: "finance", label: "Quản lý thu chi", icon: Wallet },
-  { id: "profile", label: "Hồ sơ cá nhân", icon: UserRound },
+  {
+    id: "overview",
+    label: "Tổng quan",
+    icon: LayoutDashboard,
+  },
+  {
+    id: "finance",
+    label: "Quản lý thu chi",
+    icon: Wallet,
+  },
+  {
+    id: "profile",
+    label: "Hồ sơ cá nhân",
+    icon: UserRound,
+  },
 ];
 
 const pageTitles = {
@@ -40,6 +77,10 @@ const pageTitles = {
   changePassword: "Đổi mật khẩu",
 };
 
+// ========================================
+// ACCOUNTANT DASHBOARD
+// ========================================
+
 export default function AccountantDashboard({ onLogout }) {
   const [activePage, setActivePage] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -47,11 +88,13 @@ export default function AccountantDashboard({ onLogout }) {
 
   const mustChangePassword = Boolean(user?.mustChangePassword);
 
+  // Chuyển trang
   const handleChangePage = useCallback((page) => {
     setActivePage(page);
     setSidebarOpen(false);
   }, []);
 
+  // Đăng xuất
   const handleLogout = useCallback(() => {
     if (typeof onLogout === "function") {
       onLogout();
@@ -59,7 +102,7 @@ export default function AccountantDashboard({ onLogout }) {
     }
 
     const confirmed = window.confirm(
-      "Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?"
+      "Bạn có chắc chắn muốn đăng xuất?"
     );
 
     if (!confirmed) return;
@@ -69,12 +112,15 @@ export default function AccountantDashboard({ onLogout }) {
       "authToken",
       "accessToken",
       "user",
+      "currentUser",
+      "authUser",
       "userRole",
     ].forEach((key) => localStorage.removeItem(key));
 
     window.location.reload();
   }, [onLogout]);
 
+  // Sau khi đổi mật khẩu
   const handlePasswordChanged = useCallback(
     (updatedUser) => {
       const nextUser = {
@@ -84,6 +130,7 @@ export default function AccountantDashboard({ onLogout }) {
       };
 
       localStorage.setItem("user", JSON.stringify(nextUser));
+
       setUser(nextUser);
       setActivePage("overview");
       setSidebarOpen(false);
@@ -91,6 +138,7 @@ export default function AccountantDashboard({ onLogout }) {
     [user]
   );
 
+  // Avatar
   const avatar = (user?.name || "K")
     .trim()
     .split(/\s+/)
@@ -99,6 +147,7 @@ export default function AccountantDashboard({ onLogout }) {
     .map((word) => word.charAt(0).toUpperCase())
     .join("");
 
+  // Bắt buộc đổi mật khẩu
   if (mustChangePassword) {
     return (
       <ChangePassword
@@ -110,6 +159,10 @@ export default function AccountantDashboard({ onLogout }) {
     );
   }
 
+  // ========================================
+  // NỘI DUNG TỪNG TRANG
+  // ========================================
+
   const renderPage = () => {
     switch (activePage) {
       case "overview":
@@ -118,10 +171,14 @@ export default function AccountantDashboard({ onLogout }) {
             <div className="accountant-welcome">
               <div>
                 <span>KHÔNG GIAN LÀM VIỆC</span>
-                <h2>Xin chào, {user?.name || "Kế toán"}!</h2>
+
+                <h2>
+                  Xin chào, {user?.name || "Kế toán"}!
+                </h2>
+
                 <p>
-                  Theo dõi tình hình tài chính và quản lý các giao dịch
-                  của công ty tại đây.
+                  Theo dõi tình hình tài chính và quản lý
+                  các giao dịch của công ty tại đây.
                 </p>
               </div>
 
@@ -133,8 +190,10 @@ export default function AccountantDashboard({ onLogout }) {
             <div className="accountant-shortcut">
               <div>
                 <h3>Quản lý tài chính công ty</h3>
+
                 <p>
-                  Theo dõi tổng thu, tổng chi, số dư và lịch sử giao dịch.
+                  Theo dõi tổng thu, tổng chi, số dư
+                  và lịch sử giao dịch.
                 </p>
               </div>
 
@@ -166,9 +225,15 @@ export default function AccountantDashboard({ onLogout }) {
         );
 
       default:
-        return <AccountantCompanyFinance />;
+        return (
+          <AccountantCompanyFinance />
+        );
     }
   };
+
+  // ========================================
+  // GIAO DIỆN
+  // ========================================
 
   return (
     <div className="accountant-app">
@@ -179,6 +244,7 @@ export default function AccountantDashboard({ onLogout }) {
         />
       )}
 
+      {/* SIDEBAR */}
       <aside
         className={`accountant-sidebar ${
           sidebarOpen ? "show" : ""
@@ -262,6 +328,7 @@ export default function AccountantDashboard({ onLogout }) {
         </div>
       </aside>
 
+      {/* MAIN */}
       <main className="accountant-main">
         <div className="accountant-mobile-bar">
           <button

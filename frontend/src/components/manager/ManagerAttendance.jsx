@@ -1,866 +1,709 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  Search,
-  Users,
-  CheckCircle2,
-  AlertCircle,
-  Eye,
-  X,
-  Download,
-  RefreshCw,
   Clock,
+  Users,
+  CalendarDays,
+  AlertTriangle,
+  RefreshCw,
+  Search,
   Settings,
+  X,
   Save,
-  LoaderCircle,
 } from "lucide-react";
 
-import "./ManagerAttendance.css";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const RAW_API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = `${RAW_API_URL.replace(/\/+$/, "").replace(/\/api$/, "")}/api`;
 
 const getToken = () =>
   localStorage.getItem("token") ||
   localStorage.getItem("authToken") ||
   localStorage.getItem("accessToken");
 
-const getToday = () =>
-  new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Asia/Ho_Chi_Minh",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
+const getCurrentMonth = () => {
+  const now = new Date();
 
-const formatDate = (date) => {
-  if (!date) return "--";
-
-  const [year, month, day] = date.split("-");
-
-  return `${day}/${month}/${year}`;
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}`;
 };
 
-const toMinutes = (time) => {
-  if (!time || !/^\d{2}:\d{2}$/.test(time)) return null;
+const formatDate = (value) => {
+  if (!value) return "--";
 
-  const [hours, minutes] = time.split(":").map(Number);
+  const date = new Date(`${String(value).slice(0, 10)}T00:00:00`);
 
-  if (hours > 23 || minutes > 59) return null;
+  if (Number.isNaN(date.getTime())) return value;
 
-  return hours * 60 + minutes;
+  return date.toLocaleDateString("vi-VN");
 };
 
-const calculateLate = (checkIn, startTime) => {
-  const actual = toMinutes(checkIn);
-  const expected = toMinutes(startTime);
+const formatNumber = (value) =>
+  Number(value || 0).toLocaleString("vi-VN");
 
-  if (actual === null || expected === null) return 0;
+// LẤY SỐ PHÚT ĐI MUỘN ĐÃ LƯU
+const getStoredLateMinutes = (record) =>
+  Math.max(0, Number(record?.lateMinutes || 0));
 
-  return Math.max(0, actual - expected);
-};
+// LẤY SỐ PHÚT VỀ SỚM ĐÃ LƯU
+const getStoredEarlyLeaveMinutes = (record) =>
+  Math.max(0, Number(record?.earlyLeaveMinutes || 0));
 
-const getStatus = (record, startTime) => {
-  if (!record?.checkIn) return "none";
+function StatCard({ icon: Icon, title, value, color, note }) {
+  return (
+    <div className="manager-stat-card">
+      <div className={`stat-icon ${color}`}>
+        <Icon size={22} />
+      </div>
 
-  const late = calculateLate(record.checkIn, startTime);
+      <div className="stat-content">
+        <span>{title}</span>
+        <h2>{value ?? 0}</h2>
+        <small>{note}</small>
+      </div>
+    </div>
+  );
+}
 
-  if (!record.checkOut) {
-    return late > 0 ? "late-working" : "working";
-  }
+export default function ManagerAttendance() {
+  const [month, setMonth] = useState(getCurrentMonth);
 
-  return late > 0 ? "late" : "present";
-};
+  const [data, setData] = useState({
+    employees: [],
+    records: [],
 
-const statusLabel = (status) =>
-  ({
-    present: "Đúng giờ",
-    late: "Đi muộn",
-    working: "Đang làm việc",
-    "late-working": "Đang làm việc · Đi muộn",
-    none: "Chưa chấm công",
-  })[status] || "Chưa chấm công";
+    summary: {
+      total: 0,
+      workDays: 0,
+      lateCount: 0,
+      lateMinutes: 0,
+    },
 
-async function apiRequest(path, options = {}) {
-  const token = getToken();
-
-  if (!token) {
-    throw new Error(
-      "Không tìm thấy phiên đăng nhập. Vui lòng đăng nhập lại."
-    );
-  }
-
-  const response = await fetch(`${API_URL}/api/attendance${path}`, {
-    ...options,
-    headers: {
-      ...(options.body ? { "Content-Type": "application/json" } : {}),
-      Authorization: `Bearer ${token}`,
-      ...options.headers,
+    schedule: {
+      startTime: "08:30",
+      endTime: "17:30",
     },
   });
 
-  const data = await response.json().catch(() => ({}));
+  const [keyword, setKeyword] = useState("");
 
-  if (response.status === 401 || response.status === 403) {
-    throw new Error(
-      data.message || "Bạn không có quyền truy cập chức năng này."
-    );
-  }
+  const [loading, setLoading] = useState(false);
 
-  if (!response.ok || !data.success) {
-    throw new Error(data.message || "Không thể thực hiện yêu cầu.");
-  }
+  const [error, setError] = useState("");
 
-  return data;
-}
+  const [message, setMessage] = useState("");
 
-const downloadCSV = (rows, filename) => {
-  const csv = rows
-    .map((row) =>
-      row
-        .map((value) =>
-          `"${String(value ?? "").replace(/"/g, '""')}"`
-        )
-        .join(",")
-    )
-    .join("\r\n");
+  const [showSchedule, setShowSchedule] = useState(false);
 
-  const blob = new Blob(["\uFEFF" + csv], {
-    type: "text/csv;charset=utf-8;",
-  });
-
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-
-  link.href = url;
-  link.download = filename;
-
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-
-  URL.revokeObjectURL(url);
-};
-
-export default function ManagerAttendance() {
-  const [employees, setEmployees] = useState([]);
-  const [records, setRecords] = useState([]);
-
-  const [schedule, setSchedule] = useState({
+  const [scheduleForm, setScheduleForm] = useState({
     startTime: "08:30",
     endTime: "17:30",
   });
 
-  const [startTime, setStartTime] = useState("08:30");
-  const [endTime, setEndTime] = useState("17:30");
+  const [savingSchedule, setSavingSchedule] = useState(false);
 
-  const [month, setMonth] = useState(getToday().slice(0, 7));
-  const [keyword, setKeyword] = useState("");
-  const [filter, setFilter] = useState("all");
+  // =====================================================
+  // GỌI API
+  // =====================================================
 
-  const [selected, setSelected] = useState(null);
+  const request = useCallback(async (url, options = {}) => {
+    const token = getToken();
 
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+    if (!token) {
+      throw new Error(
+        "Không tìm thấy token đăng nhập. Vui lòng đăng nhập lại."
+      );
+    }
 
-  const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
+    const response = await fetch(`${API_URL}${url}`, {
+      ...options,
 
-  // TẢI DỮ LIỆU
-  const loadData = useCallback(async (showLoader = true) => {
-    try {
-      if (showLoader) setLoading(true);
+      headers: {
+        ...(options.body
+          ? { "Content-Type": "application/json" }
+          : {}),
+
+        Authorization: `Bearer ${token}`,
+
+        ...options.headers,
+      },
+    });
+
+    const result = await response.json().catch(() => ({}));
+
+    if (response.status === 401 || response.status === 403) {
+      throw new Error(
+        result.message ||
+          "Phiên đăng nhập hết hạn hoặc bạn không có quyền truy cập."
+      );
+    }
+
+    if (!response.ok || result.success === false) {
+      throw new Error(
+        result.message || `Lỗi máy chủ (${response.status}).`
+      );
+    }
+
+    return result;
+  }, []);
+
+  // =====================================================
+  // TẢI DỮ LIỆU CHẤM CÔNG
+  // =====================================================
+
+  const loadAttendance = useCallback(
+    async (showLoader = true) => {
+      if (showLoader) {
+        setLoading(true);
+      }
 
       setError("");
 
-      const data = await apiRequest(
-        `/manager?month=${encodeURIComponent(month)}`
-      );
+      try {
+        const result = await request(
+          `/attendance/manager?month=${encodeURIComponent(month)}`
+        );
 
-      setEmployees(
-        Array.isArray(data.employees) ? data.employees : []
-      );
+        const nextSchedule = result.schedule || {
+          startTime: "08:30",
+          endTime: "17:30",
+        };
 
-      setRecords(
-        Array.isArray(data.records) ? data.records : []
-      );
+        setData({
+          employees: Array.isArray(result.employees)
+            ? result.employees
+            : [],
 
-      const currentSchedule = data.schedule || {
-        startTime: "08:30",
-        endTime: "17:30",
-      };
+          records: Array.isArray(result.records)
+            ? result.records
+            : [],
 
-      setSchedule(currentSchedule);
-      setStartTime(currentSchedule.startTime);
-      setEndTime(currentSchedule.endTime);
-    } catch (err) {
-      setError(err.message || "Không thể tải dữ liệu chấm công.");
-    } finally {
-      if (showLoader) setLoading(false);
-    }
-  }, [month]);
+          summary: result.summary || {
+            total: 0,
+            workDays: 0,
+            lateCount: 0,
+            lateMinutes: 0,
+          },
+
+          schedule: nextSchedule,
+        });
+
+        setScheduleForm({
+          startTime: nextSchedule.startTime || "08:30",
+          endTime: nextSchedule.endTime || "17:30",
+        });
+      } catch (err) {
+        setError(
+          err.message || "Không thể tải dữ liệu chấm công."
+        );
+      } finally {
+        if (showLoader) {
+          setLoading(false);
+        }
+      }
+    },
+    [month, request]
+  );
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    loadAttendance();
+  }, [loadAttendance]);
 
-  // LƯU GIỜ LÀM VIỆC
-  const saveSchedule = async () => {
-    if (saving) return;
+  // =====================================================
+  // LẤY BẢN GHI CHẤM CÔNG MỚI NHẤT CỦA TỪNG NHÂN VIÊN
+  // =====================================================
 
-    const start = toMinutes(startTime);
-    const end = toMinutes(endTime);
+  const recordMap = useMemo(() => {
+    const map = new Map();
 
-    if (start === null || end === null || end <= start) {
+    [...data.records]
+      .sort((a, b) =>
+        String(b.date || "").localeCompare(String(a.date || ""))
+      )
+      .forEach((record) => {
+        const employeeId = String(record.employeeId || "");
+
+        if (employeeId && !map.has(employeeId)) {
+          map.set(employeeId, record);
+        }
+      });
+
+    return map;
+  }, [data.records]);
+
+  // =====================================================
+  // TÌM KIẾM NHÂN VIÊN
+  // =====================================================
+
+  const filteredEmployees = useMemo(() => {
+    const search = keyword.trim().toLowerCase();
+
+    return data.employees.filter((employee) => {
+      const record = recordMap.get(String(employee.id));
+
+      const content = [
+        employee.name,
+        employee.employeeCode,
+        employee.department,
+        employee.position,
+        record?.date,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return !search || content.includes(search);
+    });
+  }, [data.employees, keyword, recordMap]);
+
+  // =====================================================
+  // MỞ CÀI ĐẶT GIỜ LÀM VIỆC
+  // =====================================================
+
+  const openScheduleModal = () => {
+    setError("");
+    setMessage("");
+
+    setScheduleForm({
+      startTime: data.schedule.startTime || "08:30",
+      endTime: data.schedule.endTime || "17:30",
+    });
+
+    setShowSchedule(true);
+  };
+
+  // =====================================================
+  // LƯU GIỜ LÀM VIỆC MỚI
+  // =====================================================
+
+  const handleSaveSchedule = async (event) => {
+    event.preventDefault();
+
+    if (savingSchedule) return;
+
+    setError("");
+    setMessage("");
+
+    if (!scheduleForm.startTime || !scheduleForm.endTime) {
       setError(
-        "Vui lòng nhập giờ hợp lệ và giờ kết thúc phải sau giờ bắt đầu."
+        "Vui lòng nhập đầy đủ giờ bắt đầu và giờ kết thúc."
       );
-
-      setMessage("");
       return;
     }
 
-    try {
-      setSaving(true);
-      setError("");
-      setMessage("");
+    if (scheduleForm.endTime <= scheduleForm.startTime) {
+      setError("Giờ kết thúc phải sau giờ bắt đầu.");
+      return;
+    }
 
-      const data = await apiRequest("/schedule", {
+    setSavingSchedule(true);
+
+    try {
+      const result = await request("/attendance/schedule", {
         method: "PUT",
+
         body: JSON.stringify({
-          startTime,
-          endTime,
+          startTime: scheduleForm.startTime,
+          endTime: scheduleForm.endTime,
         }),
       });
 
-      setSchedule(data.schedule);
+      const nextSchedule = result.schedule || scheduleForm;
 
-      setMessage(
-        data.message || "Đã cập nhật thời gian làm việc."
-      );
+      setData((previous) => ({
+        ...previous,
+        schedule: nextSchedule,
+      }));
 
-      await loadData(false);
+      setScheduleForm({
+        startTime: nextSchedule.startTime,
+        endTime: nextSchedule.endTime,
+      });
+
+      setShowSchedule(false);
+
+      if (result.notificationSent) {
+        setMessage(
+          `Cập nhật giờ làm việc thành công: ${nextSchedule.startTime} - ${nextSchedule.endTime}. Đã gửi thông báo cho ${result.notificationCount || 0} nhân viên. Lịch sử chấm công cũ được giữ nguyên.`
+        );
+      } else {
+        setMessage(
+          "Đã cập nhật giờ làm việc nhưng chưa gửi được thông báo cho nhân viên. Vui lòng kiểm tra hệ thống thông báo."
+        );
+      }
+
+      // Tải lại bảng chấm công.
+      // Không cập nhật lại các bản ghi lịch sử.
+      await loadAttendance(false);
     } catch (err) {
-      setError(err.message || "Không thể lưu thời gian làm việc.");
+      setError(
+        err.message || "Không thể cập nhật giờ làm việc."
+      );
     } finally {
-      setSaving(false);
+      setSavingSchedule(false);
     }
   };
 
-  // LỌC DỮ LIỆU THEO THÁNG
-  const monthRecords = useMemo(() => {
-    return records.filter((record) =>
-      record.date?.startsWith(month)
-    );
-  }, [records, month]);
-
-  // TÍNH TOÁN DỮ LIỆU NHÂN VIÊN
-  const rows = useMemo(() => {
-    return employees
-      .map((employee) => {
-        const ownRecords = monthRecords.filter(
-          (record) =>
-            String(record.employeeId) === String(employee.id)
-        );
-
-        const lateRecords = ownRecords.filter(
-          (record) =>
-            calculateLate(
-              record.checkIn,
-              schedule.startTime
-            ) > 0
-        );
-
-        const lateMinutes = ownRecords.reduce(
-          (sum, record) =>
-            sum +
-            calculateLate(
-              record.checkIn,
-              schedule.startTime
-            ),
-          0
-        );
-
-        const latest = [...ownRecords].sort((a, b) =>
-          (b.date || "").localeCompare(a.date || "")
-        )[0];
-
-        const status = getStatus(
-          latest,
-          schedule.startTime
-        );
-
-        return {
-          ...employee,
-          ownRecords,
-          latest,
-          status,
-
-          workDays: ownRecords.filter(
-            (record) => Boolean(record.checkIn)
-          ).length,
-
-          lateCount: lateRecords.length,
-          lateMinutes,
-        };
-      })
-      .filter((employee) => {
-        const searchable =
-          `${employee.name || ""} ${employee.employeeCode || ""} ${employee.department || ""}`.toLowerCase();
-
-        const matchesKeyword = searchable.includes(
-          keyword.trim().toLowerCase()
-        );
-
-        const matchesFilter =
-          filter === "all" ||
-          (filter === "late" && employee.lateCount > 0) ||
-          (filter === "working" &&
-            ["working", "late-working"].includes(
-              employee.status
-            )) ||
-          (filter === "none" &&
-            employee.status === "none");
-
-        return matchesKeyword && matchesFilter;
-      });
-  }, [
-    employees,
-    monthRecords,
-    keyword,
-    filter,
-    schedule.startTime,
-  ]);
-
+  // =====================================================
   // THỐNG KÊ
-  const summary = useMemo(() => {
-    const lateRecords = monthRecords.filter(
-      (record) =>
-        calculateLate(
-          record.checkIn,
-          schedule.startTime
-        ) > 0
-    );
+  // =====================================================
 
-    return {
-      total: employees.length,
+  const totalEmployees = Number(
+    data.summary.total ?? data.employees.length
+  );
 
-      workDays: monthRecords.filter(
-        (record) => Boolean(record.checkIn)
-      ).length,
+  const totalWorkDays = Number(
+    data.summary.workDays || 0
+  );
 
-      lateCount: lateRecords.length,
+  const totalLateCount = Number(
+    data.summary.lateCount || 0
+  );
 
-      lateMinutes: lateRecords.reduce(
-        (sum, record) =>
-          sum +
-          calculateLate(
-            record.checkIn,
-            schedule.startTime
-          ),
-        0
-      ),
-    };
-  }, [employees.length, monthRecords, schedule.startTime]);
+  const totalLateMinutes = Number(
+    data.summary.lateMinutes || 0
+  );
 
-  // LỊCH SỬ CHI TIẾT
-  const selectedRecords = selected
-    ? [...selected.ownRecords].sort((a, b) =>
-        (b.date || "").localeCompare(a.date || "")
-      )
-    : [];
-
-  // XUẤT CSV
-  const exportCSV = () => {
-    const header = [
-      "Ma nhan vien",
-      "Nhan vien",
-      "Phong ban",
-      "Ngay",
-      "Gio vao",
-      "Gio ra",
-      "So phut di muon",
-      "So phut ve som",
-      "Trang thai",
-    ];
-
-    const data = monthRecords.map((record) => {
-      const employee = employees.find(
-        (item) =>
-          String(item.id) === String(record.employeeId)
-      );
-
-      const late = calculateLate(
-        record.checkIn,
-        schedule.startTime
-      );
-
-      return [
-        record.employeeCode || employee?.employeeCode || "",
-        record.employeeName || employee?.name || "",
-        record.department || employee?.department || "",
-        formatDate(record.date),
-        record.checkIn || "",
-        record.checkOut || "",
-        late,
-        Number(record.earlyLeaveMinutes) || 0,
-        statusLabel(getStatus(record, schedule.startTime)),
-      ];
-    });
-
-    downloadCSV(
-      [header, ...data],
-      `cham-cong-${month}.csv`
-    );
-  };
+  // =====================================================
+  // GIAO DIỆN
+  // =====================================================
 
   return (
-    <section className="manager-attendance">
-      {/* TIÊU ĐỀ */}
-      <div className="ma-page-heading">
+    <section className="manager-panel manager-data-page">
+      {/* HEADER */}
+
+      <div className="manager-data-heading">
         <div>
-          <h1>Quản lý chấm công</h1>
+          <h2>Quản lý chấm công</h2>
+
           <p>
-            Theo dõi thời gian làm việc của toàn bộ nhân viên.
+            Theo dõi thời gian làm việc và tình trạng chấm công của nhân viên.
           </p>
         </div>
 
-        <button
-          className="ma-btn"
-          type="button"
-          onClick={() => loadData()}
-          disabled={loading}
-        >
-          <RefreshCw size={15} />
-          Làm mới
-        </button>
+        <div className="manager-data-actions">
+          <button
+            type="button"
+            className="manager-action-button"
+            onClick={openScheduleModal}
+          >
+            <Settings size={16} />
+            Giờ làm việc
+          </button>
+
+          <button
+            type="button"
+            className="manager-action-button primary"
+            onClick={() => loadAttendance()}
+            disabled={loading}
+          >
+            <RefreshCw
+              size={16}
+              className={loading ? "spin" : ""}
+            />
+
+            {loading ? "Đang tải..." : "Làm mới"}
+          </button>
+        </div>
+      </div>
+
+      {/* BỘ LỌC */}
+
+      <div className="manager-filter-row">
+        <label className="manager-month-filter">
+          <CalendarDays size={17} />
+
+          <input
+            type="month"
+            value={month}
+            onChange={(event) => setMonth(event.target.value)}
+          />
+        </label>
+
+        <div className="manager-search-filter">
+          <Search size={17} />
+
+          <input
+            value={keyword}
+            onChange={(event) => setKeyword(event.target.value)}
+            placeholder="Tìm tên, mã nhân viên, phòng ban..."
+          />
+        </div>
       </div>
 
       {/* THÔNG BÁO */}
+
       {error && (
-        <div className="ma-alert ma-alert-error" role="alert">
-          <AlertCircle size={17} />
+        <div className="manager-error-message" role="alert">
           {error}
         </div>
       )}
 
       {message && (
-        <div className="ma-alert ma-alert-success" role="status">
-          <CheckCircle2 size={17} />
+        <div className="manager-success-message" role="status">
           {message}
         </div>
       )}
 
       {/* THỐNG KÊ */}
-      <div className="ma-summary">
-        <div className="ma-stat">
-          <div className="ma-stat-icon ma-blue">
-            <Users size={20} />
-          </div>
 
-          <div>
-            <span>Tổng nhân viên</span>
-            <strong>{summary.total}</strong>
-          </div>
-        </div>
+      <div className="manager-stats">
+        <StatCard
+          icon={Users}
+          title="Tổng nhân viên"
+          value={formatNumber(totalEmployees)}
+          color="blue"
+          note="Nhân viên trong hệ thống"
+        />
 
-        <div className="ma-stat">
-          <div className="ma-stat-icon ma-green">
-            <CheckCircle2 size={20} />
-          </div>
+        <StatCard
+          icon={CalendarDays}
+          title="Tổng lượt công"
+          value={formatNumber(totalWorkDays)}
+          color="green"
+          note="Lượt có chấm công vào"
+        />
 
-          <div>
-            <span>Lượt chấm công</span>
-            <strong>{summary.workDays}</strong>
-          </div>
-        </div>
+        <StatCard
+          icon={AlertTriangle}
+          title="Lượt đi muộn"
+          value={formatNumber(totalLateCount)}
+          color="orange"
+          note={`${formatNumber(totalLateMinutes)} phút đi muộn`}
+        />
 
-        <div className="ma-stat">
-          <div className="ma-stat-icon ma-orange">
-            <AlertCircle size={20} />
-          </div>
-
-          <div>
-            <span>Lượt đi muộn</span>
-            <strong>{summary.lateCount}</strong>
-          </div>
-        </div>
-
-        <div className="ma-stat">
-          <div className="ma-stat-icon ma-purple">
-            <Clock size={20} />
-          </div>
-
-          <div>
-            <span>Tổng phút đi muộn</span>
-            <strong>{summary.lateMinutes}</strong>
-          </div>
-        </div>
+        <StatCard
+          icon={Clock}
+          title="Giờ làm việc"
+          value={`${data.schedule.startTime || "--:--"} - ${
+            data.schedule.endTime || "--:--"
+          }`}
+          color="purple"
+          note="Khung giờ hiện tại"
+        />
       </div>
 
-      {/* CÀI ĐẶT GIỜ LÀM VIỆC */}
-      <div className="ma-panel">
-        <div className="ma-heading">
+      {/* BẢNG CHẤM CÔNG */}
+
+      <div className="manager-table-section">
+        <div className="panel-heading">
           <div>
-            <h2>
-              <Settings size={17} />
-              Thiết lập thời gian làm việc
-            </h2>
+            <h2>Bảng chấm công nhân viên</h2>
 
             <p>
-              Thời gian này được sử dụng để tính đi muộn và về sớm.
+              Tháng {month.split("-").reverse().join("/")} ·{" "}
+              {filteredEmployees.length} nhân viên
             </p>
           </div>
         </div>
 
-        <div className="ma-schedule">
-          <div className="ma-field">
-            <label htmlFor="ma-start-time">
-              Giờ bắt đầu làm việc
-            </label>
-
-            <input
-              id="ma-start-time"
-              type="time"
-              value={startTime}
-              onChange={(event) =>
-                setStartTime(event.target.value)
-              }
-            />
-          </div>
-
-          <div className="ma-field">
-            <label htmlFor="ma-end-time">
-              Giờ kết thúc làm việc
-            </label>
-
-            <input
-              id="ma-end-time"
-              type="time"
-              value={endTime}
-              onChange={(event) =>
-                setEndTime(event.target.value)
-              }
-            />
-          </div>
-
-          <button
-            type="button"
-            className="ma-btn ma-primary"
-            onClick={saveSchedule}
-            disabled={saving}
-          >
-            {saving ? (
-              <LoaderCircle
-                size={15}
-                className="ma-spinner"
-              />
-            ) : (
-              <Save size={15} />
-            )}
-
-            Lưu thời gian
-          </button>
-        </div>
-
-        <p className="ma-schedule-note">
-          Giờ làm việc hiện tại: {schedule.startTime} –{" "}
-          {schedule.endTime}.
-        </p>
-      </div>
-
-      {/* DANH SÁCH NHÂN VIÊN */}
-      <div className="ma-panel">
-        <div className="ma-heading">
-          <div>
-            <h2>Danh sách chấm công nhân viên</h2>
-            <p>
-              Thông tin ngày công và thời gian làm việc.
-            </p>
-          </div>
-
-          <span className="ma-total">
-            {rows.length} nhân viên
-          </span>
-        </div>
-
-        {/* TÌM KIẾM VÀ LỌC */}
-        <div className="ma-toolbar">
-          <label className="ma-search">
-            <Search size={17} />
-
-            <input
-              value={keyword}
-              onChange={(event) =>
-                setKeyword(event.target.value)
-              }
-              placeholder="Tìm tên, mã nhân viên, phòng ban..."
-            />
-          </label>
-
-          <div className="ma-filters">
-            <input
-              className="ma-input"
-              type="month"
-              value={month}
-              onChange={(event) =>
-                setMonth(event.target.value)
-              }
-              aria-label="Chọn tháng"
-            />
-
-            <select
-              className="ma-select"
-              value={filter}
-              onChange={(event) =>
-                setFilter(event.target.value)
-              }
-              aria-label="Lọc trạng thái chấm công"
-            >
-              <option value="all">Tất cả</option>
-              <option value="late">Có đi muộn</option>
-              <option value="working">Đang làm việc</option>
-              <option value="none">Chưa chấm công</option>
-            </select>
-
-            <button
-              className="ma-btn"
-              type="button"
-              onClick={exportCSV}
-            >
-              <Download size={15} />
-              Xuất CSV
-            </button>
-          </div>
-        </div>
-
-        {/* BẢNG CHẤM CÔNG */}
-        <div className="ma-table-wrap">
-          <table className="ma-table">
+        <div className="responsive-table">
+          <table className="manager-table">
             <thead>
               <tr>
-                <th>NHÂN VIÊN</th>
-                <th>PHÒNG BAN</th>
-                <th>NGÀY CÔNG</th>
-                <th>SỐ LẦN MUỘN</th>
-                <th>TỔNG PHÚT MUỘN</th>
-                <th>CHẤM CÔNG GẦN NHẤT</th>
-                <th>TRẠNG THÁI</th>
-                <th>CHI TIẾT</th>
+                <th>Nhân viên</th>
+                <th>Phòng ban</th>
+                <th>Ngày chấm công gần nhất</th>
+                <th>Giờ vào</th>
+                <th>Giờ ra</th>
+                <th>Đi muộn</th>
+                <th>Về sớm</th>
+                <th>Trạng thái</th>
               </tr>
             </thead>
 
             <tbody>
-              {loading ? (
+              {filteredEmployees.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="ma-empty">
-                    <LoaderCircle
-                      className="ma-spinner"
-                      size={22}
-                    />
-                    <p>Đang tải dữ liệu...</p>
-                  </td>
-                </tr>
-              ) : rows.length === 0 ? (
-                <tr>
-                  <td colSpan="8" className="ma-empty">
-                    Không tìm thấy nhân viên.
+                  <td colSpan="8" className="empty-state">
+                    {loading
+                      ? "Đang tải dữ liệu..."
+                      : "Không có dữ liệu chấm công."}
                   </td>
                 </tr>
               ) : (
-                rows.map((employee) => (
-                  <tr key={employee.id}>
-                    <td>
-                      <div className="ma-employee">
-                        <div className="ma-avatar">
-                          {employee.name
-                            ?.charAt(0)
-                            .toUpperCase() || "N"}
+                filteredEmployees.map((employee) => {
+                  const record = recordMap.get(
+                    String(employee.id)
+                  );
+
+                  // Dùng số liệu đã lưu, không tính theo lịch mới.
+                  const late = getStoredLateMinutes(record);
+
+                  const early =
+                    getStoredEarlyLeaveMinutes(record);
+
+                  return (
+                    <tr key={employee.id}>
+                      <td>
+                        <div className="employee-cell">
+                          <div className="avatar">
+                            {(employee.name || "N")
+                              .trim()
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
+
+                          <div>
+                            <strong>
+                              {employee.name || "Chưa cập nhật"}
+                            </strong>
+
+                            <small>
+                              {employee.employeeCode || "Chưa có mã"}
+                            </small>
+                          </div>
                         </div>
+                      </td>
 
-                        <div>
-                          <strong>{employee.name}</strong>
-                          <small>
-                            {employee.employeeCode || "Chưa có mã"}
-                          </small>
-                        </div>
-                      </div>
-                    </td>
+                      <td>{employee.department || "—"}</td>
 
-                    <td>{employee.department || "--"}</td>
+                      <td>
+                        {record?.date
+                          ? formatDate(record.date)
+                          : "Chưa chấm công"}
+                      </td>
 
-                    <td>{employee.workDays}</td>
+                      <td>{record?.checkIn || "—"}</td>
 
-                    <td>{employee.lateCount} lần</td>
+                      <td>{record?.checkOut || "—"}</td>
 
-                    <td
-                      className={
-                        employee.lateMinutes > 0
-                          ? "ma-late-text"
-                          : ""
-                      }
-                    >
-                      {employee.lateMinutes} phút
-                    </td>
+                      <td>
+                        {record?.checkIn && late > 0 ? (
+                          <span className="status-badge pending">
+                            {formatNumber(late)} phút
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
 
-                    <td>
-                      {employee.latest
-                        ? `${formatDate(employee.latest.date)} · ${
-                            employee.latest.checkIn || "--:--"
-                          } / ${
-                            employee.latest.checkOut || "--:--"
-                          }`
-                        : "Chưa có dữ liệu"}
-                    </td>
+                      <td>
+                        {record?.checkOut && early > 0 ? (
+                          <span className="status-badge rejected">
+                            {formatNumber(early)} phút
+                          </span>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
 
-                    <td>
-                      <span
-                        className={`ma-status ${employee.status}`}
-                      >
-                        {statusLabel(employee.status)}
-                      </span>
-                    </td>
-
-                    <td>
-                      <button
-                        className="ma-view"
-                        type="button"
-                        title="Xem chi tiết"
-                        onClick={() => setSelected(employee)}
-                      >
-                        <Eye size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                      <td>
+                        <span
+                          className={`status-badge ${
+                            record?.checkIn
+                              ? "approved"
+                              : "pending"
+                          }`}
+                        >
+                          {record?.checkIn
+                            ? record?.checkOut
+                              ? "Đã chấm công"
+                              : "Đang làm việc"
+                            : "Chưa chấm công"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
-
-        <div className="ma-count">
-          Hiển thị {rows.length}/{employees.length} nhân viên ·
-          Tháng {month}
-        </div>
       </div>
 
-      {/* MODAL CHI TIẾT */}
-      {selected && (
+      {/* MODAL CÀI ĐẶT GIỜ LÀM VIỆC */}
+
+      {showSchedule && (
         <div
-          className="ma-overlay"
+          className="manager-modal-backdrop"
           onMouseDown={(event) => {
             if (event.target === event.currentTarget) {
-              setSelected(null);
+              setShowSchedule(false);
             }
           }}
         >
-          <div
-            className="ma-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="ma-modal-title"
+          <form
+            className="manager-modal"
+            onSubmit={handleSaveSchedule}
           >
-            <div className="ma-modal-head">
+            <div className="manager-modal-heading">
               <div>
-                <h2 id="ma-modal-title">{selected.name}</h2>
+                <h3>Cài đặt giờ làm việc</h3>
 
                 <p>
-                  {selected.employeeCode} · {selected.department} ·
-                  Tháng {month}
+                  Giờ làm mới chỉ áp dụng cho các lượt chấm công
+                  phát sinh sau khi lưu. Lịch sử cũ được giữ nguyên.
+                  Nhân viên sẽ nhận được thông báo về thay đổi này.
                 </p>
               </div>
 
               <button
-                className="ma-close"
                 type="button"
-                onClick={() => setSelected(null)}
+                className="manager-icon-button"
+                onClick={() => setShowSchedule(false)}
+                aria-label="Đóng"
+                disabled={savingSchedule}
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className="ma-detail-grid">
-              <div className="ma-detail-box">
-                <span>Ngày công</span>
-                <strong>{selected.workDays}</strong>
-              </div>
+            <label className="manager-form-field">
+              <span>Giờ bắt đầu</span>
 
-              <div className="ma-detail-box">
-                <span>Số lần muộn</span>
-                <strong>{selected.lateCount}</strong>
-              </div>
+              <input
+                type="time"
+                value={scheduleForm.startTime}
+                onChange={(event) =>
+                  setScheduleForm((previous) => ({
+                    ...previous,
+                    startTime: event.target.value,
+                  }))
+                }
+                required
+              />
+            </label>
 
-              <div className="ma-detail-box">
-                <span>Tổng phút muộn</span>
-                <strong>{selected.lateMinutes}</strong>
-              </div>
+            <label className="manager-form-field">
+              <span>Giờ kết thúc</span>
 
-              <div className="ma-detail-box">
-                <span>Giờ làm việc</span>
+              <input
+                type="time"
+                value={scheduleForm.endTime}
+                onChange={(event) =>
+                  setScheduleForm((previous) => ({
+                    ...previous,
+                    endTime: event.target.value,
+                  }))
+                }
+                required
+              />
+            </label>
 
-                <strong className="ma-detail-time">
-                  {schedule.startTime} – {schedule.endTime}
-                </strong>
-              </div>
+            <div className="manager-modal-actions">
+              <button
+                type="button"
+                className="manager-action-button"
+                onClick={() => setShowSchedule(false)}
+                disabled={savingSchedule}
+              >
+                Hủy
+              </button>
+
+              <button
+                type="submit"
+                className="manager-action-button primary"
+                disabled={savingSchedule}
+              >
+                <Save size={16} />
+
+                {savingSchedule
+                  ? "Đang lưu..."
+                  : "Lưu thay đổi"}
+              </button>
             </div>
-
-            <div className="ma-table-wrap">
-              <table className="ma-table ma-detail-table">
-                <thead>
-                  <tr>
-                    <th>NGÀY</th>
-                    <th>GIỜ VÀO</th>
-                    <th>GIỜ RA</th>
-                    <th>ĐI MUỘN</th>
-                    <th>VỀ SỚM</th>
-                    <th>TRẠNG THÁI</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {selectedRecords.length === 0 ? (
-                    <tr>
-                      <td colSpan="6" className="ma-empty">
-                        Chưa có dữ liệu chấm công.
-                      </td>
-                    </tr>
-                  ) : (
-                    selectedRecords.map((record) => {
-                      const late = calculateLate(
-                        record.checkIn,
-                        schedule.startTime
-                      );
-
-                      const status = getStatus(
-                        record,
-                        schedule.startTime
-                      );
-
-                      return (
-                        <tr key={record._id || record.date}>
-                          <td>{formatDate(record.date)}</td>
-
-                          <td>{record.checkIn || "--:--"}</td>
-
-                          <td>{record.checkOut || "--:--"}</td>
-
-                          <td>{late} phút</td>
-
-                          <td>
-                            {Number(record.earlyLeaveMinutes) || 0} phút
-                          </td>
-
-                          <td>
-                            <span className={`ma-status ${status}`}>
-                              {statusLabel(status)}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          </form>
         </div>
       )}
     </section>

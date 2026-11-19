@@ -13,39 +13,52 @@ import {
 import {
   protect,
   authorize,
+  authorizeEmployee,
 } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Tất cả API đều yêu cầu đăng nhập
 router.use(protect);
 
-// Nhân viên
+// ======================================
+// CHẤM CÔNG CÁ NHÂN
+// Nhân viên và kế toán
+// ======================================
+
 router.get(
   "/me",
-  authorize("employee"),
+  authorizeEmployee,
   getMyAttendance
 );
 
 router.post(
   "/check-in",
-  authorize("employee"),
+  authorizeEmployee,
   checkIn
 );
 
 router.patch(
   "/check-out",
-  authorize("employee"),
+  authorizeEmployee,
   checkOut
 );
 
-// Lịch làm việc
+// ======================================
+// LỊCH LÀM VIỆC
+// Tất cả tài khoản đã đăng nhập được xem
+// ======================================
+
 router.get(
   "/schedule",
+  authorize("manager", "accountant", "employee"),
   getWorkSchedule
 );
 
-// Quản lý
+// ======================================
+// QUẢN LÝ CHẤM CÔNG
+// Chỉ quản lý
+// ======================================
+
 router.get(
   "/manager",
   authorize("manager"),

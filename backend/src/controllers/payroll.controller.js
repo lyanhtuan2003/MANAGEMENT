@@ -1,9 +1,21 @@
 
 import mongoose from "mongoose";
+
 import Payroll from "../models/Payroll.js";
+import PayrollSetting from "../models/PayrollSetting.js";
 import Attendance from "../models/Attendance.js";
 import Reward from "../models/Reward.js";
 import User from "../models/User.js";
+
+// ========================================
+// CẤU HÌNH
+// ========================================
+
+const PAYROLL_ROLES = ["employee", "accountant"];
+
+// ========================================
+// HÀM HỖ TRỢ
+// ========================================
 
 const validPeriod = (month, year) =>
   Number.isInteger(Number(month)) &&
@@ -14,60 +26,120 @@ const validPeriod = (month, year) =>
   Number(year) <= 2100;
 
 const validMoney = (value) =>
-  Number.isFinite(Number(value)) && Number(value) >= 0;
+  value !== null &&
+  value !== undefined &&
+  value !== "" &&
+  Number.isFinite(Number(value)) &&
+  Number(value) >= 0;
 
-const calculateTotal = (basic, allowance, bonus, deduction) =>
-  Number(basic) + Number(allowance) + Number(bonus) - Number(deduction);
+const roundMoney = (value) =>
+  Math.round((Number(value || 0) + Number.EPSILON) * 100) / 100;
 
-const getMonthRange = (month, year) => ({
-  start: new Date(Number(year), Number(month) - 1, 1),
-  end: new Date(Number(year), Number(month), 1),
-});
+const calculateTotal = (
+  basicSalary,
+  allowance,
+  bonus,
+  deduction
+) =>
+  roundMoney(
+    Number(basicSalary || 0) +
+    Number(allowance || 0) +
+    Number(bonus || 0) -
+    Number(deduction || 0)
+  );
+
+const getMonthKey = (month, year) =>
+  `${year}-${String(month).padStart(2, "0")}`;
+
+// Khoảng thời gian tháng theo múi giờ Việt Nam.
+const getMonthRange = (month, year) => {
+  const start = new Date(
+    Date.UTC(Number(year), Number(month) - 1, 1) - 7 * 60 * 60 * 1000
+  );
+
+  const end = new Date(
+    Date.UTC(Number(year), Number(month), 1) - 7 * 60 * 60 * 1000
+  );
+
+  return { start, end };
+};
+
+const getEmployeeName = (employee) =>
+  employee?.name || employee?.fullName || "Chưa cập nhật";
+
+const getEmployeeCode = (employee) =>
+  employee?.employeeCode || employee?.code || "";
+
+// ========================================
+// LẤY THƯỞNG VÀ PHẠT THEO THÁNG
+// ========================================
 
 const getMonthlyRewardTotals = async (month, year) => {
   const { start, end } = getMonthRange(month, year);
 
   const records = await Reward.find({
-    date: { $gte: start, $lt: end },
+    date: {
+      $gte: start,
+      $lt: end,
+    },
   }).lean();
 
   const result = new Map();
 
-  records.forEach((record) => {
-    const id = String(record.employee);
+  for (const record of records) {
+    const employeeId = record.employee
+      ? String(record.employee)
+      : null;
 
-    if (!result.has(id)) {
-      result.set(id, { bonus: 0, penalty: 0 });
+    if (!employeeId) continue;
+
+    if (!result.has(employeeId)) {
+      result.set(employeeId, {
+        bonus: 0,
+        penalty: 0,
+      });
     }
 
-    const item = result.get(id);
+    const item = result.get(employeeId);
+    const amount = Number(record.amount || 0);
 
     if (record.type === "Thưởng") {
-      item.bonus += Number(record.amount || 0);
+      item.bonus += amount;
     }
 
     if (record.type === "Phạt") {
-      item.penalty += Number(record.amount || 0);
+      item.penalty += amount;
     }
-  });
+  }
 
   return result;
 };
 
+// ========================================
+// THỐNG KÊ CHẤM CÔNG
+// CHỈ THỐNG KÊ, KHÔNG CHIA LƯƠNG
+// ========================================
+
 const getAttendanceStats = async (month, year) => {
-  const prefix = `${year}-${String(month).padStart(2, "0")}`;
+  const prefix = getMonthKey(month, year);
 
   const records = await Attendance.find({
-    date: { $regex: `^${prefix}` },
+    date: {
+      $regex: `^${prefix}`,
+    },
   }).lean();
 
   const result = new Map();
 
-  records.forEach((record) => {
-    const id = String(record.employeeId);
+  for (const record of records) {
+    const employeeId = record.employeeId
+      ? String(record.employeeId)
+      : null;
 
-    if (!result.has(id)) {
-      result.set(id, {
+    if (!employeeId) continue;
+
+    if (!result.has(employeeId)) {
+      result.set(employeeId, {
         workDays: 0,
         lateCount: 0,
         lateMinutes: 0,
@@ -76,9 +148,11 @@ const getAttendanceStats = async (month, year) => {
       });
     }
 
-    const item = result.get(id);
+    const item = result.get(employeeId);
 
-    if (record.checkIn) item.workDays += 1;
+    if (record.checkIn) {
+      item.workDays += 1;
+    }
 
     const late = Number(record.lateMinutes || 0);
     const early = Number(record.earlyLeaveMinutes || 0);
@@ -92,32 +166,77 @@ const getAttendanceStats = async (month, year) => {
       item.earlyLeaveCount += 1;
       item.earlyLeaveMinutes += early;
     }
-  });
+  }
 
   return result;
 };
 
-const getMonthlyRows = async (month, year) => {
-  const [employees, rewardMap, attendanceMap, payrolls] =
-    await Promise.all([
-      User.find({
-        role: "employee",
-        isActive: true,
-        status: { $ne: "resigned" },
-      }).select(
-        "name employeeCode department position salary"
-      ).sort({ name: 1 }),
+// ========================================
+// LẤY DANH SÁCH NHÂN VIÊN VÀ KẾ TOÁN
+// Không loại tài khoản nếu isActive chưa được khai báo.
+// ========================================
 
-      getMonthlyRewardTotals(month, year),
-      getAttendanceStats(month, year),
-      Payroll.find({ month, year }).populate("paidBy", "name"),
-    ]);
+const getActivePayrollEmployees = async () => {
+  return User.find({
+    role: {
+      $in: PAYROLL_ROLES,
+    },
+    isActive: {
+      $ne: false,
+    },
+    status: {
+      $ne: "resigned",
+    },
+  })
+    .select(
+      "name fullName employeeCode code department position salary role isActive status"
+    )
+    .sort({ name: 1 })
+    .lean();
+};
+
+// ========================================
+// TỔNG HỢP BẢNG LƯƠNG THEO THÁNG
+// ========================================
+
+const getMonthlyRows = async (month, year) => {
+  const numericMonth = Number(month);
+  const numericYear = Number(year);
+  const monthKey = getMonthKey(numericMonth, numericYear);
+
+  const [
+    employees,
+    rewardMap,
+    attendanceMap,
+    payrolls,
+    setting,
+  ] = await Promise.all([
+    getActivePayrollEmployees(),
+
+    getMonthlyRewardTotals(numericMonth, numericYear),
+
+    getAttendanceStats(numericMonth, numericYear),
+
+    Payroll.find({
+      month: numericMonth,
+      year: numericYear,
+    })
+      .populate("paidBy", "name")
+      .lean(),
+
+    PayrollSetting.findOne({
+      month: monthKey,
+    }).lean(),
+  ]);
 
   const payrollMap = new Map(
-    payrolls.map((item) => [String(item.employeeId), item])
+    payrolls.map((item) => [
+      String(item.employeeId),
+      item,
+    ])
   );
 
-  return employees.map((employee) => {
+  const rows = employees.map((employee) => {
     const id = String(employee._id);
 
     const reward = rewardMap.get(id) || {
@@ -135,52 +254,131 @@ const getMonthlyRows = async (month, year) => {
 
     const payroll = payrollMap.get(id) || null;
 
-    const basicSalary = payroll
-      ? Number(payroll.basicSalary)
-      : Number(employee.salary || 0);
+    // ====================================
+    // ĐÃ TẠO BẢNG LƯƠNG
+    // ====================================
 
-    const allowance = Number(payroll?.allowance || 0);
-    const additionalDeduction = Number(
-      payroll?.additionalDeduction || 0
-    );
+    if (payroll) {
+      const basicSalary = Number(payroll.basicSalary || 0);
+      const allowance = Number(payroll.allowance || 0);
+      const bonus = Number(payroll.bonus || 0);
+      const deduction = Number(payroll.deduction || 0);
 
-    const bonus = reward.bonus;
-    const penalty = reward.penalty;
-    const deduction = penalty + additionalDeduction;
+      const additionalDeduction = Number(
+        payroll.additionalDeduction || 0
+      );
 
-    const totalSalary = calculateTotal(
-      basicSalary,
-      allowance,
-      bonus,
-      deduction
+      const penalty = Math.max(
+        0,
+        deduction - additionalDeduction
+      );
+
+      // Bảng lương đã chốt thì sử dụng số tiền đã lưu.
+      const totalSalary = Number(payroll.totalSalary || 0);
+
+      return {
+        employee: {
+          _id: employee._id,
+          name: getEmployeeName(employee),
+          employeeCode: getEmployeeCode(employee),
+          department: employee.department || "",
+          position: employee.position || "",
+          role: employee.role,
+        },
+
+        payroll,
+        attendance,
+
+        basicSalary,
+        proratedBasicSalary: basicSalary,
+
+        standardWorkDays: Number(
+          payroll.standardWorkDays || 0
+        ),
+
+        workDays: Number(payroll.workDays ?? attendance.workDays),
+
+        allowance,
+        bonus,
+        penalty,
+        additionalDeduction,
+        deduction,
+
+        totalSalary,
+        status: payroll.status,
+      };
+    }
+
+    // ====================================
+    // CHƯA TẠO BẢNG LƯƠNG
+    // CHỈ HIỂN THỊ LƯƠNG DỰ KIẾN CHO QUẢN LÝ
+    // ====================================
+
+    const basicSalary = Number(employee.salary || 0);
+    const allowance = 0;
+    const bonus = roundMoney(reward.bonus);
+    const penalty = roundMoney(reward.penalty);
+    const additionalDeduction = 0;
+
+    const deduction = penalty;
+
+    const totalSalary = Math.max(
+      0,
+      calculateTotal(
+        basicSalary,
+        allowance,
+        bonus,
+        deduction
+      )
     );
 
     return {
       employee: {
         _id: employee._id,
-        name: employee.name,
-        employeeCode: employee.employeeCode,
-        department: employee.department,
-        position: employee.position,
+        name: getEmployeeName(employee),
+        employeeCode: getEmployeeCode(employee),
+        department: employee.department || "",
+        position: employee.position || "",
+        role: employee.role,
       },
-      payroll,
+
+      payroll: null,
       attendance,
+
       basicSalary,
+      proratedBasicSalary: basicSalary,
+
+      standardWorkDays: Number(
+        setting?.standardWorkDays || 0
+      ),
+
+      workDays: attendance.workDays,
+
       allowance,
       bonus,
       penalty,
       additionalDeduction,
       deduction,
+
       totalSalary,
-      status: payroll?.status || "not_created",
+      status: "not_created",
     };
   });
+
+  return {
+    rows,
+    standardWorkDays: Number(
+      setting?.standardWorkDays || 0
+    ),
+    setting,
+  };
 };
 
 // ========================================
-// QUẢN LÝ: XEM DANH SÁCH TỔNG HỢP
-// GET /api/payroll/manager
+// 1. QUẢN LÝ: DANH SÁCH BẢNG LƯƠNG
+// GET /api/payroll/manager?month=11&year=2026
 // ========================================
+
 export const getManagerPayrolls = async (req, res) => {
   try {
     const month = Number(req.query.month);
@@ -193,20 +391,24 @@ export const getManagerPayrolls = async (req, res) => {
       });
     }
 
-    const rows = await getMonthlyRows(month, year);
+    const {
+      rows,
+      standardWorkDays,
+      setting,
+    } = await getMonthlyRows(month, year);
 
     const summary = rows.reduce(
       (acc, item) => {
         acc.employeeCount += 1;
-        acc.totalPayroll += item.totalSalary;
-        acc.totalWorkDays += item.attendance.workDays;
-        acc.totalBonus += item.bonus;
-        acc.totalPenalty += item.penalty;
+        acc.totalPayroll += Number(item.totalSalary || 0);
+        acc.totalWorkDays += Number(item.workDays || 0);
+        acc.totalBonus += Number(item.bonus || 0);
+        acc.totalPenalty += Number(item.penalty || 0);
 
         if (item.status === "paid") {
-          acc.paidAmount += item.totalSalary;
-        } else {
-          acc.unpaidAmount += item.totalSalary;
+          acc.paidAmount += Number(item.totalSalary || 0);
+        } else if (item.status !== "not_created") {
+          acc.unpaidAmount += Number(item.totalSalary || 0);
         }
 
         return acc;
@@ -222,10 +424,12 @@ export const getManagerPayrolls = async (req, res) => {
       }
     );
 
-    return res.json({
+    return res.status(200).json({
       success: true,
       month,
       year,
+      standardWorkDays,
+      setting,
       payrolls: rows,
       summary,
     });
@@ -240,8 +444,10 @@ export const getManagerPayrolls = async (req, res) => {
 };
 
 // ========================================
-// QUẢN LÝ: TẠO BẢNG LƯƠNG
+// 2. TẠO BẢNG LƯƠNG
+// POST /api/payroll/manager
 // ========================================
+
 export const createPayroll = async (req, res) => {
   try {
     const {
@@ -277,11 +483,20 @@ export const createPayroll = async (req, res) => {
       });
     }
 
+    const numericMonth = Number(month);
+    const numericYear = Number(year);
+
     const employee = await User.findOne({
       _id: employeeId,
-      role: "employee",
-      isActive: true,
-      status: { $ne: "resigned" },
+      role: {
+        $in: PAYROLL_ROLES,
+      },
+      isActive: {
+        $ne: false,
+      },
+      status: {
+        $ne: "resigned",
+      },
     });
 
     if (!employee) {
@@ -292,9 +507,9 @@ export const createPayroll = async (req, res) => {
     }
 
     const existed = await Payroll.findOne({
-      employeeId,
-      month: Number(month),
-      year: Number(year),
+      employeeId: employee._id,
+      month: numericMonth,
+      year: numericYear,
     });
 
     if (existed) {
@@ -304,19 +519,37 @@ export const createPayroll = async (req, res) => {
       });
     }
 
-    const rewardMap = await getMonthlyRewardTotals(month, year);
-    const reward = rewardMap.get(String(employeeId)) || {
+    const [rewardMap, attendanceMap] = await Promise.all([
+      getMonthlyRewardTotals(numericMonth, numericYear),
+      getAttendanceStats(numericMonth, numericYear),
+    ]);
+
+    const reward = rewardMap.get(String(employee._id)) || {
       bonus: 0,
       penalty: 0,
     };
 
-    const basicSalary = Number(employee.salary || 0);
-    const deduction = reward.penalty + Number(additionalDeduction);
+    const attendance = attendanceMap.get(String(employee._id)) || {
+      workDays: 0,
+    };
 
+    const basicSalary = Number(employee.salary || 0);
+    const workDays = Number(attendance.workDays || 0);
+
+    const fullAllowance = Number(allowance);
+    const bonus = roundMoney(reward.bonus);
+    const penalty = roundMoney(reward.penalty);
+    const extraDeduction = Number(additionalDeduction);
+
+    const deduction = roundMoney(
+      penalty + extraDeduction
+    );
+
+    // Lương cơ bản nhận đủ tháng, không chia ngày công.
     const totalSalary = calculateTotal(
       basicSalary,
-      allowance,
-      reward.bonus,
+      fullAllowance,
+      bonus,
       deduction
     );
 
@@ -329,19 +562,29 @@ export const createPayroll = async (req, res) => {
 
     const payroll = await Payroll.create({
       employeeId: employee._id,
-      employeeCode: employee.employeeCode || "",
-      employeeName: employee.name,
+
+      employeeCode: getEmployeeCode(employee),
+      employeeName: getEmployeeName(employee),
       department: employee.department || "",
       position: employee.position || "",
-      month: Number(month),
-      year: Number(year),
+
+      month: numericMonth,
+      year: numericYear,
+
       basicSalary,
-      allowance: Number(allowance),
-      bonus: reward.bonus,
+
+      standardWorkDays: 0,
+      workDays,
+      proratedBasicSalary: basicSalary,
+
+      allowance: fullAllowance,
+      bonus,
       deduction,
-      additionalDeduction: Number(additionalDeduction),
+      additionalDeduction: extraDeduction,
+
       totalSalary,
       note: String(note || "").trim(),
+
       status: "draft",
     });
 
@@ -368,8 +611,10 @@ export const createPayroll = async (req, res) => {
 };
 
 // ========================================
-// QUẢN LÝ: CẬP NHẬT BẢNG LƯƠNG
+// 3. CẬP NHẬT BẢNG LƯƠNG
+// PUT /api/payroll/manager/:id
 // ========================================
+
 export const updatePayroll = async (req, res) => {
   try {
     const { id } = req.params;
@@ -399,7 +644,7 @@ export const updatePayroll = async (req, res) => {
 
     const basicSalary =
       req.body.basicSalary === undefined
-        ? Number(payroll.basicSalary)
+        ? Number(payroll.basicSalary || 0)
         : Number(req.body.basicSalary);
 
     const allowance =
@@ -423,23 +668,22 @@ export const updatePayroll = async (req, res) => {
       });
     }
 
-    // Luôn lấy thưởng/phạt mới nhất từ Reward
-    const rewardMap = await getMonthlyRewardTotals(
-      payroll.month,
-      payroll.year
+    const oldPenalty = Math.max(
+      0,
+      Number(payroll.deduction || 0) -
+        Number(payroll.additionalDeduction || 0)
     );
 
-    const reward = rewardMap.get(String(payroll.employeeId)) || {
-      bonus: 0,
-      penalty: 0,
-    };
+    const bonus = Number(payroll.bonus || 0);
 
-    const deduction = reward.penalty + additionalDeduction;
+    const deduction = roundMoney(
+      oldPenalty + additionalDeduction
+    );
 
     const totalSalary = calculateTotal(
       basicSalary,
       allowance,
-      reward.bonus,
+      bonus,
       deduction
     );
 
@@ -451,8 +695,9 @@ export const updatePayroll = async (req, res) => {
     }
 
     payroll.basicSalary = basicSalary;
+    payroll.proratedBasicSalary = basicSalary;
     payroll.allowance = allowance;
-    payroll.bonus = reward.bonus;
+    payroll.bonus = bonus;
     payroll.deduction = deduction;
     payroll.additionalDeduction = additionalDeduction;
     payroll.totalSalary = totalSalary;
@@ -479,8 +724,10 @@ export const updatePayroll = async (req, res) => {
 };
 
 // ========================================
-// QUẢN LÝ: XÁC NHẬN ĐÃ THANH TOÁN
+// 4. XÁC NHẬN THANH TOÁN
+// PATCH /api/payroll/manager/:id/pay
 // ========================================
+
 export const markPayrollPaid = async (req, res) => {
   try {
     const { id } = req.params;
@@ -530,8 +777,10 @@ export const markPayrollPaid = async (req, res) => {
 };
 
 // ========================================
-// QUẢN LÝ: XÓA BẢNG LƯƠNG
+// 5. XÓA BẢNG LƯƠNG
+// DELETE /api/payroll/manager/:id
 // ========================================
+
 export const deletePayroll = async (req, res) => {
   try {
     const { id } = req.params;
@@ -576,43 +825,169 @@ export const deletePayroll = async (req, res) => {
 };
 
 // ========================================
-// NHÂN VIÊN: CHỈ XEM BẢNG LƯƠNG CỦA MÌNH
+// 6. NHÂN VIÊN / KẾ TOÁN
+// XEM BẢNG LƯƠNG CỦA CHÍNH MÌNH
+// GET /api/payroll/me?month=11&year=2026
 // ========================================
+
 export const getMyPayrolls = async (req, res) => {
   try {
-    const filter = {
-      employeeId: req.user._id,
-    };
-
-    if (req.query.month || req.query.year) {
-      const month = Number(req.query.month);
-      const year = Number(req.query.year);
-
-      if (!validPeriod(month, year)) {
-        return res.status(400).json({
-          success: false,
-          message: "Tháng hoặc năm không hợp lệ.",
-        });
-      }
-
-      filter.month = month;
-      filter.year = year;
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({
+        success: false,
+        message: "Vui lòng đăng nhập lại.",
+      });
     }
 
-    const payrolls = await Payroll.find(filter)
-      .sort({ year: -1, month: -1 })
+    const month = Number(req.query.month);
+    const year = Number(req.query.year);
+
+    if (!validPeriod(month, year)) {
+      return res.status(400).json({
+        success: false,
+        message: "Tháng hoặc năm không hợp lệ.",
+      });
+    }
+
+    const employeeId = req.user._id;
+
+    const role = String(req.user.role || "")
+      .trim()
+      .toLowerCase();
+
+    if (!PAYROLL_ROLES.includes(role)) {
+      return res.status(403).json({
+        success: false,
+        message: "Bạn không có quyền xem bảng lương cá nhân.",
+      });
+    }
+
+    // Tìm tài khoản đang đăng nhập.
+    const employee = await User.findById(employeeId)
+      .select(
+        "_id name fullName employeeCode code department position role salary isActive status"
+      )
       .lean();
 
-    return res.json({
+    if (!employee || employee.isActive === false) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy tài khoản nhân viên.",
+      });
+    }
+
+    // Chỉ truy vấn đúng ID + tháng + năm.
+    const payroll = await Payroll.findOne({
+      employeeId: employee._id,
+      month,
+      year,
+    })
+      .populate("paidBy", "name")
+      .lean();
+
+    if (!payroll) {
+      console.warn("KHÔNG TÌM THẤY BẢNG LƯƠNG:", {
+        employeeId: String(employee._id),
+        employeeName: getEmployeeName(employee),
+        employeeCode: getEmployeeCode(employee),
+        role,
+        month,
+        year,
+      });
+
+      return res.status(200).json({
+        success: true,
+        month,
+        year,
+        payrolls: [],
+        message: `Chưa có bảng lương tháng ${month}/${year}.`,
+      });
+    }
+
+    // Đảm bảo bản ghi trả về đúng tháng/năm yêu cầu.
+    if (
+      Number(payroll.month) !== month ||
+      Number(payroll.year) !== year
+    ) {
+      return res.status(200).json({
+        success: true,
+        month,
+        year,
+        payrolls: [],
+        message: "Không có bảng lương trong tháng được chọn.",
+      });
+    }
+
+    const totalDeduction = Number(payroll.deduction || 0);
+
+    const additionalDeduction = Number(
+      payroll.additionalDeduction || 0
+    );
+
+    const penalty = Math.max(
+      0,
+      totalDeduction - additionalDeduction
+    );
+
+    const myPayroll = {
+      _id: payroll._id,
+
+      employeeId: String(employee._id),
+
+      employeeName:
+        getEmployeeName(employee) ||
+        payroll.employeeName,
+
+      employeeCode:
+        getEmployeeCode(employee) ||
+        payroll.employeeCode ||
+        "",
+
+      department:
+        employee.department ||
+        payroll.department ||
+        "",
+
+      position:
+        employee.position ||
+        payroll.position ||
+        "",
+
+      month: Number(payroll.month),
+      year: Number(payroll.year),
+
+      basicSalary: Number(payroll.basicSalary || 0),
+      allowance: Number(payroll.allowance || 0),
+      bonus: Number(payroll.bonus || 0),
+
+      penalty,
+      additionalDeduction,
+      deduction: totalDeduction,
+
+      totalSalary: Number(payroll.totalSalary || 0),
+
+      workDays: Number(payroll.workDays || 0),
+
+      status: payroll.status,
+
+      note: payroll.note || "",
+
+      paidAt: payroll.paidAt || null,
+      paidBy: payroll.paidBy || null,
+    };
+
+    return res.status(200).json({
       success: true,
-      payrolls,
+      month,
+      year,
+      payrolls: [myPayroll],
     });
   } catch (error) {
-    console.error("getMyPayrolls:", error);
+    console.error("getMyPayrolls ERROR:", error);
 
     return res.status(500).json({
       success: false,
-      message: "Không thể tải bảng lương.",
+      message: "Không thể tải bảng lương của bạn.",
     });
   }
 };

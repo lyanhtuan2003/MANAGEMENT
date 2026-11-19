@@ -10,10 +10,27 @@ const payrollSchema = new mongoose.Schema(
       index: true,
     },
 
-    employeeCode: { type: String, default: "", trim: true },
-    employeeName: { type: String, required: true, trim: true },
-    department: { type: String, default: "" },
-    position: { type: String, default: "" },
+    employeeCode: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    employeeName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    department: {
+      type: String,
+      default: "",
+    },
+
+    position: {
+      type: String,
+      default: "",
+    },
 
     month: {
       type: Number,
@@ -29,19 +46,71 @@ const payrollSchema = new mongoose.Schema(
       max: 2100,
     },
 
-    basicSalary: { type: Number, required: true, min: 0 },
-    allowance: { type: Number, default: 0, min: 0 },
+    // Lương cơ bản tháng, luôn nhận đủ
+    basicSalary: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
 
-    // Tổng tiền thưởng lấy từ Reward
-    bonus: { type: Number, default: 0, min: 0 },
+    // Giữ lại để tương thích dữ liệu cũ.
+    // Không dùng để chia lương nữa.
+    standardWorkDays: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 31,
+    },
 
-    // Tổng tiền phạt từ Reward + khấu trừ bổ sung
-    deduction: { type: Number, default: 0, min: 0 },
+    // Ngày công thực tế, chỉ để thống kê
+    workDays: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
 
-    // Phần khấu trừ do Sếp nhập, không bao gồm tiền phạt Reward
-    additionalDeduction: { type: Number, default: 0, min: 0 },
+    // Giữ lại để tương thích dữ liệu cũ.
+    // Giá trị mới luôn bằng basicSalary.
+    proratedBasicSalary: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
 
-    totalSalary: { type: Number, required: true, min: 0 },
+    // Phụ cấp
+    allowance: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    // Tổng tiền thưởng
+    bonus: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    // Tổng tiền phạt và khấu trừ
+    deduction: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    // Khấu trừ bổ sung do quản lý nhập
+    additionalDeduction: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
+    // Lương thực nhận
+    totalSalary: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
 
     note: {
       type: String,
@@ -56,7 +125,10 @@ const payrollSchema = new mongoose.Schema(
       default: "draft",
     },
 
-    paidAt: { type: Date, default: null },
+    paidAt: {
+      type: Date,
+      default: null,
+    },
 
     paidBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -64,7 +136,9 @@ const payrollSchema = new mongoose.Schema(
       default: null,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 payrollSchema.index(

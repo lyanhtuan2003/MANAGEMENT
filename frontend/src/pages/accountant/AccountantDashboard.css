@@ -1,14 +1,30 @@
 
+/* =========================================
+   ACCOUNTANT DASHBOARD - MAIN
+========================================= */
+
 .accountant-app {
+  width: 100%;
   min-height: 100vh;
   display: flex;
+  overflow-x: hidden;
   background: #f5f7fb;
   color: #26344d;
   font-family: inherit;
+  box-sizing: border-box;
 }
+
+.accountant-app * {
+  box-sizing: border-box;
+}
+
+/* =========================================
+   SIDEBAR
+========================================= */
 
 .accountant-sidebar {
   width: 235px;
+  min-width: 235px;
   height: 100vh;
   position: fixed;
   inset: 0 auto 0 0;
@@ -70,6 +86,8 @@
   letter-spacing: 1px;
 }
 
+/* MENU */
+
 .accountant-nav {
   display: flex;
   flex-direction: column;
@@ -104,6 +122,8 @@
   color: #3985ee;
   font-weight: 700;
 }
+
+/* SIDEBAR BOTTOM */
 
 .accountant-sidebar-bottom {
   margin-top: auto;
@@ -171,19 +191,55 @@
   background: #fff1f0;
 }
 
+.accountant-change-password {
+  color: #3985ee;
+}
+
+.accountant-change-password:hover {
+  background: #edf4ff;
+}
+
+/* =========================================
+   MAIN CONTENT
+========================================= */
+
 .accountant-main {
-  width: calc(100% - 235px);
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
   min-height: 100vh;
   margin-left: 235px;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
+
+/* CONTENT */
 
 .accountant-content {
   flex: 1;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   padding: 25px 30px;
   overflow-x: hidden;
+  box-sizing: border-box;
 }
+
+/* FOOTER */
+
+.accountant-footer {
+  width: 100%;
+  padding: 16px 25px;
+  border-top: 1px solid #e9edf4;
+  color: #98a2b3;
+  text-align: center;
+  font-size: 11px;
+}
+
+/* MOBILE BAR */
 
 .accountant-mobile-bar {
   display: none;
@@ -209,17 +265,19 @@
   font-size: 14px;
 }
 
-.accountant-footer {
-  padding: 16px 25px;
-  border-top: 1px solid #e9edf4;
-  color: #98a2b3;
-  text-align: center;
-  font-size: 11px;
+/* OVERLAY */
+
+.accountant-overlay {
+  display: none;
 }
 
-/* OVERVIEW */
+/* =========================================
+   OVERVIEW
+========================================= */
 
 .accountant-overview {
+  width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -269,6 +327,8 @@
   background: rgba(255, 255, 255, 0.18);
 }
 
+/* SHORTCUT */
+
 .accountant-shortcut {
   padding: 23px;
   display: flex;
@@ -311,17 +371,139 @@
   background: #256bd0;
 }
 
-.accountant-overlay {
-  display: none;
+/* =========================================
+   COMPANY FINANCE - FIX WIDTH
+========================================= */
+
+/* Component thu chi */
+
+.accountant-content .company-finance {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 16px;
+  box-sizing: border-box;
 }
 
-/* RESPONSIVE */
+/* Tiêu đề và nút chức năng */
 
-@media (max-width: 900px) {
+.accountant-content .cf-heading {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Ba thẻ thống kê */
+
+.accountant-content .cf-stats {
+  display: grid;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.accountant-content .cf-stat {
+  width: 100%;
+  min-width: 0;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.accountant-content .cf-stat > div:last-child {
+  min-width: 0;
+}
+
+.accountant-content .cf-stat-value {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* Lịch sử giao dịch */
+
+.accountant-content .cf-card {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 16px;
+  overflow: hidden;
+}
+
+/* Bộ lọc */
+
+.accountant-content .cf-filters {
+  display: grid;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  grid-template-columns:
+    minmax(0, 1.7fr)
+    minmax(0, 0.7fr)
+    repeat(2, minmax(0, 0.6fr));
+  gap: 10px;
+}
+
+.accountant-content .cf-input-wrap {
+  min-width: 0;
+  width: 100%;
+}
+
+.accountant-content .cf-input,
+.accountant-content .cf-select {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Bảng dữ liệu */
+
+.accountant-content .cf-table-wrap {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.accountant-content .cf-table {
+  width: 100%;
+  min-width: 750px;
+  border-collapse: collapse;
+}
+
+/* =========================================
+   RESPONSIVE - TABLET
+========================================= */
+
+@media (max-width: 1100px) {
   .accountant-content {
     padding: 20px;
   }
+
+  .accountant-content .company-finance {
+    padding: 12px;
+  }
+
+  .accountant-content .cf-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .accountant-content .cf-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
+
+/* =========================================
+   RESPONSIVE - MOBILE
+========================================= */
 
 @media (max-width: 700px) {
   .accountant-sidebar {
@@ -350,6 +532,7 @@
 
   .accountant-main {
     width: 100%;
+    min-width: 0;
     margin-left: 0;
   }
 
@@ -358,7 +541,37 @@
   }
 
   .accountant-content {
-    padding: 15px;
+    width: 100%;
+    min-width: 0;
+    padding: 12px;
+  }
+
+  .accountant-content .company-finance {
+    padding: 8px;
+  }
+
+  .accountant-content .cf-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .accountant-content .cf-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .accountant-content .cf-card {
+    padding: 12px;
+  }
+
+  .accountant-content .cf-heading h2 {
+    font-size: 21px;
+  }
+
+  .accountant-content .cf-actions {
+    width: 100%;
+  }
+
+  .accountant-content .cf-actions button {
+    flex: 1;
   }
 
   .accountant-welcome {
@@ -381,6 +594,36 @@
   }
 
   .accountant-shortcut button {
+    width: 100%;
+  }
+}
+
+/* =========================================
+   RESPONSIVE - SMALL MOBILE
+========================================= */
+
+@media (max-width: 400px) {
+  .accountant-content {
+    padding: 8px;
+  }
+
+  .accountant-content .company-finance {
+    padding: 5px;
+  }
+
+  .accountant-content .cf-stat {
+    padding: 13px;
+  }
+
+  .accountant-content .cf-card {
+    padding: 10px;
+  }
+
+  .accountant-content .cf-actions {
+    flex-direction: column;
+  }
+
+  .accountant-content .cf-actions button {
     width: 100%;
   }
 }

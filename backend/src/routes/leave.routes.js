@@ -9,19 +9,54 @@ import {
   reviewLeaveRequest,
 } from "../controllers/leave.controller.js";
 
-import { protect, authorize } from "../middleware/auth.js";
+import {
+  protect,
+  authorize,
+  authorizeEmployee,
+} from "../middleware/auth.js";
 
 const router = express.Router();
 
 router.use(protect);
 
-// NHÂN VIÊN
-router.get("/me", authorize("employee"), getMyLeaveRequests);
-router.post("/", authorize("employee"), createLeaveRequest);
-router.delete("/:id", authorize("employee"), deleteMyLeaveRequest);
+// ======================================
+// NGHỈ PHÉP CÁ NHÂN
+// Nhân viên và kế toán
+// ======================================
 
-// SẾP
-router.get("/manager", authorize("manager"), getAllLeaveRequests);
-router.patch("/:id/review", authorize("manager"), reviewLeaveRequest);
+router.get(
+  "/me",
+  authorizeEmployee,
+  getMyLeaveRequests
+);
+
+router.post(
+  "/",
+  authorizeEmployee,
+  createLeaveRequest
+);
+
+router.delete(
+  "/:id",
+  authorizeEmployee,
+  deleteMyLeaveRequest
+);
+
+// ======================================
+// QUẢN LÝ ĐƠN NGHỈ PHÉP
+// Chỉ quản lý
+// ======================================
+
+router.get(
+  "/manager",
+  authorize("manager"),
+  getAllLeaveRequests
+);
+
+router.patch(
+  "/:id/review",
+  authorize("manager"),
+  reviewLeaveRequest
+);
 
 export default router;
