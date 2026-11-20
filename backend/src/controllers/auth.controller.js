@@ -8,13 +8,24 @@ import User from "../models/User.js";
 
 const userResponse = (user) => ({
   id: user._id,
-  employeeCode: user.employeeCode,
-  name: user.name,
-  email: user.email,
-  phone: user.phone,
-  avatar: user.avatar,
-  position: user.position,
-  department: user.department,
+  _id: user._id,
+
+  employeeCode: user.employeeCode || "",
+  name: user.name || "",
+  email: user.email || "",
+  phone: user.phone || "",
+  avatar: user.avatar || "",
+
+  position: user.position || "",
+  department: user.department || "",
+
+  // Lương cơ bản do quản lý thiết lập
+  salary: Number(user.salary || 0),
+
+  // Ngày vào làm: mặc định là ngày sếp tạo tài khoản
+  joinDate: user.joinDate || user.createdAt || null,
+  createdAt: user.createdAt || null,
+
   role: user.role,
   status: user.status,
   isActive: user.isActive,
@@ -110,6 +121,7 @@ export const login = async (req, res) => {
 
 export const getMe = async (req, res) => {
   try {
+    // Luôn lấy dữ liệu mới nhất từ MongoDB
     const user = await User.findById(req.user._id);
 
     if (!user) {
@@ -146,7 +158,6 @@ export const changePassword = async (req, res) => {
       confirmPassword,
     } = req.body;
 
-    // Kiểm tra dữ liệu
     if (
       typeof currentPassword !== "string" ||
       typeof newPassword !== "string" ||
@@ -161,7 +172,6 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Kiểm tra độ dài
     if (newPassword.length < 8) {
       return res.status(400).json({
         success: false,
@@ -176,7 +186,6 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Kiểm tra xác nhận mật khẩu
     if (newPassword !== confirmPassword) {
       return res.status(400).json({
         success: false,
@@ -184,7 +193,6 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Lấy tài khoản kèm mật khẩu đã mã hóa
     const user = await User.findById(req.user._id)
       .select("+password");
 
@@ -202,7 +210,6 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Kiểm tra mật khẩu hiện tại
     const isMatch = await user.comparePassword(currentPassword);
 
     if (!isMatch) {
@@ -212,7 +219,6 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Không cho dùng lại mật khẩu hiện tại
     if (currentPassword === newPassword) {
       return res.status(400).json({
         success: false,
@@ -220,8 +226,6 @@ export const changePassword = async (req, res) => {
       });
     }
 
-    // Cập nhật mật khẩu
-    // Hook pre-save trong User.js sẽ tự mã hóa bcrypt
     user.password = newPassword;
     user.mustChangePassword = false;
 

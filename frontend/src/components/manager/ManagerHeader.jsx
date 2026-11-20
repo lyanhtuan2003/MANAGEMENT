@@ -9,8 +9,43 @@ import {
   Clock,
 } from "lucide-react";
 
+const safeText = (value, fallback = "") => {
+  if (value === null || value === undefined) return fallback;
+
+  if (
+    typeof value === "string" ||
+    typeof value === "number"
+  ) {
+    return String(value);
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "Có" : "Không";
+  }
+
+  if (value instanceof RegExp) {
+    return value.toString();
+  }
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime())
+      ? fallback
+      : value.toLocaleString("vi-VN");
+  }
+
+  if (typeof value === "object") {
+    if (typeof value.name === "string") return value.name;
+    if (typeof value.title === "string") return value.title;
+    if (typeof value.label === "string") return value.label;
+    if (typeof value.message === "string") return value.message;
+  }
+
+  return fallback;
+};
+
 export default function ManagerHeader({
   setOpen,
+  title,
   notifications = [],
   onMarkAllRead,
   onNotificationClick,
@@ -18,18 +53,16 @@ export default function ManagerHeader({
 }) {
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const isRead = (item) => {
-    return item.isRead ?? item.read ?? false;
-  };
+  const notificationList = Array.isArray(notifications)
+    ? notifications
+    : [];
 
-  const unreadCount = notifications.filter(
+  const isRead = (item) =>
+    Boolean(item?.isRead ?? item?.read ?? false);
+
+  const unreadCount = notificationList.filter(
     (item) => !isRead(item)
   ).length;
-
-  const handleNotificationClick = (item) => {
-    onNotificationClick?.(item);
-    setShowNotifications(false);
-  };
 
   const formatTime = (value) => {
     if (!value) return "";
@@ -46,9 +79,17 @@ export default function ManagerHeader({
     });
   };
 
-  const getNotificationId = (item) => {
-    return item._id || item.id;
+  const handleNotificationClick = (item) => {
+    onNotificationClick?.(item);
+    setShowNotifications(false);
   };
+
+  const userName = safeText(
+    user?.name || user?.fullName,
+    "Quản lý"
+  );
+
+  const avatarText = userName.trim().charAt(0).toUpperCase() || "S";
 
   return (
     <header className="manager-header">
@@ -61,6 +102,10 @@ export default function ManagerHeader({
         >
           <Menu size={23} />
         </button>
+
+        <div className="manager-page-title">
+          <h1>{safeText(title, "Tổng quan hệ thống")}</h1>
+        </div>
 
         <div className="manager-search">
           <Search size={18} />
@@ -79,7 +124,7 @@ export default function ManagerHeader({
               showNotifications ? "active" : ""
             }`}
             onClick={() =>
-              setShowNotifications((prev) => !prev)
+              setShowNotifications((previous) => !previous)
             }
             aria-label="Thông báo"
             aria-expanded={showNotifications}
@@ -123,7 +168,7 @@ export default function ManagerHeader({
                   </button>
                 </div>
 
-                {notifications.length > 0 && (
+                {notificationList.length > 0 && (
                   <button
                     type="button"
                     className="manager-notification-read-all"
@@ -136,14 +181,15 @@ export default function ManagerHeader({
                 )}
 
                 <div className="manager-notification-list">
-                  {notifications.length > 0 ? (
-                    notifications.map((item) => {
+                  {notificationList.length > 0 ? (
+                    notificationList.map((item, index) => {
                       const read = isRead(item);
+                      const id = item?._id || item?.id || index;
 
                       return (
                         <button
                           type="button"
-                          key={getNotificationId(item)}
+                          key={String(id)}
                           className={`manager-notification-item ${
                             read ? "" : "unread"
                           }`}
@@ -157,17 +203,22 @@ export default function ManagerHeader({
 
                           <div className="manager-notification-content">
                             <strong>
-                              {item.title || "Thông báo mới"}
+                              {safeText(
+                                item?.title,
+                                "Thông báo mới"
+                              )}
                             </strong>
 
                             <p>
-                              {item.message ||
-                                "Bạn có một thông báo mới."}
+                              {safeText(
+                                item?.message,
+                                "Bạn có một thông báo mới."
+                              )}
                             </p>
 
                             <span>
                               <Clock size={12} />
-                              {formatTime(item.createdAt)}
+                              {formatTime(item?.createdAt)}
                             </span>
                           </div>
 
@@ -194,17 +245,15 @@ export default function ManagerHeader({
         </div>
 
         <div className="header-user">
-          <div className="avatar">
-            {(user?.name || user?.fullName || "S")
-              .charAt(0)
-              .toUpperCase()}
-          </div>
+          <div className="avatar">{avatarText}</div>
 
           <div className="header-user-info">
-            <strong>
-              {user?.name || user?.fullName || "Quản lý"}
-            </strong>
-            <span>Administrator</span>
+            <strong>{userName}</strong>
+            <span>
+              {safeText(user?.role, "Administrator") === "accountant"
+                ? "Kế toán"
+                : "Administrator"}
+            </span>
           </div>
         </div>
       </div>

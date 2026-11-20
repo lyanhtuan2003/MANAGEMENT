@@ -1,4 +1,3 @@
-
 import {
   useState,
   useEffect,
@@ -23,6 +22,7 @@ import ManagerRewards from "../../components/manager/ManagerRewards";
 import ManagerCompanyFinance from "../../components/manager/ManagerCompanyFinance";
 import ManagerAttendance from "../../components/manager/ManagerAttendance";
 import ManagerPayroll from "../../components/manager/ManagerPayroll";
+import MyPayroll from "../../components/manager/MyPayroll";
 
 import "./manager.css";
 
@@ -38,8 +38,44 @@ const API_URL = `${RAW_API_URL
   .replace(/\/api$/i, "")}/api`;
 
 // ========================================
-// TOKEN VÀ USER
+// FORMAT DỮ LIỆU AN TOÀN
+// Tránh lỗi Objects are not valid as a React child
 // ========================================
+
+const safeText = (value, fallback = "") => {
+  if (value === null || value === undefined) return fallback;
+
+  if (
+    typeof value === "string" ||
+    typeof value === "number"
+  ) {
+    return String(value);
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "Có" : "Không";
+  }
+
+  if (value instanceof RegExp) {
+    return value.toString();
+  }
+
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime())
+      ? fallback
+      : value.toLocaleDateString("vi-VN");
+  }
+
+  if (typeof value === "object") {
+    if (typeof value.name === "string") return value.name;
+    if (typeof value.fullName === "string") return value.fullName;
+    if (typeof value.title === "string") return value.title;
+    if (typeof value.label === "string") return value.label;
+    if (typeof value.message === "string") return value.message;
+  }
+
+  return fallback;
+};
 
 const getToken = () =>
   localStorage.getItem("token") ||
@@ -48,15 +84,15 @@ const getToken = () =>
 
 const getStoredUser = () => {
   try {
-    return JSON.parse(localStorage.getItem("user") || "{}");
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+
+    return user && typeof user === "object" && !Array.isArray(user)
+      ? user
+      : {};
   } catch {
     return {};
   }
 };
-
-// ========================================
-// CHUẨN HÓA DỮ LIỆU
-// ========================================
 
 const getArray = (response, possibleKeys = []) => {
   if (Array.isArray(response)) return response;
@@ -84,7 +120,6 @@ const getArray = (response, possibleKeys = []) => {
 
 const normalizeTab = (tab) => {
   if (tab === "company-finance") return "finance";
-  if (tab === "finance") return "finance";
 
   const allowedTabs = [
     "overview",
@@ -95,6 +130,7 @@ const normalizeTab = (tab) => {
     "projects",
     "rewards",
     "finance",
+    "my-payroll",
   ];
 
   return allowedTabs.includes(tab) ? tab : "overview";
@@ -104,14 +140,17 @@ const normalizeTab = (tab) => {
 // FORMAT
 // ========================================
 
-const getInitials = (name = "") =>
-  String(name)
+const getInitials = (name) => {
+  const text = safeText(name, "NV");
+
+  return text
     .trim()
     .split(/\s+/)
     .filter(Boolean)
     .slice(-2)
     .map((word) => word.charAt(0).toUpperCase())
     .join("") || "NV";
+};
 
 // ========================================
 // TRẠNG THÁI NHÂN SỰ
@@ -120,7 +159,7 @@ const getInitials = (name = "") =>
 const getStaffStatus = (employee) => {
   if (employee?.isActive === false) return "locked";
 
-  const status = String(employee?.status || "").toLowerCase();
+  const status = safeText(employee?.status, "").toLowerCase();
 
   if (
     ["resigned", "quit", "inactive", "đã nghỉ việc"].includes(status)
@@ -146,7 +185,7 @@ const isWorking = (employee) =>
 // ========================================
 
 const isPending = (item) => {
-  const status = String(item?.status || "").toLowerCase();
+  const status = safeText(item?.status, "").toLowerCase();
 
   return [
     "pending",
@@ -161,7 +200,7 @@ const isPending = (item) => {
 // ========================================
 
 const isProjectActive = (project) => {
-  const status = String(project?.status || "").toLowerCase();
+  const status = safeText(project?.status, "").toLowerCase();
 
   return ![
     "completed",
@@ -206,26 +245,20 @@ export default function ManagerDashboard({ onLogout }) {
 
   const [user] = useState(getStoredUser);
 
-  // ======================================
   // DỮ LIỆU HỆ THỐNG
-  // ======================================
-
   const [employees, setEmployees] = useState([]);
   const [accountants, setAccountants] = useState([]);
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [projects, setProjects] = useState([]);
   const [notifications, setNotifications] = useState([]);
 
-  // ======================================
   // TRẠNG THÁI
-  // ======================================
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ======================================
+  // ========================================
   // HÀM GỌI API
-  // ======================================
+  // ========================================
 
   const apiRequest = useCallback(async (endpoint, options = {}) => {
     const token = getToken();
@@ -263,7 +296,7 @@ export default function ManagerDashboard({ onLogout }) {
 
     if (!response.ok || result.success === false) {
       throw new Error(
-        result.message || `Lỗi API: ${response.status}`
+        safeText(result.message, `Lỗi API: ${response.status}`)
       );
     }
 
@@ -275,9 +308,9 @@ export default function ManagerDashboard({ onLogout }) {
     [apiRequest]
   );
 
-  // ======================================
+  // ========================================
   // TẢI NHÂN VIÊN VÀ KẾ TOÁN
-  // ======================================
+  // ========================================
 
   const loadEmployees = useCallback(async () => {
     const [employeeResult, accountantResult] =
@@ -313,9 +346,9 @@ export default function ManagerDashboard({ onLogout }) {
     setAccountants(accountantList);
   }, [apiGet]);
 
-  // ======================================
+  // ========================================
   // TẢI ĐƠN NGHỈ PHÉP
-  // ======================================
+  // ========================================
 
   const loadLeaveRequests = useCallback(async () => {
     const result = await apiGet("/leave/manager");
@@ -330,9 +363,9 @@ export default function ManagerDashboard({ onLogout }) {
     return requests;
   }, [apiGet]);
 
-  // ======================================
+  // ========================================
   // TẢI DỰ ÁN
-  // ======================================
+  // ========================================
 
   const loadProjects = useCallback(async () => {
     const result = await apiGet("/projects/manager");
@@ -344,9 +377,9 @@ export default function ManagerDashboard({ onLogout }) {
     return projectList;
   }, [apiGet]);
 
-  // ======================================
+  // ========================================
   // TẢI THÔNG BÁO
-  // ======================================
+  // ========================================
 
   const loadNotifications = useCallback(async () => {
     try {
@@ -365,9 +398,9 @@ export default function ManagerDashboard({ onLogout }) {
     }
   }, [apiGet]);
 
-  // ======================================
+  // ========================================
   // ĐÁNH DẤU MỘT THÔNG BÁO ĐÃ ĐỌC
-  // ======================================
+  // ========================================
 
   const handleNotificationClick = useCallback(
     async (item) => {
@@ -375,7 +408,7 @@ export default function ManagerDashboard({ onLogout }) {
 
       if (!notificationId) return;
 
-      const alreadyRead = item.isRead ?? item.read ?? false;
+      const alreadyRead = item?.isRead ?? item?.read ?? false;
 
       try {
         if (!alreadyRead) {
@@ -399,8 +432,9 @@ export default function ManagerDashboard({ onLogout }) {
           );
         }
 
-        const notificationType = String(
-          item.type || item.relatedType || ""
+        const notificationType = safeText(
+          item?.type || item?.relatedType,
+          ""
         ).toLowerCase();
 
         if (
@@ -418,9 +452,9 @@ export default function ManagerDashboard({ onLogout }) {
     [apiRequest, loadLeaveRequests]
   );
 
-  // ======================================
+  // ========================================
   // ĐÁNH DẤU TẤT CẢ THÔNG BÁO ĐÃ ĐỌC
-  // ======================================
+  // ========================================
 
   const handleMarkAllRead = useCallback(async () => {
     try {
@@ -443,9 +477,9 @@ export default function ManagerDashboard({ onLogout }) {
     }
   }, [apiRequest]);
 
-  // ======================================
+  // ========================================
   // TẢI TOÀN BỘ DASHBOARD
-  // ======================================
+  // ========================================
 
   const loadDashboard = useCallback(async () => {
     setLoading(true);
@@ -465,7 +499,8 @@ export default function ManagerDashboard({ onLogout }) {
 
       if (failed.length > 0) {
         const messages = failed.map(
-          (item) => item.reason?.message || "Lỗi tải dữ liệu"
+          (item) =>
+            safeText(item.reason?.message, "Lỗi tải dữ liệu")
         );
 
         setError(messages.join(" | "));
@@ -480,18 +515,12 @@ export default function ManagerDashboard({ onLogout }) {
     loadNotifications,
   ]);
 
-  // ======================================
   // TỰ ĐỘNG TẢI KHI MỞ DASHBOARD
-  // ======================================
-
   useEffect(() => {
     loadDashboard();
   }, [loadDashboard]);
 
-  // ======================================
   // KIỂM TRA THÔNG BÁO MỖI 15 GIÂY
-  // ======================================
-
   useEffect(() => {
     const interval = setInterval(() => {
       if (document.visibilityState === "visible") {
@@ -502,10 +531,7 @@ export default function ManagerDashboard({ onLogout }) {
     return () => clearInterval(interval);
   }, [loadNotifications]);
 
-  // ======================================
   // TẢI LẠI KHI QUAY LẠI TRÌNH DUYỆT
-  // ======================================
-
   useEffect(() => {
     const handleVisibility = () => {
       if (document.visibilityState === "visible") {
@@ -530,9 +556,9 @@ export default function ManagerDashboard({ onLogout }) {
     };
   }, [loadDashboard]);
 
-  // ======================================
+  // ========================================
   // GỘP NHÂN VIÊN VÀ KẾ TOÁN
-  // ======================================
+  // ========================================
 
   const allStaff = useMemo(() => {
     const employeeItems = employees.map((item) => ({
@@ -548,9 +574,9 @@ export default function ManagerDashboard({ onLogout }) {
     return [...employeeItems, ...accountantItems];
   }, [employees, accountants]);
 
-  // ======================================
+  // ========================================
   // THỐNG KÊ
-  // ======================================
+  // ========================================
 
   const totalEmployees = allStaff.length;
 
@@ -562,9 +588,9 @@ export default function ManagerDashboard({ onLogout }) {
   const activeProjectCount =
     projects.filter(isProjectActive).length;
 
-  // ======================================
+  // ========================================
   // NHÂN SỰ MỚI NHẤT
-  // ======================================
+  // ========================================
 
   const latestStaff = useMemo(() => {
     return [...allStaff]
@@ -577,9 +603,9 @@ export default function ManagerDashboard({ onLogout }) {
       .slice(0, 5);
   }, [allStaff]);
 
-  // ======================================
+  // ========================================
   // THẺ THỐNG KÊ
-  // ======================================
+  // ========================================
 
   const stats = [
     {
@@ -612,9 +638,9 @@ export default function ManagerDashboard({ onLogout }) {
     },
   ];
 
-  // ======================================
+  // ========================================
   // CHUYỂN TAB
-  // ======================================
+  // ========================================
 
   const handleChangeTab = useCallback((tab) => {
     const normalizedTab = normalizeTab(tab);
@@ -623,32 +649,33 @@ export default function ManagerDashboard({ onLogout }) {
     setSidebarOpen(false);
   }, []);
 
-  // ======================================
+  // ========================================
   // ĐĂNG XUẤT
-  // ======================================
+  // ========================================
 
-  const handleLogout = useCallback(() => {
-    if (typeof onLogout === "function") {
-      onLogout();
-      return;
-    }
 
-    [
-      "token",
-      "authToken",
-      "accessToken",
-      "user",
-      "userRole",
-    ].forEach((key) => {
-      localStorage.removeItem(key);
-    });
+const handleLogout = useCallback(() => {
+  // Xóa thông tin đăng nhập
+  [
+    "token",
+    "authToken",
+    "accessToken",
+    "user",
+    "currentUser",
+    "authUser",
+    "userRole",
+  ].forEach((key) => {
+    localStorage.removeItem(key);
+  });
 
-    window.location.href = "/login";
-  }, [onLogout]);
+  // Chuyển về trang đăng nhập
+  window.location.replace("/login");
+}, []);
 
-  // ======================================
+
+  // ========================================
   // TIÊU ĐỀ TRANG
-  // ======================================
+  // ========================================
 
   const pageTitles = {
     overview: "Tổng quan hệ thống",
@@ -659,11 +686,12 @@ export default function ManagerDashboard({ onLogout }) {
     projects: "Quản lý dự án",
     rewards: "Thưởng và phạt",
     finance: "Quản lý thu chi",
+    "my-payroll": "Bảng lương của tôi",
   };
 
-  // ======================================
+  // ========================================
   // GIAO DIỆN TỔNG QUAN
-  // ======================================
+  // ========================================
 
   const renderOverview = () => (
     <>
@@ -685,7 +713,6 @@ export default function ManagerDashboard({ onLogout }) {
             size={17}
             className={loading ? "spin" : ""}
           />
-
           {loading ? "Đang tải..." : "Làm mới"}
         </button>
       </div>
@@ -703,7 +730,6 @@ export default function ManagerDashboard({ onLogout }) {
       </div>
 
       {/* ĐƠN NGHỈ VÀ DỰ ÁN */}
-
       <div className="overview-grid">
         <section className="manager-panel">
           <div className="panel-heading">
@@ -729,30 +755,34 @@ export default function ManagerDashboard({ onLogout }) {
             leaveRequests
               .filter(isPending)
               .slice(0, 4)
-              .map((item) => (
+              .map((item, index) => (
                 <div
                   className="overview-leave"
-                  key={item._id || item.id}
+                  key={item._id || item.id || index}
                 >
                   <div className="avatar">
                     {getInitials(
                       item.employeeName ||
                       item.employee?.name ||
-                      item.user?.name ||
-                      "NV"
+                      item.user?.name
                     )}
                   </div>
 
                   <div className="overview-leave-info">
                     <strong>
-                      {item.employeeName ||
+                      {safeText(
+                        item.employeeName ||
                         item.employee?.name ||
-                        item.user?.name ||
-                        "Nhân viên"}
+                        item.user?.name,
+                        "Nhân viên"
+                      )}
                     </strong>
 
                     <span>
-                      {item.reason || item.type || "Đơn xin nghỉ"}
+                      {safeText(
+                        item.reason || item.type,
+                        "Đơn xin nghỉ"
+                      )}
                     </span>
                   </div>
 
@@ -788,7 +818,7 @@ export default function ManagerDashboard({ onLogout }) {
             projects
               .filter(isProjectActive)
               .slice(0, 4)
-              .map((project) => {
+              .map((project, index) => {
                 const progress = Math.min(
                   100,
                   Math.max(0, Number(project.progress || 0))
@@ -797,11 +827,14 @@ export default function ManagerDashboard({ onLogout }) {
                 return (
                   <div
                     className="overview-project"
-                    key={project._id || project.id}
+                    key={project._id || project.id || index}
                   >
                     <div className="overview-project-heading">
                       <strong>
-                        {project.name || project.title}
+                        {safeText(
+                          project.name || project.title,
+                          "Dự án chưa có tên"
+                        )}
                       </strong>
 
                       <span>{progress}%</span>
@@ -823,8 +856,7 @@ export default function ManagerDashboard({ onLogout }) {
       </div>
 
       {/* NHÂN SỰ MỚI NHẤT */}
-
-      <section className="manager-panel">
+      <section className="manager-panel manager-latest-staff">
         <div className="panel-heading">
           <div>
             <h2>Nhân sự mới nhất</h2>
@@ -864,11 +896,20 @@ export default function ManagerDashboard({ onLogout }) {
                   </td>
                 </tr>
               ) : (
-                latestStaff.map((employee) => {
+                latestStaff.map((employee, index) => {
                   const status = getStaffStatus(employee);
 
+                  const statusLabels = {
+                    working: "Đang làm việc",
+                    probation: "Thử việc",
+                    resigned: "Đã nghỉ việc",
+                    locked: "Đã khóa",
+                  };
+
                   return (
-                    <tr key={employee._id || employee.id}>
+                    <tr
+                      key={employee._id || employee.id || index}
+                    >
                       <td>
                         <div className="employee-cell">
                           <div className="avatar">
@@ -877,29 +918,41 @@ export default function ManagerDashboard({ onLogout }) {
 
                           <div>
                             <strong>
-                              {employee.name || "Chưa cập nhật"}
+                              {safeText(
+                                employee.name,
+                                "Chưa cập nhật"
+                              )}
                             </strong>
 
                             <small>
-                              {employee.employeeCode ||
-                                employee.email ||
-                                "Chưa có mã"}
+                              {safeText(
+                                employee.employeeCode ||
+                                employee.email,
+                                "Chưa có mã"
+                              )}
                             </small>
                           </div>
                         </div>
                       </td>
 
-                      <td>{employee.accountType}</td>
-
                       <td>
-                        {employee.department || "Chưa cập nhật"}
+                        {safeText(employee.accountType)}
                       </td>
 
                       <td>
-                        {employee.position ||
-                          (employee.accountType === "Kế toán"
+                        {safeText(
+                          employee.department,
+                          "Chưa cập nhật"
+                        )}
+                      </td>
+
+                      <td>
+                        {safeText(
+                          employee.position,
+                          employee.accountType === "Kế toán"
                             ? "Kế toán"
-                            : "Chưa cập nhật")}
+                            : "Chưa cập nhật"
+                        )}
                       </td>
 
                       <td>
@@ -912,12 +965,7 @@ export default function ManagerDashboard({ onLogout }) {
                               : "rejected"
                           }`}
                         >
-                          {{
-                            working: "Đang làm việc",
-                            probation: "Thử việc",
-                            resigned: "Đã nghỉ việc",
-                            locked: "Đã khóa",
-                          }[status]}
+                          {statusLabels[status]}
                         </span>
                       </td>
                     </tr>
@@ -931,9 +979,9 @@ export default function ManagerDashboard({ onLogout }) {
     </>
   );
 
-  // ======================================
+  // ========================================
   // HIỂN THỊ TRANG
-  // ======================================
+  // ========================================
 
   const renderPage = () => {
     switch (normalizeTab(activeTab)) {
@@ -965,6 +1013,9 @@ export default function ManagerDashboard({ onLogout }) {
       case "payroll":
         return <ManagerPayroll />;
 
+      case "my-payroll":
+        return <MyPayroll />;
+
       case "finance":
         return <ManagerCompanyFinance />;
 
@@ -973,9 +1024,9 @@ export default function ManagerDashboard({ onLogout }) {
     }
   };
 
-  // ======================================
+  // ========================================
   // MAIN
-  // ======================================
+  // ========================================
 
   return (
     <div className="manager-layout">

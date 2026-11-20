@@ -36,13 +36,17 @@ const getStoredRole = () => {
 // ========================================
 
 const clearAuthData = () => {
-  [
+  const keys = [
     "token",
     "authToken",
     "accessToken",
     "user",
+    "currentUser",
+    "authUser",
     "userRole",
-  ].forEach((key) => {
+  ];
+
+  keys.forEach((key) => {
     localStorage.removeItem(key);
   });
 };
@@ -60,7 +64,10 @@ function App() {
 
   const handleLogin = useCallback((selectedRole, user) => {
     if (!VALID_ROLES.includes(selectedRole)) {
-      console.error("Vai trò đăng nhập không hợp lệ:", selectedRole);
+      console.error(
+        "Vai trò đăng nhập không hợp lệ:",
+        selectedRole
+      );
       return;
     }
 
@@ -74,16 +81,12 @@ function App() {
   }, []);
 
   // ========================================
-  // ĐĂNG XUẤT CÓ XÁC NHẬN
+  // ĐĂNG XUẤT
+  // KHÔNG SỬ DỤNG window.confirm()
+  // Modal xác nhận được xử lý tại Sidebar
   // ========================================
 
   const handleLogout = useCallback(() => {
-    const confirmed = window.confirm(
-      "Bạn có chắc chắn muốn đăng xuất khỏi hệ thống?"
-    );
-
-    if (!confirmed) return;
-
     clearAuthData();
     setRole("");
   }, []);
@@ -130,7 +133,7 @@ function App() {
         />
       )}
 
-      {/* NHÂN VIÊN VÀ KẾ TOÁN DÙNG CHUNG GIAO DIỆN */}
+      {/* NHÂN VIÊN VÀ KẾ TOÁN */}
       {(role === "employee" || role === "accountant") && (
         <EmployeeDashboard
           role={role}

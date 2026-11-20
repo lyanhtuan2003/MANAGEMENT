@@ -844,3 +844,358 @@
   position: fixed;
   inset: 0;
 }
+
+/* =====================================================
+   RESPONSIVE - MANAGER PAYROLL
+   Chỉ chỉnh giao diện theo kích thước màn hình
+===================================================== */
+
+.manager-payroll-page,
+.manager-panel.manager-data-page,
+.manager-table-section,
+.responsive-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.manager-payroll-page *,
+.manager-payroll-page *::before,
+.manager-payroll-page *::after {
+  box-sizing: border-box;
+}
+
+.manager-payroll-page .responsive-table {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.manager-payroll-page .manager-payroll-table {
+  width: 100%;
+  min-width: 1250px;
+}
+
+/* TABLET */
+@media (max-width: 1024px) {
+  .manager-payroll-page {
+    gap: 16px;
+  }
+
+  .manager-payroll-page .manager-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .manager-payroll-page .manager-table-section,
+  .manager-payroll-page .responsive-table {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .manager-payroll-page .panel-heading {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .manager-payroll-page {
+    gap: 14px;
+  }
+
+  .manager-payroll-page .manager-data-heading {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .manager-payroll-page .manager-filter-row {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .manager-payroll-page .manager-month-filter,
+  .manager-payroll-page .manager-search-filter {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .manager-payroll-page .manager-search-filter input {
+    width: 100%;
+    min-width: 0;
+  }
+
+  /* THỐNG KÊ */
+  .manager-payroll-page .manager-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .manager-payroll-page .manager-stat-card {
+    min-width: 0;
+    padding: 13px;
+    gap: 8px;
+  }
+
+  .manager-payroll-page .stat-content h2 {
+    font-size: clamp(15px, 4vw, 19px);
+    overflow-wrap: anywhere;
+  }
+
+  /* KHU VỰC BẢNG LƯƠNG */
+  .manager-payroll-page .manager-table-section {
+    overflow: hidden;
+    border-radius: 13px;
+  }
+
+  .manager-payroll-page .panel-heading {
+    padding: 15px;
+    align-items: flex-start;
+  }
+
+  .manager-payroll-page .panel-heading h2 {
+    font-size: 15px;
+  }
+
+  .manager-payroll-page .manager-payroll-count {
+    flex-shrink: 0;
+  }
+
+  /* CHUYỂN BẢNG THÀNH THẺ NHÂN VIÊN */
+  .manager-payroll-page .responsive-table {
+    overflow: visible;
+    padding: 0 12px 12px;
+  }
+
+  .manager-payroll-page .manager-payroll-table {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    border: 0;
+  }
+
+  .manager-payroll-page .manager-payroll-table thead {
+    display: none;
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 12px;
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e8edf5;
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 5px;
+    min-width: 0;
+    padding: 10px 0;
+    border-top: 0;
+    border-bottom: 1px solid #f0f2f6;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    font-size: 12px;
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td::before {
+    display: block;
+    color: #8793a5;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  /* TÊN NHÂN VIÊN */
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(1) {
+    grid-column: 1 / -1;
+    padding-top: 5px;
+  }
+
+  /* TÊN CÁC CỘT */
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(1)::before {
+    content: "Nhân viên";
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(2)::before {
+    content: "Phòng ban";
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(3)::before {
+    content: "Lương cơ bản";
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(4)::before {
+    content: "Ngày công";
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(5)::before {
+    content: "Số lần đi muộn";
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(6)::before {
+    content: "Phút đi muộn";
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(7)::before {
+    content: "Số lần về sớm";
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(8)::before {
+    content: "Tiền thưởng";
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(9)::before {
+    content: "Tiền phạt";
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(10)::before {
+    content: "Tổng lương thực nhận";
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(11)::before {
+    content: "Trạng thái";
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(12)::before {
+    content: "Chi tiết";
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(13)::before {
+    content: "Thao tác";
+  }
+
+  /* CÁC DÒNG CHIẾM TOÀN CHIỀU RỘNG */
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(10),
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(13) {
+    grid-column: 1 / -1;
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td:last-child {
+    border-bottom: 0;
+  }
+
+  /* THÔNG TIN NHÂN VIÊN */
+  .manager-payroll-page .manager-payroll-table .employee-cell {
+    min-width: 0;
+    gap: 10px;
+  }
+
+  .manager-payroll-page .manager-payroll-table .employee-cell > div:last-child {
+    min-width: 0;
+  }
+
+  .manager-payroll-page .manager-payroll-table .employee-cell strong,
+  .manager-payroll-page .manager-payroll-table .employee-cell small {
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  /* TIỀN LƯƠNG */
+  .manager-payroll-page .manager-payroll-table .manager-money-basic,
+  .manager-payroll-page .manager-payroll-table .manager-money-total {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .manager-payroll-page .manager-payroll-table td button {
+    max-width: 100%;
+  }
+
+  /* GHI CHÚ */
+  .manager-payroll-page .manager-payroll-note {
+    margin: 12px;
+    font-size: 11px;
+  }
+
+  /* MODAL CHI TIẾT */
+  .manager-payroll-page .manager-modal-backdrop {
+    align-items: flex-end;
+    padding: 10px;
+  }
+
+  .manager-payroll-page .manager-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: 90dvh;
+    overflow-y: auto;
+    padding: 16px;
+    border-radius: 16px 16px 12px 12px;
+  }
+
+  .manager-payroll-page .manager-payroll-detail-info {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .manager-payroll-page .manager-payroll-breakdown > div {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .manager-payroll-page .manager-payroll-breakdown strong {
+    text-align: right;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* MODAL XÁC NHẬN THANH TOÁN */
+  .manager-payroll-page .manager-payment-confirm-backdrop {
+    align-items: center;
+    padding: 12px;
+  }
+
+  .manager-payroll-page .manager-payment-confirm {
+    width: 100%;
+    max-width: 440px;
+    padding: 22px 18px;
+  }
+}
+
+/* ĐIỆN THOẠI NHỎ */
+@media (max-width: 420px) {
+  .manager-payroll-page .manager-stats {
+    gap: 8px;
+  }
+
+  .manager-payroll-page .manager-stat-card {
+    padding: 11px;
+  }
+
+  .manager-payroll-page .manager-stat-card .stat-content h2 {
+    font-size: 15px;
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr {
+    padding: 7px 10px;
+    gap: 0 9px;
+  }
+
+  .manager-payroll-page .manager-payroll-detail-info {
+    grid-template-columns: 1fr;
+  }
+
+  .manager-payroll-page .manager-payment-confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .manager-payroll-page .manager-payment-confirm-actions button {
+    width: 100%;
+  }
+}

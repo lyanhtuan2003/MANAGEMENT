@@ -5439,3 +5439,545 @@ textarea {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+/* =========================================================
+   RESPONSIVE BẢNG CHẤM CÔNG NHÂN VIÊN
+   Desktop: bảng 8 cột
+   Tablet: bảng cuộn ngang
+   Mobile: hiển thị dạng thẻ nhân viên
+========================================================= */
+
+/* Giữ nguyên bảng trên desktop */
+.manager-data-page .manager-table-section {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.manager-data-page .manager-table-section .responsive-table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.manager-data-page .manager-table-section .manager-table {
+  width: 100%;
+  min-width: 950px;
+  border-collapse: collapse;
+  table-layout: auto;
+}
+
+.manager-data-page .manager-table-section .manager-table th,
+.manager-data-page .manager-table-section .manager-table td {
+  white-space: nowrap;
+}
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media screen and (max-width: 1024px) and (min-width: 641px) {
+  .manager-data-page .manager-table-section .responsive-table {
+    overflow-x: auto;
+  }
+
+  .manager-data-page .manager-table-section .manager-table {
+    min-width: 950px;
+  }
+}
+
+/* =========================================================
+   MOBILE - CHUYỂN DÒNG BẢNG THÀNH THẺ NHÂN VIÊN
+========================================================= */
+
+@media screen and (max-width: 640px) {
+
+  /* Khung bảng */
+  .manager-data-page .manager-table-section .responsive-table {
+    width: 100%;
+    overflow: visible !important;
+    border: 0;
+  }
+
+  /* Bảng */
+  .manager-data-page .manager-table-section .manager-table {
+    display: block;
+    width: 100%;
+    min-width: 0 !important;
+    border: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+  }
+
+  /* Ẩn hàng tiêu đề */
+  .manager-data-page .manager-table-section .manager-table thead {
+    display: none !important;
+  }
+
+  /* Danh sách nhân viên */
+  .manager-data-page .manager-table-section .manager-table tbody {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    width: 100%;
+  }
+
+  /* Một thẻ nhân viên */
+  .manager-data-page .manager-table-section .manager-table tbody tr {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 12px;
+    width: 100%;
+    min-width: 0;
+    padding: 12px;
+    margin: 0;
+    border: 1px solid #e8edf5;
+    border-radius: 12px;
+    background: #fff;
+    box-sizing: border-box;
+    box-shadow: 0 2px 7px rgba(15, 23, 42, 0.03);
+  }
+
+  /* Tất cả ô thông tin */
+  .manager-data-page .manager-table-section .manager-table tbody td {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    width: 100%;
+    min-width: 0;
+    min-height: 59px;
+    padding: 9px 5px !important;
+    margin: 0;
+    border: 0;
+    border-bottom: 1px solid #edf0f5;
+    background: transparent;
+    color: #30364d;
+    font-size: 12px;
+    line-height: 1.5;
+    text-align: left;
+    white-space: normal !important;
+    overflow-wrap: normal;
+    word-break: normal;
+    box-sizing: border-box;
+  }
+
+  /* Nhãn nằm phía trên giá trị */
+  .manager-data-page .manager-table-section .manager-table tbody td:nth-child(2)::before {
+    content: "Phòng ban";
+  }
+
+  .manager-data-page .manager-table-section .manager-table tbody td:nth-child(3)::before {
+    content: "Ngày chấm công";
+  }
+
+  .manager-data-page .manager-table-section .manager-table tbody td:nth-child(4)::before {
+    content: "Giờ vào";
+  }
+
+  .manager-data-page .manager-table-section .manager-table tbody td:nth-child(5)::before {
+    content: "Giờ ra";
+  }
+
+  .manager-data-page .manager-table-section .manager-table tbody td:nth-child(6)::before {
+    content: "Đi muộn";
+  }
+
+  .manager-data-page .manager-table-section .manager-table tbody td:nth-child(7)::before {
+    content: "Về sớm";
+  }
+
+  .manager-data-page .manager-table-section .manager-table tbody td:nth-child(8)::before {
+    content: "Trạng thái";
+  }
+
+  .manager-data-page .manager-table-section .manager-table tbody td:nth-child(n+2)::before {
+    display: block;
+    width: 100%;
+    margin: 0;
+    color: #9298aa;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  /* Thông tin nhân viên */
+  .manager-data-page .manager-table-section .manager-table tbody td:first-child {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    grid-column: 1 / -1;
+    min-height: 62px;
+    padding: 2px 2px 12px !important;
+    margin-bottom: 2px;
+    border-bottom: 1px solid #e8edf5;
+  }
+
+  .manager-data-page .manager-table-section .manager-table .employee-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .manager-data-page .manager-table-section .manager-table .employee-cell > div:last-child {
+    min-width: 0;
+  }
+
+  .manager-data-page .manager-table-section .manager-table .employee-cell strong {
+    display: block;
+    color: #20243a;
+    font-size: 12px;
+    line-height: 1.5;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .manager-data-page .manager-table-section .manager-table .employee-cell small {
+    display: block;
+    margin-top: 3px;
+    color: #9298aa;
+    font-size: 10px;
+  }
+
+  .manager-data-page .manager-table-section .manager-table .avatar {
+    flex: 0 0 36px;
+    width: 36px;
+    height: 36px;
+  }
+
+  /* Ngày tháng không bị ngắt giữa các chữ số */
+  .manager-data-page .manager-table-section .manager-table tbody td:nth-child(3) {
+    white-space: nowrap !important;
+  }
+
+  /* Giờ vào và giờ ra */
+  .manager-data-page .manager-table-section .manager-table tbody td:nth-child(4),
+  .manager-data-page .manager-table-section .manager-table tbody td:nth-child(5) {
+    white-space: nowrap !important;
+  }
+
+  /* Trạng thái chiếm nguyên một hàng */
+  .manager-data-page .manager-table-section .manager-table tbody td:nth-child(8) {
+    grid-column: 1 / -1;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    flex-wrap: wrap;
+    gap: 10px !important;
+    min-height: 48px;
+    border-bottom: 0;
+  }
+
+  .manager-data-page .manager-table-section .manager-table tbody td:nth-child(8)::before {
+    width: auto;
+  }
+
+  /* Badge */
+  .manager-data-page .manager-table-section .manager-table .status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    max-width: 100%;
+    flex-shrink: 0;
+    padding: 5px 8px;
+    border-radius: 20px;
+    font-size: 10px;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+
+  /* Các ô không có dữ liệu */
+  .manager-data-page .manager-table-section .manager-table tbody td.empty-state,
+  .manager-data-page .manager-table-section .manager-table tbody td[colspan] {
+    display: block !important;
+    grid-column: 1 / -1 !important;
+    width: 100%;
+    min-height: 60px;
+    padding: 20px 10px !important;
+    border: 0;
+    text-align: center;
+    color: #9298aa;
+  }
+
+  .manager-data-page .manager-table-section .manager-table tbody td.empty-state::before,
+  .manager-data-page .manager-table-section .manager-table tbody td[colspan]::before {
+    content: none !important;
+    display: none !important;
+  }
+}
+
+/* =========================================================
+   ĐIỆN THOẠI NHỎ
+========================================================= */
+
+@media screen and (max-width: 380px) {
+
+  .manager-data-page .manager-table-section .manager-table tbody {
+    gap: 10px;
+  }
+
+  .manager-data-page .manager-table-section .manager-table tbody tr {
+    gap: 0 8px;
+    padding: 10px;
+  }
+
+  .manager-data-page .manager-table-section .manager-table tbody td {
+    min-height: 55px;
+    padding: 8px 3px !important;
+    font-size: 11px;
+  }
+
+  .manager-data-page .manager-table-section .manager-table tbody td:nth-child(n+2)::before {
+    font-size: 9px;
+  }
+}
+
+/* =========================================
+   RESPONSIVE - NHÂN SỰ MỚI NHẤT
+   Chỉ ảnh hưởng bảng nhân sự trên dashboard
+========================================= */
+
+/* Tablet */
+@media (max-width: 768px) {
+  .manager-latest-staff {
+    width: 100%;
+    min-width: 0;
+    padding: 17px;
+    overflow: hidden;
+  }
+
+  .manager-latest-staff .panel-heading {
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .manager-latest-staff .panel-heading > div {
+    min-width: 0;
+  }
+
+  .manager-latest-staff .panel-heading h2 {
+    font-size: 15px;
+  }
+
+  .manager-latest-staff .panel-heading p {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .manager-latest-staff .panel-heading .text-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: 10px;
+  }
+
+  .manager-latest-staff .responsive-table {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .manager-latest-staff .manager-table {
+    min-width: 680px;
+  }
+}
+
+/* Mobile: chuyển bảng thành danh sách card */
+@media (max-width: 600px) {
+  .manager-latest-staff {
+    padding: 15px 12px;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .manager-latest-staff .panel-heading {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 15px;
+  }
+
+  .manager-latest-staff .panel-heading h2 {
+    font-size: 15px;
+    margin-bottom: 5px;
+  }
+
+  .manager-latest-staff .panel-heading p {
+    font-size: 10px;
+  }
+
+  .manager-latest-staff .panel-heading .text-btn {
+    padding: 7px 0;
+    font-size: 11px;
+  }
+
+  /* Bỏ cuộn ngang trên điện thoại */
+  .manager-latest-staff .responsive-table {
+    overflow: visible;
+    width: 100%;
+  }
+
+  .manager-latest-staff .manager-table {
+    width: 100%;
+    min-width: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    display: block;
+  }
+
+  /* Ẩn tiêu đề bảng */
+  .manager-latest-staff .manager-table thead {
+    display: none;
+  }
+
+  .manager-latest-staff .manager-table tbody {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    width: 100%;
+  }
+
+  /* Mỗi nhân sự là một card */
+  .manager-latest-staff .manager-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+    min-width: 0;
+    padding: 12px;
+    border: 1px solid #edf0f5;
+    border-radius: 11px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+  }
+
+  .manager-latest-staff .manager-table tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-width: 0;
+    padding: 9px 0;
+    border-bottom: 1px solid #f0f1f5;
+    font-size: 11px;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  /* Ô đầu tiên chứa thông tin nhân viên */
+  .manager-latest-staff .manager-table tbody td:first-child {
+    justify-content: flex-start;
+    padding: 2px 0 12px;
+    margin-bottom: 3px;
+    border-bottom: 1px solid #edf0f5;
+  }
+
+  /* Nhãn của từng thông tin */
+  .manager-latest-staff .manager-table tbody td:nth-child(2)::before {
+    content: "Loại tài khoản";
+  }
+
+  .manager-latest-staff .manager-table tbody td:nth-child(3)::before {
+    content: "Phòng ban";
+  }
+
+  .manager-latest-staff .manager-table tbody td:nth-child(4)::before {
+    content: "Chức vụ";
+  }
+
+  .manager-latest-staff .manager-table tbody td:nth-child(5)::before {
+    content: "Trạng thái";
+  }
+
+  .manager-latest-staff .manager-table tbody td:nth-child(n + 2)::before {
+    flex-shrink: 0;
+    color: #8b93a7;
+    font-size: 10px;
+    font-weight: 500;
+    text-align: left;
+  }
+
+  .manager-latest-staff .employee-cell {
+    min-width: 0;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .manager-latest-staff .employee-cell .avatar {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    font-size: 12px;
+  }
+
+  .manager-latest-staff .employee-cell > div:last-child {
+    min-width: 0;
+  }
+
+  .manager-latest-staff .employee-cell strong {
+    font-size: 11px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  .manager-latest-staff .employee-cell small {
+    font-size: 10px;
+    margin-top: 3px;
+  }
+
+  .manager-latest-staff .status-badge {
+    font-size: 9px;
+    padding: 5px 8px;
+    white-space: nowrap;
+  }
+
+  /* Dòng không có dữ liệu */
+  .manager-latest-staff .manager-table tbody td.empty-state {
+    display: block;
+    width: 100%;
+    padding: 22px 10px !important;
+    border: none;
+    text-align: center;
+  }
+
+  .manager-latest-staff .manager-table tbody td[colspan]::before {
+    content: none;
+  }
+}
+
+/* Điện thoại nhỏ */
+@media (max-width: 380px) {
+  .manager-latest-staff {
+    padding: 12px 10px;
+  }
+
+  .manager-latest-staff .manager-table tbody tr {
+    padding: 10px;
+  }
+
+  .manager-latest-staff .employee-cell {
+    gap: 8px;
+  }
+
+  .manager-latest-staff .employee-cell .avatar {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+  }
+
+  .manager-latest-staff .manager-table tbody td {
+    font-size: 10px;
+  }
+}

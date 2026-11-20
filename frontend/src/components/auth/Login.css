@@ -405,3 +405,87 @@
   border-color: #3985ee;
   background: #f1f7ff;
 }
+
+/* ========================================
+   THÔNG BÁO ĐĂNG NHẬP THÀNH CÔNG
+======================================== */
+
+.login-success-toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 99999;
+
+  display: flex;
+  align-items: center;
+  gap: 13px;
+
+  min-width: 290px;
+  max-width: calc(100vw - 32px);
+
+  padding: 15px 20px;
+
+  background: #ffffff;
+  border: 1px solid #bbf7d0;
+  border-radius: 13px;
+
+  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.13);
+
+  animation: loginToastShow 0.35s ease forwards;
+}
+
+.login-success-icon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+
+  display: grid;
+  place-items: center;
+
+  color: #16a34a;
+  background: #dcfce7;
+  border-radius: 50%;
+}
+
+.login-success-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.login-success-content strong {
+  color: #166534;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.login-success-content span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+@keyframes loginToastShow {
+  from {
+    opacity: 0;
+    transform: translateX(25px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive mobile */
+@media (max-width: 480px) {
+  .login-success-toast {
+    top: 15px;
+    right: 15px;
+    left: 15px;
+
+    min-width: unset;
+    max-width: unset;
+
+    padding: 13px 15px;
+  }
+}

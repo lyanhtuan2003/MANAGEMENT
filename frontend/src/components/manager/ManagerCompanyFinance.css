@@ -1,0 +1,599 @@
+
+/* =====================================================
+   RESPONSIVE QUẢN LÝ THU CHI CÔNG TY
+   Component: ManagerCompanyFinance
+   Phạm vi: Chỉ áp dụng bên trong .company-finance
+===================================================== */
+
+.company-finance,
+.company-finance * {
+  box-sizing: border-box;
+}
+
+.company-finance {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.company-finance .cf-heading,
+.company-finance .cf-card,
+.company-finance .cf-stat,
+.company-finance .cf-filters,
+.company-finance .cf-table-wrap {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.company-finance .cf-heading > div:first-child {
+  min-width: 0;
+}
+
+.company-finance .cf-heading h2,
+.company-finance .cf-heading p {
+  overflow-wrap: anywhere;
+}
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media screen and (max-width: 1024px) {
+  .company-finance {
+    padding: 20px 16px 30px !important;
+  }
+
+  .company-finance .cf-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px;
+  }
+
+  .company-finance .cf-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .company-finance .cf-stat {
+    min-width: 0;
+    padding: 16px;
+  }
+
+  .company-finance .cf-stat-value {
+    font-size: clamp(16px, 2.2vw, 22px);
+    overflow-wrap: anywhere;
+  }
+
+  .company-finance .cf-table-wrap {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media screen and (max-width: 650px) {
+  .company-finance {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding: 14px 10px 24px !important;
+    overflow-x: hidden !important;
+  }
+
+  /* TIÊU ĐỀ */
+
+  .company-finance .cf-heading {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    margin-bottom: 18px !important;
+  }
+
+  .company-finance .cf-heading h2 {
+    font-size: 21px !important;
+    line-height: 1.4 !important;
+    margin-bottom: 6px !important;
+  }
+
+  .company-finance .cf-heading p {
+    font-size: 12px !important;
+    line-height: 1.6 !important;
+  }
+
+  /* NÚT THAO TÁC */
+
+  .company-finance .cf-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    gap: 8px !important;
+  }
+
+  .company-finance .cf-actions .cf-btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 10px 6px !important;
+    font-size: 12px !important;
+    white-space: nowrap;
+  }
+
+  /* THÔNG BÁO */
+
+  .company-finance .cf-message {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 10px !important;
+    font-size: 12px !important;
+    overflow-wrap: anywhere;
+  }
+
+  /* THỐNG KÊ */
+
+  .company-finance .cf-stats {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+    width: 100% !important;
+    margin-bottom: 16px !important;
+  }
+
+  .company-finance .cf-stat {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 9px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 12px 10px !important;
+    border-radius: 12px !important;
+  }
+
+  .company-finance .cf-stat-icon {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+  }
+
+  .company-finance .cf-stat-icon svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .company-finance .cf-stat > div:last-child {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .company-finance .cf-stat-label {
+    font-size: 11px !important;
+    margin-bottom: 5px !important;
+  }
+
+  .company-finance .cf-stat-value {
+    font-size: clamp(14px, 4vw, 18px) !important;
+    line-height: 1.4 !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+
+  .company-finance .cf-stat-note {
+    font-size: 10px !important;
+    line-height: 1.5 !important;
+  }
+
+  /* KHUNG LỊCH SỬ GIAO DỊCH */
+
+  .company-finance .cf-card {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    padding: 14px 11px !important;
+    margin-bottom: 15px !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+  }
+
+  .company-finance .cf-card-heading {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    width: 100% !important;
+    margin-bottom: 14px !important;
+  }
+
+  .company-finance .cf-card-heading h3 {
+    font-size: 15px !important;
+    line-height: 1.4 !important;
+  }
+
+  .company-finance .cf-card-heading p {
+    font-size: 11px !important;
+    line-height: 1.5 !important;
+  }
+
+  .company-finance .cf-count {
+    flex-shrink: 0 !important;
+    font-size: 10px !important;
+    padding: 5px 7px !important;
+  }
+
+  /* BỘ LỌC */
+
+  .company-finance .cf-filters {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    width: 100% !important;
+    gap: 9px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .company-finance .cf-input-wrap,
+  .company-finance .cf-filters > * {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .company-finance .cf-input-wrap:first-child {
+    grid-column: auto !important;
+  }
+
+  .company-finance .cf-input,
+  .company-finance .cf-select {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 42px !important;
+    font-size: 12px !important;
+  }
+
+  .company-finance .cf-input.with-icon {
+    padding-left: 34px !important;
+  }
+
+  .company-finance .cf-input-wrap > svg {
+    left: 10px !important;
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  /* =================================================
+     LỊCH SỬ GIAO DỊCH - CHUYỂN THÀNH CARD MOBILE
+  ================================================= */
+
+  .company-finance .cf-table-wrap {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+    border: 0 !important;
+  }
+
+  .company-finance .cf-table {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    table-layout: auto !important;
+    border: 0 !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+  }
+
+  .company-finance .cf-table thead {
+    display: none !important;
+  }
+
+  .company-finance .cf-table tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 11px !important;
+    width: 100% !important;
+  }
+
+  .company-finance .cf-table tbody tr {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 10px 11px !important;
+    margin: 0 !important;
+    background: #ffffff !important;
+    border: 1px solid #e7ebf3 !important;
+    border-radius: 11px !important;
+    box-shadow: 0 2px 7px rgba(15, 23, 42, 0.035) !important;
+  }
+
+  .company-finance .cf-table tbody td {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 55px !important;
+    padding: 9px 3px !important;
+    border: 0 !important;
+    border-bottom: 1px solid #edf0f5 !important;
+    font-size: 11px !important;
+    line-height: 1.5 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+
+  .company-finance .cf-table tbody td::before {
+    display: block !important;
+    width: 100% !important;
+    color: #929bad !important;
+    font-size: 10px !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Nhãn từng cột */
+
+  .company-finance .cf-table tbody td:nth-child(1)::before {
+    content: "Ngày giao dịch";
+  }
+
+  .company-finance .cf-table tbody td:nth-child(2)::before {
+    content: "Nội dung";
+  }
+
+  .company-finance .cf-table tbody td:nth-child(3)::before {
+    content: "Loại giao dịch";
+  }
+
+  .company-finance .cf-table tbody td:nth-child(4)::before {
+    content: "Số tiền";
+  }
+
+  .company-finance .cf-table tbody td:nth-child(5)::before {
+    content: "Người thực hiện";
+  }
+
+  .company-finance .cf-table tbody td:nth-child(6)::before {
+    content: "Thao tác";
+  }
+
+  /* Ngày giao dịch */
+
+  .company-finance .cf-table tbody td:nth-child(1) {
+    grid-column: 1 / -1 !important;
+    min-height: 45px !important;
+    border-bottom: 1px solid #e7ebf3 !important;
+  }
+
+  /* Nội dung giao dịch */
+
+  .company-finance .cf-table tbody td:nth-child(2) {
+    grid-column: 1 / -1 !important;
+    min-height: 48px !important;
+  }
+
+  .company-finance .cf-table tbody td:nth-child(2) strong {
+    max-width: 100% !important;
+    color: #25324b !important;
+    font-size: 12px !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* Loại giao dịch */
+
+  .company-finance .cf-table tbody td:nth-child(3),
+  .company-finance .cf-table tbody td:nth-child(4) {
+    min-height: 58px !important;
+  }
+
+  .company-finance .cf-type {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 4px !important;
+    width: fit-content !important;
+    max-width: 100% !important;
+    padding: 5px 8px !important;
+    font-size: 10px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Số tiền */
+
+  .company-finance .cf-amount {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* Người thực hiện */
+
+  .company-finance .cf-table tbody td:nth-child(5) {
+    grid-column: 1 / -1 !important;
+    min-height: 48px !important;
+  }
+
+  /* Thao tác */
+
+  .company-finance .cf-table tbody td:nth-child(6) {
+    grid-column: 1 / -1 !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 45px !important;
+    border-bottom: 0 !important;
+  }
+
+  .company-finance .cf-edit-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 35px !important;
+    height: 35px !important;
+    min-width: 35px !important;
+    flex-shrink: 0 !important;
+  }
+
+  /* TRỐNG DỮ LIỆU */
+
+  .company-finance .cf-table tbody td.cf-empty {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    grid-column: 1 / -1 !important;
+    min-height: 140px !important;
+    padding: 20px !important;
+    border: 0 !important;
+    text-align: center !important;
+  }
+
+  .company-finance .cf-table tbody td.cf-empty::before {
+    display: none !important;
+    content: none !important;
+  }
+
+  /* LOADING */
+
+  .company-finance .cf-loading {
+    width: 100% !important;
+    padding: 25px 10px !important;
+    font-size: 12px !important;
+  }
+
+  /* MODAL */
+
+  .company-finance .cf-modal-overlay {
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 10px !important;
+  }
+
+  .company-finance .cf-modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 90dvh !important;
+    padding: 16px 13px !important;
+    overflow-y: auto !important;
+    border-radius: 14px !important;
+  }
+
+  .company-finance .cf-modal-heading {
+    margin-bottom: 16px !important;
+  }
+
+  .company-finance .cf-modal-heading h3 {
+    font-size: 17px !important;
+  }
+
+  .company-finance .cf-form-group {
+    margin-bottom: 14px !important;
+  }
+
+  .company-finance .cf-form-group label {
+    font-size: 12px !important;
+  }
+
+  .company-finance .cf-form-group .cf-input,
+  .company-finance .cf-form-group .cf-select {
+    height: 43px !important;
+    font-size: 13px !important;
+  }
+
+  .company-finance .cf-modal-actions {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin-top: 18px !important;
+  }
+
+  .company-finance .cf-modal-actions .cf-btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 10px 7px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* =====================================================
+   ĐIỆN THOẠI NHỎ
+===================================================== */
+
+@media screen and (max-width: 380px) {
+  .company-finance {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  .company-finance .cf-heading h2 {
+    font-size: 19px !important;
+  }
+
+  .company-finance .cf-stats {
+    gap: 7px !important;
+  }
+
+  .company-finance .cf-stat {
+    padding: 10px 8px !important;
+  }
+
+  .company-finance .cf-stat-value {
+    font-size: 14px !important;
+  }
+
+  .company-finance .cf-card {
+    padding: 12px 9px !important;
+  }
+
+  .company-finance .cf-table tbody tr {
+    padding: 9px !important;
+    gap: 0 8px !important;
+  }
+
+  .company-finance .cf-table tbody td {
+    font-size: 10px !important;
+  }
+
+  .company-finance .cf-actions .cf-btn {
+    font-size: 11px !important;
+  }
+}
+
+/* =====================================================
+   ĐIỆN THOẠI RẤT NHỎ
+===================================================== */
+
+@media screen and (max-width: 340px) {
+  .company-finance .cf-stats {
+    grid-template-columns: 1fr !important;
+  }
+
+  .company-finance .cf-stat {
+    flex-direction: row !important;
+    align-items: center !important;
+  }
+
+  .company-finance .cf-stat > div:last-child {
+    flex: 1;
+  }
+
+  .company-finance .cf-actions {
+    grid-template-columns: 1fr !important;
+  }
+
+  .company-finance .cf-modal-actions {
+    grid-template-columns: 1fr !important;
+  }
+}

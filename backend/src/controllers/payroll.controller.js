@@ -6,6 +6,7 @@ import PayrollSetting from "../models/PayrollSetting.js";
 import Attendance from "../models/Attendance.js";
 import Reward from "../models/Reward.js";
 import User from "../models/User.js";
+import Notification from "../models/Notification.js";
 
 // ========================================
 // CẤU HÌNH
@@ -755,15 +756,67 @@ export const markPayrollPaid = async (req, res) => {
       });
     }
 
+    // Chỉ cập nhật trạng thái thanh toán một lần.
     payroll.status = "paid";
     payroll.paidAt = new Date();
     payroll.paidBy = req.user._id;
 
     await payroll.save();
 
+    // ====================================
+    // GỬI THÔNG BÁO CHO NHÂN VIÊN / KẾ TOÁN
+    // ====================================
+
+    try {
+      if (payroll.employeeId) {
+        const employee = await User.findById(payroll.employeeId)
+          .select("_id name fullName role")
+          .lean();
+
+        if (employee) {
+          const amount = Number(
+            payroll.totalSalary || 0
+          ).toLocaleString("vi-VN");
+
+          await Notification.create({
+            recipient: employee._id,
+            type: "payroll_paid",
+            title: "Lương tháng đã được thanh toán",
+            message:
+              `Bảng lương tháng ${payroll.month}/${payroll.year} ` +
+              `với số tiền ${amount} đ đã được quản lý xác nhận thanh toán.`,
+            isRead: false,
+          });
+
+          console.log(
+            `Đã gửi thông báo thanh toán lương đến ${
+              employee.name ||
+              employee.fullName ||
+              employee._id
+            } (${employee.role || "user"}).`
+          );
+        } else {
+          console.warn(
+            "Không tìm thấy tài khoản nhận lương để gửi thông báo:",
+            String(payroll.employeeId)
+          );
+        }
+      } else {
+        console.warn(
+          "Bảng lương không có employeeId, không thể gửi thông báo."
+        );
+      }
+    } catch (notificationError) {
+      // Không hoàn tác thanh toán nếu riêng thao tác tạo thông báo gặp lỗi.
+      console.error(
+        "Lỗi gửi thông báo thanh toán lương:",
+        notificationError
+      );
+    }
+
     return res.json({
       success: true,
-      message: "Đã xác nhận thanh toán.",
+      message: "Đã xác nhận thanh toán và gửi thông báo.",
       payroll,
     });
   } catch (error) {

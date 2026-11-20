@@ -10,13 +10,13 @@ import {
   Menu,
   X,
   Building2,
+  ShieldAlert,
 } from "lucide-react";
 
 import EmployeeHeader from "../../components/employee/EmployeeHeader";
 import MyProfile from "../../components/employee/MyProfile";
 import ChangePassword from "../../components/employee/ChangePassword";
 
-// QUAN TRỌNG: Dùng component riêng của Kế toán
 import AccountantCompanyFinance from "../../components/accountant/AccountantCompanyFinance";
 
 import "./AccountantDashboard.css";
@@ -85,27 +85,31 @@ export default function AccountantDashboard({ onLogout }) {
   const [activePage, setActivePage] = useState("overview");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [user, setUser] = useState(getStoredUser);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const mustChangePassword = Boolean(user?.mustChangePassword);
 
-  // Chuyển trang
+  // ========================================
+  // CHUYỂN TRANG
+  // ========================================
+
   const handleChangePage = useCallback((page) => {
     setActivePage(page);
     setSidebarOpen(false);
   }, []);
 
-  // Đăng xuất
+  // ========================================
+  // ĐĂNG XUẤT
+  // Không sử dụng window.confirm()
+  // ========================================
+
   const handleLogout = useCallback(() => {
+    setShowLogoutConfirm(false);
+
     if (typeof onLogout === "function") {
       onLogout();
       return;
     }
-
-    const confirmed = window.confirm(
-      "Bạn có chắc chắn muốn đăng xuất?"
-    );
-
-    if (!confirmed) return;
 
     [
       "token",
@@ -115,12 +119,17 @@ export default function AccountantDashboard({ onLogout }) {
       "currentUser",
       "authUser",
       "userRole",
-    ].forEach((key) => localStorage.removeItem(key));
+    ].forEach((key) => {
+      localStorage.removeItem(key);
+    });
 
-    window.location.reload();
+    window.location.href = "/login";
   }, [onLogout]);
 
-  // Sau khi đổi mật khẩu
+  // ========================================
+  // SAU KHI ĐỔI MẬT KHẨU
+  // ========================================
+
   const handlePasswordChanged = useCallback(
     (updatedUser) => {
       const nextUser = {
@@ -138,7 +147,10 @@ export default function AccountantDashboard({ onLogout }) {
     [user]
   );
 
-  // Avatar
+  // ========================================
+  // AVATAR
+  // ========================================
+
   const avatar = (user?.name || "K")
     .trim()
     .split(/\s+/)
@@ -146,18 +158,6 @@ export default function AccountantDashboard({ onLogout }) {
     .slice(-2)
     .map((word) => word.charAt(0).toUpperCase())
     .join("");
-
-  // Bắt buộc đổi mật khẩu
-  if (mustChangePassword) {
-    return (
-      <ChangePassword
-        user={user}
-        required={true}
-        onSuccess={handlePasswordChanged}
-        onLogout={handleLogout}
-      />
-    );
-  }
 
   // ========================================
   // NỘI DUNG TỪNG TRANG
@@ -225,11 +225,24 @@ export default function AccountantDashboard({ onLogout }) {
         );
 
       default:
-        return (
-          <AccountantCompanyFinance />
-        );
+        return <AccountantCompanyFinance />;
     }
   };
+
+  // ========================================
+  // BẮT BUỘC ĐỔI MẬT KHẨU
+  // ========================================
+
+  if (mustChangePassword) {
+    return (
+      <ChangePassword
+        user={user}
+        required={true}
+        onSuccess={handlePasswordChanged}
+        onLogout={handleLogout}
+      />
+    );
+  }
 
   // ========================================
   // GIAO DIỆN
@@ -237,6 +250,164 @@ export default function AccountantDashboard({ onLogout }) {
 
   return (
     <div className="accountant-app">
+      <style>{`
+        .accountant-logout-modal-overlay {
+          position: fixed;
+          inset: 0;
+          z-index: 99999;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 20px;
+          background: rgba(15, 23, 42, 0.55);
+          backdrop-filter: blur(5px);
+          -webkit-backdrop-filter: blur(5px);
+          animation: accountantLogoutFade 0.2s ease;
+        }
+
+        .accountant-logout-modal {
+          position: relative;
+          width: 100%;
+          max-width: 410px;
+          padding: 30px;
+          border-radius: 20px;
+          background: #fff;
+          box-shadow: 0 24px 80px rgba(15, 23, 42, 0.22);
+          text-align: center;
+          animation: accountantLogoutIn 0.25s ease;
+        }
+
+        .accountant-logout-close {
+          position: absolute;
+          top: 15px;
+          right: 15px;
+          width: 34px;
+          height: 34px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: none;
+          border-radius: 9px;
+          background: #f1f5f9;
+          color: #64748b;
+          cursor: pointer;
+        }
+
+        .accountant-logout-close:hover {
+          background: #e2e8f0;
+          color: #1e293b;
+        }
+
+        .accountant-logout-icon {
+          width: 66px;
+          height: 66px;
+          margin: 0 auto 18px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 20px;
+          background: #fff1f2;
+          color: #ef4444;
+        }
+
+        .accountant-logout-modal h3 {
+          margin: 0 0 9px;
+          color: #1e293b;
+          font-size: 21px;
+          font-weight: 750;
+        }
+
+        .accountant-logout-modal p {
+          margin: 0 auto;
+          max-width: 310px;
+          color: #64748b;
+          font-size: 13px;
+          line-height: 1.7;
+        }
+
+        .accountant-logout-actions {
+          display: flex;
+          gap: 11px;
+          margin-top: 26px;
+        }
+
+        .accountant-logout-action {
+          flex: 1;
+          min-height: 45px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          border-radius: 10px;
+          font-family: inherit;
+          font-size: 13px;
+          font-weight: 650;
+          cursor: pointer;
+          transition: 0.2s;
+        }
+
+        .accountant-logout-stay {
+          border: 1px solid #e2e8f0;
+          background: #fff;
+          color: #475569;
+        }
+
+        .accountant-logout-stay:hover {
+          background: #f8fafc;
+          border-color: #cbd5e1;
+        }
+
+        .accountant-logout-danger {
+          border: 1px solid #ef4444;
+          background: #ef4444;
+          color: #fff;
+        }
+
+        .accountant-logout-danger:hover {
+          background: #dc2626;
+          border-color: #dc2626;
+          transform: translateY(-1px);
+          box-shadow: 0 5px 14px rgba(239, 68, 68, 0.2);
+        }
+
+        @keyframes accountantLogoutFade {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        @keyframes accountantLogoutIn {
+          from {
+            opacity: 0;
+            transform: translateY(12px) scale(0.97);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        @media (max-width: 480px) {
+          .accountant-logout-modal {
+            max-width: 100%;
+            padding: 26px 20px 22px;
+            border-radius: 17px;
+          }
+
+          .accountant-logout-modal h3 {
+            font-size: 19px;
+          }
+
+          .accountant-logout-actions {
+            gap: 8px;
+          }
+
+          .accountant-logout-action {
+            min-height: 43px;
+            font-size: 12px;
+          }
+        }
+      `}</style>
+
       {sidebarOpen && (
         <div
           className="accountant-overlay"
@@ -306,6 +477,7 @@ export default function AccountantDashboard({ onLogout }) {
             </div>
           </div>
 
+          {/* ĐỔI MẬT KHẨU */}
           <button
             type="button"
             className={`accountant-logout accountant-change-password ${
@@ -317,10 +489,11 @@ export default function AccountantDashboard({ onLogout }) {
             <span>Đổi mật khẩu</span>
           </button>
 
+          {/* ĐĂNG XUẤT */}
           <button
             type="button"
             className="accountant-logout"
-            onClick={handleLogout}
+            onClick={() => setShowLogoutConfirm(true)}
           >
             <LogOut size={18} />
             <span>Đăng xuất</span>
@@ -356,6 +529,66 @@ export default function AccountantDashboard({ onLogout }) {
           © 2026 Internal Management. All rights reserved.
         </footer>
       </main>
+
+      {/* MODAL XÁC NHẬN ĐĂNG XUẤT */}
+      {showLogoutConfirm && (
+        <div
+          className="accountant-logout-modal-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setShowLogoutConfirm(false);
+            }
+          }}
+        >
+          <div
+            className="accountant-logout-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="accountant-logout-title"
+          >
+            <button
+              type="button"
+              className="accountant-logout-close"
+              onClick={() => setShowLogoutConfirm(false)}
+              aria-label="Đóng"
+            >
+              <X size={19} />
+            </button>
+
+            <div className="accountant-logout-icon">
+              <ShieldAlert size={32} />
+            </div>
+
+            <h3 id="accountant-logout-title">
+              Xác nhận đăng xuất
+            </h3>
+
+            <p>
+              Bạn có chắc chắn muốn đăng xuất khỏi hệ thống
+              không? Phiên làm việc hiện tại của bạn sẽ kết thúc.
+            </p>
+
+            <div className="accountant-logout-actions">
+              <button
+                type="button"
+                className="accountant-logout-action accountant-logout-stay"
+                onClick={() => setShowLogoutConfirm(false)}
+              >
+                Ở lại
+              </button>
+
+              <button
+                type="button"
+                className="accountant-logout-action accountant-logout-danger"
+                onClick={handleLogout}
+              >
+                <LogOut size={16} />
+                Đăng xuất
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

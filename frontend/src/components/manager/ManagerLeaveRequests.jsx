@@ -12,6 +12,7 @@ import {
   FileText,
   AlertCircle,
 } from "lucide-react";
+import "./ManagerLeaveRequests.css";
 
 // ========================================
 // CẤU HÌNH API

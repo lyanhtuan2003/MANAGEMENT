@@ -13,20 +13,24 @@ import {
   Wallet,
   FileText,
 } from "lucide-react";
+import "./ManagerRewards.css";
 
+// ========================================
+// API CONFIG
+// ========================================
 const RAW_API_URL =
   import.meta.env.VITE_API_URL || "http://localhost:5000";
 
-const API_URL = `${RAW_API_URL.replace(/\/+$/, "").replace(/\/api$/, "")}/api`;
+const API_BASE_URL = RAW_API_URL
+  .trim()
+  .replace(/\/+$/, "")
+  .replace(/\/api$/i, "");
 
-const createEmptyForm = () => ({
-  employeeId: "",
-  type: "Thưởng",
-  amount: "",
-  reason: "",
-  date: getToday(),
-});
+const API_URL = `${API_BASE_URL}/api`;
 
+// ========================================
+// HELPERS
+// ========================================
 function getToday() {
   const now = new Date();
   const year = now.getFullYear();
@@ -35,6 +39,14 @@ function getToday() {
 
   return `${year}-${month}-${day}`;
 }
+
+const createEmptyForm = () => ({
+  employeeId: "",
+  type: "Thưởng",
+  amount: "",
+  reason: "",
+  date: getToday(),
+});
 
 const getToken = () =>
   localStorage.getItem("token") ||
@@ -68,8 +80,28 @@ const getInputDate = (value) => {
   return `${year}-${month}-${day}`;
 };
 
-export default function ManagerRewards({ employees = [] }) {
+const isActiveRewardEmployee = (employee) => {
+  const validRole = ["employee", "accountant"].includes(employee?.role);
+  const inactiveStatuses = [
+    "resigned",
+    "inactive",
+    "locked",
+    "terminated",
+  ];
+
+  return (
+    validRole &&
+    employee?.isActive !== false &&
+    !inactiveStatuses.includes(employee?.status)
+  );
+};
+
+// ========================================
+// MAIN COMPONENT
+// ========================================
+export default function ManagerRewards() {
   const [records, setRecords] = useState([]);
+  const [rewardEmployees, setRewardEmployees] = useState([]);
 
   const [summary, setSummary] = useState({
     totalReward: 0,
@@ -80,6 +112,7 @@ export default function ManagerRewards({ employees = [] }) {
   });
 
   const [loading, setLoading] = useState(true);
+  const [employeesLoading, setEmployeesLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -91,14 +124,20 @@ export default function ManagerRewards({ employees = [] }) {
   const [keyword, setKeyword] = useState("");
   const [filterType, setFilterType] = useState("Tất cả");
 
-  // ======================================
-  // GỌI API
-  // ======================================
+  // Modal xác nhận xóa tùy chỉnh
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // ========================================
+  // API REQUEST
+  // ========================================
   const apiRequest = useCallback(async (path, options = {}) => {
     const token = getToken();
 
     if (!token) {
-      throw new Error("Không tìm thấy token. Vui lòng đăng nhập lại.");
+      throw new Error(
+        "Không tìm thấy token. Vui lòng đăng nhập lại."
+      );
     }
 
     const response = await fetch(`${API_URL}${path}`, {
@@ -114,16 +153,18 @@ export default function ManagerRewards({ employees = [] }) {
 
     const data = await response.json().catch(() => ({}));
 
-    if (!response.ok || !data.success) {
-      throw new Error(data.message || "Không thể thực hiện yêu cầu.");
+    if (!response.ok || data.success === false) {
+      throw new Error(
+        data.message || `Yêu cầu thất bại (${response.status}).`
+      );
     }
 
     return data;
   }, []);
 
-  // ======================================
-  // TẢI DANH SÁCH THƯỞNG PHẠT
-  // ======================================
+  // ========================================
+  // LOAD REWARD RECORDS
+  // ========================================
   const fetchRecords = useCallback(async () => {
     try {
       setLoading(true);
@@ -131,9 +172,11 @@ export default function ManagerRewards({ employees = [] }) {
 
       const data = await apiRequest("/rewards/manager");
 
-      setRecords(
-        Array.isArray(data.records) ? data.records : []
-      );
+      const nextRecords = Array.isArray(data.records)
+        ? data.records
+        : [];
+
+      setRecords(nextRecords);
 
       setSummary({
         totalReward: Number(data.summary?.totalReward || 0),
@@ -141,44 +184,77 @@ export default function ManagerRewards({ employees = [] }) {
         rewardCount: Number(data.summary?.rewardCount || 0),
         penaltyCount: Number(data.summary?.penaltyCount || 0),
         totalRecords: Number(
-          data.summary?.totalRecords ??
-            data.records?.length ??
-            0
+          data.summary?.totalRecords ?? nextRecords.length
         ),
       });
     } catch (err) {
       console.error("Fetch rewards error:", err);
-      setError(err.message || "Không thể tải dữ liệu thưởng phạt.");
+
+      setError(
+        err.message || "Không thể tải dữ liệu thưởng phạt."
+      );
     } finally {
       setLoading(false);
     }
   }, [apiRequest]);
 
+  // ========================================
+  // LOAD EMPLOYEES + ACCOUNTANTS
+  // GET /api/rewards/manager/employees
+  // ========================================
+  const fetchRewardEmployees = useCallback(async () => {
+    try {
+      setEmployeesLoading(true);
+
+      const data = await apiRequest(
+        "/rewards/manager/employees"
+      );
+
+      setRewardEmployees(
+        Array.isArray(data.employees)
+          ? data.employees
+          : []
+      );
+    } catch (err) {
+      console.error("Fetch reward employees error:", err);
+
+      setRewardEmployees([]);
+
+      setError(
+        err.message || "Không thể tải danh sách nhân viên."
+      );
+    } finally {
+      setEmployeesLoading(false);
+    }
+  }, [apiRequest]);
+
+  // ========================================
+  // INITIAL LOAD
+  // ========================================
   useEffect(() => {
     fetchRecords();
-  }, [fetchRecords]);
+    fetchRewardEmployees();
+  }, [fetchRecords, fetchRewardEmployees]);
 
-  // ======================================
-  // DANH SÁCH NHÂN VIÊN
-  // ======================================
-  const activeEmployees = useMemo(() => {
-    return employees.filter(
-      (employee) =>
-        employee.role !== "manager" &&
-        employee.isActive !== false &&
-        employee.status !== "resigned"
-    );
-  }, [employees]);
+  // ========================================
+  // ACTIVE EMPLOYEES
+  // ========================================
+  const activeEmployees = useMemo(
+    () => rewardEmployees.filter(isActiveRewardEmployee),
+    [rewardEmployees]
+  );
 
-  // ======================================
-  // TÌM KIẾM VÀ LỌC
-  // ======================================
+  // ========================================
+  // SEARCH + FILTER
+  // ========================================
   const filteredRecords = useMemo(() => {
     const search = keyword.trim().toLowerCase();
 
     return records.filter((record) => {
       const employeeName =
-        record.employee?.name || record.employeeName || "";
+        record.employee?.name ||
+        record.employeeName ||
+        "";
 
       const employeeCode =
         record.employee?.employeeCode ||
@@ -189,37 +265,46 @@ export default function ManagerRewards({ employees = [] }) {
         !search ||
         employeeName.toLowerCase().includes(search) ||
         employeeCode.toLowerCase().includes(search) ||
-        String(record.reason || "").toLowerCase().includes(search);
+        String(record.reason || "")
+          .toLowerCase()
+          .includes(search);
 
       const matchesType =
-        filterType === "Tất cả" || record.type === filterType;
+        filterType === "Tất cả" ||
+        record.type === filterType;
 
       return matchesKeyword && matchesType;
     });
   }, [records, keyword, filterType]);
 
-  // ======================================
-  // MỞ FORM THÊM
-  // ======================================
+  // ========================================
+  // OPEN CREATE FORM
+  // ========================================
   const openCreateForm = () => {
     setEditingId(null);
     setForm(createEmptyForm());
     setError("");
     setSuccess("");
     setShowForm(true);
+
+    fetchRewardEmployees();
   };
 
-  // ======================================
-  // MỞ FORM CHỈNH SỬA
-  // ======================================
+  // ========================================
+  // OPEN EDIT FORM
+  // ========================================
   const openEditForm = (record) => {
+    const employeeId =
+      record.employee?._id ||
+      record.employee ||
+      "";
+
     setEditingId(record._id);
 
     setForm({
-      employeeId:
-        record.employee?._id || record.employee || "",
-      type: record.type,
-      amount: String(record.amount),
+      employeeId: String(employeeId),
+      type: record.type || "Thưởng",
+      amount: String(record.amount ?? ""),
       reason: record.reason || "",
       date: getInputDate(record.date),
     });
@@ -227,11 +312,13 @@ export default function ManagerRewards({ employees = [] }) {
     setError("");
     setSuccess("");
     setShowForm(true);
+
+    fetchRewardEmployees();
   };
 
-  // ======================================
-  // ĐÓNG FORM
-  // ======================================
+  // ========================================
+  // CLOSE FORM
+  // ========================================
   const closeForm = () => {
     if (saving) return;
 
@@ -241,9 +328,9 @@ export default function ManagerRewards({ employees = [] }) {
     setError("");
   };
 
-  // ======================================
-  // LƯU QUYẾT ĐỊNH
-  // ======================================
+  // ========================================
+  // SAVE / UPDATE REWARD
+  // ========================================
   const saveRecord = async (event) => {
     event.preventDefault();
 
@@ -255,22 +342,29 @@ export default function ManagerRewards({ employees = [] }) {
       return;
     }
 
+    const amount = Number(form.amount);
+
     if (
       form.amount === "" ||
-      !Number.isFinite(Number(form.amount)) ||
-      Number(form.amount) <= 0
+      !Number.isFinite(amount) ||
+      amount <= 0
     ) {
       setError("Số tiền phải là số lớn hơn 0.");
       return;
     }
 
-    if (!Number.isSafeInteger(Number(form.amount))) {
+    if (!Number.isSafeInteger(amount)) {
       setError("Số tiền phải là số nguyên hợp lệ.");
       return;
     }
 
     if (!form.reason.trim()) {
       setError("Vui lòng nhập lý do thưởng hoặc phạt.");
+      return;
+    }
+
+    if (form.reason.trim().length > 1000) {
+      setError("Lý do không được vượt quá 1000 ký tự.");
       return;
     }
 
@@ -285,7 +379,7 @@ export default function ManagerRewards({ employees = [] }) {
       const payload = {
         employeeId: form.employeeId,
         type: form.type,
-        amount: Number(form.amount),
+        amount,
         reason: form.reason.trim(),
         date: form.date,
       };
@@ -310,55 +404,70 @@ export default function ManagerRewards({ employees = [] }) {
       await fetchRecords();
     } catch (err) {
       console.error("Save reward error:", err);
-      setError(err.message || "Không thể lưu quyết định.");
+
+      setError(
+        err.message || "Không thể lưu quyết định."
+      );
     } finally {
       setSaving(false);
     }
   };
 
-  // ======================================
-  // XÓA QUYẾT ĐỊNH
-  // ======================================
-  const handleDelete = async (record) => {
-    const employeeName =
-      record.employee?.name ||
-      record.employeeName ||
-      "nhân viên";
+  // ========================================
+  // OPEN DELETE CONFIRMATION MODAL
+  // ========================================
+  const handleDelete = (record) => {
+    setError("");
+    setSuccess("");
+    setDeleteTarget(record);
+  };
 
-    const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn xóa quyết định ${record.type.toLowerCase()} của ${employeeName}?`
-    );
-
-    if (!confirmed) return;
+  // ========================================
+  // CONFIRM DELETE
+  // ========================================
+  const confirmDeleteReward = async () => {
+    if (!deleteTarget || deleting) return;
 
     try {
+      setDeleting(true);
       setError("");
       setSuccess("");
 
       const data = await apiRequest(
-        `/rewards/manager/${record._id}`,
-        { method: "DELETE" }
+        `/rewards/manager/${deleteTarget._id}`,
+        {
+          method: "DELETE",
+        }
       );
 
-      setSuccess(data.message || "Đã xóa quyết định.");
+      setDeleteTarget(null);
+
+      setSuccess(
+        data.message || "Đã xóa quyết định."
+      );
 
       await fetchRecords();
     } catch (err) {
       console.error("Delete reward error:", err);
-      setError(err.message || "Không thể xóa quyết định.");
+
+      setError(
+        err.message || "Không thể xóa quyết định."
+      );
+    } finally {
+      setDeleting(false);
     }
   };
 
-  // ======================================
-  // GIAO DIỆN
-  // ======================================
+  // ========================================
+  // RENDER
+  // ========================================
   return (
     <section className="manager-panel manager-rewards">
 
-      {/* TIÊU ĐỀ */}
+      {/* HEADER */}
       <div className="panel-heading">
         <div>
-          <h2>Quản lý thưởng & phạt</h2>
+          <h2>Quản lý thưởng &amp; phạt</h2>
           <p>
             Ghi nhận thành tích và xử lý vi phạm nhân sự
           </p>
@@ -374,20 +483,26 @@ export default function ManagerRewards({ employees = [] }) {
         </button>
       </div>
 
-      {/* THÔNG BÁO */}
+      {/* NOTIFICATIONS */}
       {error && !showForm && (
-        <div className="reward-message error">
+        <div
+          className="reward-message error"
+          role="alert"
+        >
           {error}
         </div>
       )}
 
       {success && (
-        <div className="reward-message success">
+        <div
+          className="reward-message success"
+          role="status"
+        >
           {success}
         </div>
       )}
 
-      {/* THỐNG KÊ */}
+      {/* SUMMARY */}
       <div className="reward-summary">
 
         <div className="reward-summary-card">
@@ -398,7 +513,9 @@ export default function ManagerRewards({ employees = [] }) {
           <div>
             <span>Tổng tiền thưởng</span>
             <h2>{formatMoney(summary.totalReward)}</h2>
-            <small>{summary.rewardCount} quyết định</small>
+            <small>
+              {summary.rewardCount} quyết định
+            </small>
           </div>
         </div>
 
@@ -410,7 +527,9 @@ export default function ManagerRewards({ employees = [] }) {
           <div>
             <span>Tổng tiền phạt</span>
             <h2>{formatMoney(summary.totalPenalty)}</h2>
-            <small>{summary.penaltyCount} quyết định</small>
+            <small>
+              {summary.penaltyCount} quyết định
+            </small>
           </div>
         </div>
 
@@ -444,7 +563,7 @@ export default function ManagerRewards({ employees = [] }) {
 
       </div>
 
-      {/* TÌM KIẾM VÀ LỌC */}
+      {/* SEARCH + FILTER */}
       <div className="reward-toolbar">
 
         <div className="reward-search">
@@ -467,7 +586,10 @@ export default function ManagerRewards({ employees = [] }) {
           }
           aria-label="Lọc hình thức"
         >
-          <option value="Tất cả">Tất cả hình thức</option>
+          <option value="Tất cả">
+            Tất cả hình thức
+          </option>
+
           <option value="Thưởng">Thưởng</option>
           <option value="Phạt">Phạt</option>
         </select>
@@ -475,19 +597,24 @@ export default function ManagerRewards({ employees = [] }) {
         <button
           type="button"
           className="secondary-btn"
-          onClick={fetchRecords}
-          disabled={loading}
+          onClick={() => {
+            fetchRecords();
+            fetchRewardEmployees();
+          }}
+          disabled={loading || employeesLoading}
         >
           <RefreshCw
             size={15}
-            className={loading ? "reward-spinning" : ""}
+            className={
+              loading ? "reward-spinning" : ""
+            }
           />
           Làm mới
         </button>
 
       </div>
 
-      {/* BẢNG DỮ LIỆU */}
+      {/* RECORDS TABLE */}
       <div className="responsive-table">
         <table className="manager-table">
 
@@ -505,13 +632,19 @@ export default function ManagerRewards({ employees = [] }) {
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="6" className="empty-state">
+                <td
+                  colSpan="6"
+                  className="empty-state"
+                >
                   Đang tải dữ liệu thưởng phạt...
                 </td>
               </tr>
             ) : filteredRecords.length === 0 ? (
               <tr>
-                <td colSpan="6" className="empty-state">
+                <td
+                  colSpan="6"
+                  className="empty-state"
+                >
                   Chưa có quyết định thưởng phạt nào.
                 </td>
               </tr>
@@ -579,6 +712,7 @@ export default function ManagerRewards({ employees = [] }) {
                           type="button"
                           className="reward-edit-btn"
                           title="Chỉnh sửa"
+                          aria-label={`Chỉnh sửa quyết định của ${employeeName}`}
                           onClick={() => openEditForm(record)}
                         >
                           <Pencil size={15} />
@@ -588,6 +722,7 @@ export default function ManagerRewards({ employees = [] }) {
                           type="button"
                           className="reward-delete-btn"
                           title="Xóa"
+                          aria-label={`Xóa quyết định của ${employeeName}`}
                           onClick={() => handleDelete(record)}
                         >
                           <Trash2 size={15} />
@@ -605,7 +740,7 @@ export default function ManagerRewards({ employees = [] }) {
         </table>
       </div>
 
-      {/* FORM THÊM / SỬA */}
+      {/* CREATE / EDIT FORM */}
       {showForm && (
         <div
           className="manager-modal-overlay"
@@ -638,18 +773,22 @@ export default function ManagerRewards({ employees = [] }) {
                 className="reward-modal-close"
                 onClick={closeForm}
                 disabled={saving}
+                aria-label="Đóng biểu mẫu"
               >
                 <X size={20} />
               </button>
             </div>
 
             {error && (
-              <div className="reward-message error">
+              <div
+                className="reward-message error"
+                role="alert"
+              >
                 {error}
               </div>
             )}
 
-            {/* NHÂN VIÊN */}
+            {/* EMPLOYEE */}
             <label>
               Nhân viên
 
@@ -662,30 +801,42 @@ export default function ManagerRewards({ employees = [] }) {
                     employeeId: event.target.value,
                   }))
                 }
+                disabled={employeesLoading}
               >
-                <option value="">Chọn nhân viên</option>
+                <option value="">
+                  {employeesLoading
+                    ? "Đang tải danh sách nhân viên..."
+                    : "Chọn nhân viên"}
+                </option>
 
                 {activeEmployees.map((employee) => (
                   <option
-                    key={employee._id || employee.id}
-                    value={employee._id || employee.id}
+                    key={employee._id}
+                    value={employee._id}
                   >
                     {employee.name}
+
                     {employee.employeeCode
                       ? ` - ${employee.employeeCode}`
+                      : ""}
+
+                    {employee.role === "accountant"
+                      ? " (Kế toán)"
                       : ""}
                   </option>
                 ))}
               </select>
 
-              {activeEmployees.length === 0 && (
-                <small>
-                  Không có nhân viên đang hoạt động để lựa chọn.
-                </small>
-              )}
+              {!employeesLoading &&
+                activeEmployees.length === 0 && (
+                  <small>
+                    Không có nhân viên hoặc kế toán đang
+                    hoạt động để lựa chọn.
+                  </small>
+                )}
             </label>
 
-            {/* HÌNH THỨC */}
+            {/* TYPE */}
             <label>
               Hình thức
 
@@ -703,7 +854,7 @@ export default function ManagerRewards({ employees = [] }) {
               </select>
             </label>
 
-            {/* SỐ TIỀN */}
+            {/* AMOUNT */}
             <label>
               Số tiền (VNĐ)
 
@@ -723,11 +874,12 @@ export default function ManagerRewards({ employees = [] }) {
               />
 
               <small>
-                Nhập số tiền bằng VNĐ, không cần dấu chấm hoặc dấu phẩy.
+                Nhập số tiền bằng VNĐ, không cần dấu chấm
+                hoặc dấu phẩy.
               </small>
             </label>
 
-            {/* NGÀY ÁP DỤNG */}
+            {/* DATE */}
             <label>
               Ngày áp dụng
 
@@ -744,7 +896,7 @@ export default function ManagerRewards({ employees = [] }) {
               />
             </label>
 
-            {/* LÝ DO */}
+            {/* REASON */}
             <label>
               Lý do
 
@@ -763,7 +915,7 @@ export default function ManagerRewards({ employees = [] }) {
               />
             </label>
 
-            {/* NÚT */}
+            {/* ACTIONS */}
             <div className="modal-actions">
 
               <button
@@ -778,7 +930,11 @@ export default function ManagerRewards({ employees = [] }) {
               <button
                 className="primary-btn"
                 type="submit"
-                disabled={saving || activeEmployees.length === 0}
+                disabled={
+                  saving ||
+                  employeesLoading ||
+                  activeEmployees.length === 0
+                }
               >
                 {saving
                   ? "Đang lưu..."
@@ -790,6 +946,80 @@ export default function ManagerRewards({ employees = [] }) {
             </div>
 
           </form>
+        </div>
+      )}
+
+      {/* CUSTOM DELETE CONFIRMATION MODAL */}
+      {deleteTarget && (
+        <div
+          className="manager-modal-overlay"
+          onMouseDown={(event) => {
+            if (
+              event.target === event.currentTarget &&
+              !deleting
+            ) {
+              setDeleteTarget(null);
+            }
+          }}
+        >
+          <div
+            className="manager-modal reward-delete-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reward-delete-title"
+          >
+
+            <div className="reward-delete-icon">
+              <Trash2 size={25} />
+            </div>
+
+            <h2 id="reward-delete-title">
+              Xác nhận xóa quyết định?
+            </h2>
+
+            <p>
+              Bạn có chắc chắn muốn xóa quyết định{" "}
+              <strong>
+                {String(deleteTarget.type || "").toLowerCase()}
+              </strong>{" "}
+              của{" "}
+              <strong>
+                {deleteTarget.employee?.name ||
+                  deleteTarget.employeeName ||
+                  "nhân viên"}
+              </strong>
+              ?
+            </p>
+
+            <p className="reward-delete-warning">
+              Thao tác này không thể hoàn tác.
+            </p>
+
+            <div className="modal-actions">
+
+              <button
+                type="button"
+                className="secondary-btn"
+                disabled={deleting}
+                onClick={() => setDeleteTarget(null)}
+              >
+                Hủy
+              </button>
+
+              <button
+                type="button"
+                className="reward-confirm-delete-btn"
+                disabled={deleting}
+                onClick={confirmDeleteReward}
+              >
+                {deleting
+                  ? "Đang xóa..."
+                  : "Xác nhận xóa"}
+              </button>
+
+            </div>
+
+          </div>
         </div>
       )}
 

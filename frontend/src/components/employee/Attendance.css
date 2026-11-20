@@ -1,3 +1,88 @@
+
+/* ========================================
+   ATTENDANCE - BASE LAYOUT
+======================================== */
+
+.attendance-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  overflow-x: clip;
+}
+
+.attendance-page *,
+.attendance-page *::before,
+.attendance-page *::after {
+  box-sizing: border-box;
+}
+
+.employee-section-title {
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 22px;
+}
+
+.employee-section-title h1 {
+  margin: 0 0 8px;
+  color: #1e293b;
+  font-size: 25px;
+  font-weight: 750;
+}
+
+.employee-section-title p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ========================================
+   PANEL
+======================================== */
+
+.attendance-page .employee-panel {
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 20px;
+  padding: 22px;
+  background: #ffffff;
+  border: 1px solid #e8edf5;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.025);
+}
+
+.attendance-page .employee-panel-heading {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.attendance-page .employee-panel-heading > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.attendance-page .employee-panel-heading h2,
+.attendance-history-title h2 {
+  margin: 0 0 6px;
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 750;
+}
+
+.attendance-page .employee-panel-heading p,
+.attendance-history-title p {
+  margin: 0;
+  color: #94a3b8;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 /* ========================================
    THÔNG TIN LỊCH LÀM VIỆC
 ======================================== */
@@ -5,8 +90,10 @@
 .attendance-schedule-info {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
   gap: 12px;
+  width: 100%;
   padding: 15px;
   margin: 18px 0;
   border-radius: 10px;
@@ -24,6 +111,7 @@
 ======================================== */
 
 .attendance-time {
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -32,8 +120,9 @@
 }
 
 .attendance-time-box {
+  flex: 1;
+  min-width: 0;
   text-align: center;
-  min-width: 130px;
 }
 
 .attendance-time-box span {
@@ -48,10 +137,12 @@
   font-size: 35px;
   margin: 10px 0;
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .attendance-time-divider {
   width: 1px;
+  min-width: 1px;
   height: 65px;
   background: #e5e8f0;
 }
@@ -62,13 +153,16 @@
 
 .attendance-actions {
   display: flex;
+  width: 100%;
   gap: 12px;
   margin-top: 22px;
 }
 
 .attendance-button {
   flex: 1;
+  min-width: 0;
   min-height: 47px;
+  padding: 10px 14px;
   border: 0;
   border-radius: 9px;
   display: flex;
@@ -109,11 +203,22 @@
   display: flex;
   align-items: center;
   gap: 9px;
+  width: 100%;
+  min-width: 0;
   padding: 12px 14px;
   margin: 12px 0;
   border-radius: 9px;
   font-size: 12px;
   line-height: 1.5;
+}
+
+.attendance-alert svg {
+  flex-shrink: 0;
+}
+
+.attendance-alert span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .attendance-alert.error {
@@ -132,28 +237,49 @@
 }
 
 /* ========================================
-   KHU VỰC LỊCH SỬ CHẤM CÔNG
+   LỊCH SỬ CHẤM CÔNG
 ======================================== */
+
+.attendance-history-panel {
+  overflow: hidden;
+}
+
+.attendance-history-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 18px;
+}
+
+.attendance-history-title {
+  flex: 1;
+  min-width: 0;
+}
 
 .attendance-history-tools {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 10px;
-  flex-wrap: nowrap;
+  gap: 9px;
   flex-shrink: 0;
+  min-width: 0;
 }
 
-/* Khung chọn tháng */
+/* ========================================
+   CHỌN THÁNG
+======================================== */
 
 .attendance-month-wrapper {
   width: 210px;
+  min-width: 0;
   height: 42px;
   display: flex;
   align-items: center;
   gap: 9px;
   padding: 0 12px;
-  box-sizing: border-box;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 9px;
@@ -173,8 +299,6 @@
   flex-shrink: 0;
   color: #3986e8;
 }
-
-/* Ô input tháng */
 
 .attendance-month-input {
   display: block;
@@ -206,7 +330,9 @@
   opacity: 1;
 }
 
-/* Nút làm mới */
+/* ========================================
+   NÚT LÀM MỚI
+======================================== */
 
 .attendance-refresh {
   width: 42px;
@@ -240,16 +366,64 @@
 }
 
 /* ========================================
-   BẢNG LỊCH SỬ
+   BẢNG LỊCH SỬ - DESKTOP
 ======================================== */
+
+.employee-table-scroll {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 8px;
+}
+
+.employee-table {
+  width: 100%;
+  min-width: 700px;
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+.employee-table th,
+.employee-table td {
+  padding: 14px 12px;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.employee-table th {
+  color: #8b96aa;
+  background: #f8f9fc;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.employee-table td {
+  color: #526078;
+  font-size: 12px;
+}
+
+.employee-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.employee-table tbody tr:hover {
+  background: #fafcff;
+}
 
 .attendance-empty {
   text-align: center;
   padding: 30px !important;
   color: #999eae;
+  white-space: normal !important;
 }
 
 .attendance-empty svg {
+  display: block;
   margin: 0 auto 8px;
 }
 
@@ -264,12 +438,14 @@
 
 .attendance-status {
   display: inline-flex;
+  align-items: center;
   padding: 6px 10px;
   border-radius: 20px;
   font-size: 10px;
   font-weight: 600;
   background: #f1f2f6;
   color: #858a9d;
+  white-space: nowrap;
 }
 
 .attendance-status.present {
@@ -285,6 +461,19 @@
 .attendance-status.late {
   color: #d88a2c;
   background: #fff4e5;
+}
+
+.attendance-status.none {
+  color: #858a9d;
+  background: #f1f2f6;
+}
+
+/* ========================================
+   MOBILE CARD - ẨN TRÊN DESKTOP
+======================================== */
+
+.attendance-mobile-list {
+  display: none;
 }
 
 /* ========================================
@@ -314,38 +503,331 @@
 }
 
 /* ========================================
-   RESPONSIVE
+   TABLET
 ======================================== */
 
-@media (max-width: 600px) {
-  .attendance-time {
-    gap: 18px;
+@media (max-width: 1024px) {
+  .attendance-page .employee-panel {
+    padding: 18px;
   }
 
-  .attendance-time-box {
-    min-width: 100px;
+  .attendance-time {
+    gap: 30px;
   }
 
   .attendance-time-box h2 {
-    font-size: 27px;
+    font-size: 32px;
+  }
+}
+
+/* ========================================
+   MOBILE
+======================================== */
+
+@media (max-width: 600px) {
+  .attendance-page {
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    overflow-x: clip;
   }
 
-  .attendance-actions {
-    flex-direction: column;
+  .attendance-page .employee-section-title {
+    margin-bottom: 16px;
   }
 
+  .attendance-page .employee-section-title h1 {
+    font-size: 21px;
+  }
+
+  .attendance-page .employee-section-title p {
+    font-size: 12px;
+  }
+
+  .attendance-page .employee-panel {
+    width: 100%;
+    min-width: 0;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 12px;
+  }
+
+  .attendance-page .employee-panel-heading {
+    align-items: center;
+    flex-direction: row;
+    gap: 12px;
+    margin-bottom: 15px;
+  }
+
+  .attendance-page .employee-panel-heading h2,
+  .attendance-history-title h2 {
+    font-size: 15px;
+  }
+
+  .attendance-page .employee-panel-heading p,
+  .attendance-history-title p {
+    font-size: 11px;
+  }
+
+  /* GIỜ LÀM VIỆC */
   .attendance-schedule-info {
     flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 13px;
+    font-size: 12px;
   }
 
-  .attendance-history-tools {
+  /* GIỜ VÀO - RA */
+  .attendance-time {
+    gap: 14px;
+    padding: 20px 4px;
+  }
+
+  .attendance-time-box {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .attendance-time-box span {
+    font-size: 10px;
+  }
+
+  .attendance-time-box h2 {
+    font-size: clamp(23px, 7vw, 29px);
+    margin: 8px 0;
+  }
+
+  .attendance-time-divider {
+    height: 52px;
+  }
+
+  /* NÚT CHẤM CÔNG */
+  .attendance-actions {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  .attendance-button {
     width: 100%;
+    min-height: 45px;
+    flex: none;
+    font-size: 12px;
+  }
+
+  /* THÔNG BÁO */
+  .attendance-alert {
+    padding: 11px;
+    font-size: 11px;
+  }
+
+  /* HEADER LỊCH SỬ */
+  .attendance-history-heading {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .attendance-history-title {
+    width: 100%;
+  }
+
+  /* CÔNG CỤ CHỌN THÁNG */
+  .attendance-history-tools {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    flex-shrink: 1;
     justify-content: flex-start;
+    gap: 8px;
   }
 
   .attendance-month-wrapper {
-    flex: 1;
     width: auto;
     min-width: 0;
+    flex: 1;
+    height: 38px;
+    padding: 0 9px;
+    gap: 7px;
+  }
+
+  .attendance-month-input {
+    font-size: 12px;
+  }
+
+  .attendance-refresh {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    border-radius: 8px;
+  }
+
+  /* ẨN BẢNG DESKTOP TRÊN MOBILE */
+  .attendance-history-panel .employee-table-scroll {
+    display: none;
+  }
+
+  /* HIỆN DANH SÁCH CARD MOBILE */
+  .attendance-mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .attendance-mobile-card {
+    width: 100%;
+    min-width: 0;
+    padding: 13px;
+    border: 1px solid #edf0f5;
+    border-radius: 10px;
+    background: #ffffff;
+  }
+
+  .attendance-mobile-card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-bottom: 11px;
+    margin-bottom: 11px;
+    border-bottom: 1px solid #edf0f5;
+  }
+
+  .attendance-mobile-date {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    color: #334155;
+    font-size: 12px;
+  }
+
+  .attendance-mobile-date svg {
+    color: #3986e8;
+    flex-shrink: 0;
+  }
+
+  .attendance-mobile-date strong {
+    white-space: nowrap;
+  }
+
+  .attendance-mobile-card .attendance-status {
+    padding: 5px 8px;
+    font-size: 9px;
+  }
+
+  .attendance-mobile-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 13px 10px;
+  }
+
+  .attendance-mobile-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  .attendance-mobile-detail span {
+    color: #94a3b8;
+    font-size: 10px;
+  }
+
+  .attendance-mobile-detail strong {
+    color: #475569;
+    font-size: 12px;
+    font-weight: 650;
+  }
+
+  .attendance-mobile-detail strong.attendance-late {
+    color: #d88a2c;
+  }
+
+  .attendance-mobile-empty {
+    width: 100%;
+    padding: 28px 12px;
+    text-align: center;
+    color: #9298aa;
+    border: 1px solid #edf0f5;
+    border-radius: 10px;
+    background: #ffffff;
+  }
+
+  .attendance-mobile-empty svg {
+    margin: 0 auto 8px;
+  }
+
+  .attendance-mobile-empty p {
+    margin: 0;
+    font-size: 11px;
+  }
+
+  .attendance-loading {
+    font-size: 11px;
   }
 }
+
+/* ========================================
+   MOBILE NHỎ
+======================================== */
+
+@media (max-width: 380px) {
+  .attendance-page .employee-panel {
+    padding: 12px;
+  }
+
+  .attendance-time {
+    gap: 8px;
+  }
+
+  .attendance-time-box h2 {
+    font-size: 23px;
+  }
+
+  .attendance-time-box span {
+    font-size: 9px;
+  }
+
+  .attendance-month-wrapper {
+    gap: 6px;
+    padding: 0 7px;
+  }
+
+  .attendance-month-input {
+    font-size: 11px;
+  }
+
+  .attendance-refresh {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+  }
+
+  .attendance-mobile-card {
+    padding: 11px;
+  }
+}
+
+/* ========================================
+   DESKTOP LỚN
+======================================== */
+
+@media (min-width: 1200px) {
+  .attendance-page .employee-panel {
+    padding: 24px;
+  }
+
+  .attendance-time {
+    gap: 65px;
+  }
+
+  .attendance-mobile-list {
+    display: none;
+  }
+}
+  

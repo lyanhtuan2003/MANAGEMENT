@@ -116,18 +116,21 @@ export const createProject = async (req, res) => {
     }
 
     const validMembers = await User.find({
-      _id: { $in: memberIds },
-      role: "employee",
-      isActive: true,
-      status: { $ne: "resigned" },
-    }).select("_id");
+  _id: { $in: memberIds },
+  role: { $in: ["employee", "accountant"] },
+  isActive: { $ne: false },
+  isLocked: { $ne: true },
+  status: {
+    $nin: ["resigned", "inactive", "locked"],
+  },
+}).select("_id");
 
-    if (validMembers.length !== memberIds.length) {
-      return res.status(400).json({
-        success: false,
-        message: "Có nhân viên không tồn tại hoặc tài khoản đã ngừng hoạt động.",
-      });
-    }
+if (validMembers.length !== memberIds.length) {
+  return res.status(400).json({
+    success: false,
+    message: "Có thành viên không tồn tại hoặc tài khoản đã ngừng hoạt động.",
+  });
+}
 
     const start = validDate(startDate);
     const end = validDate(endDate);
@@ -265,19 +268,22 @@ export const updateProject = async (req, res) => {
         });
       }
 
-      const validMembers = await User.find({
-        _id: { $in: memberIds },
-        role: "employee",
-        isActive: true,
-        status: { $ne: "resigned" },
-      }).select("_id");
+    const validMembers = await User.find({
+  _id: { $in: memberIds },
+  role: { $in: ["employee", "accountant"] },
+  isActive: { $ne: false },
+  isLocked: { $ne: true },
+  status: {
+    $nin: ["resigned", "inactive", "locked"],
+  },
+}).select("_id");
 
-      if (validMembers.length !== memberIds.length) {
-        return res.status(400).json({
-          success: false,
-          message: "Có nhân viên không tồn tại hoặc tài khoản đã ngừng hoạt động.",
-        });
-      }
+if (validMembers.length !== memberIds.length) {
+  return res.status(400).json({
+    success: false,
+    message: "Có thành viên không tồn tại hoặc tài khoản đã ngừng hoạt động.",
+  });
+}
 
       const oldMemberIds = project.members.map((member) => String(member));
 

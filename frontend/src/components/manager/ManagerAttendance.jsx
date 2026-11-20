@@ -21,31 +21,22 @@ const getToken = () =>
 
 const getCurrentMonth = () => {
   const now = new Date();
-
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(
-    2,
-    "0"
-  )}`;
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 };
 
 const formatDate = (value) => {
   if (!value) return "--";
-
   const date = new Date(`${String(value).slice(0, 10)}T00:00:00`);
-
   if (Number.isNaN(date.getTime())) return value;
-
   return date.toLocaleDateString("vi-VN");
 };
 
 const formatNumber = (value) =>
   Number(value || 0).toLocaleString("vi-VN");
 
-// LẤY SỐ PHÚT ĐI MUỘN ĐÃ LƯU
 const getStoredLateMinutes = (record) =>
   Math.max(0, Number(record?.lateMinutes || 0));
 
-// LẤY SỐ PHÚT VỀ SỚM ĐÃ LƯU
 const getStoredEarlyLeaveMinutes = (record) =>
   Math.max(0, Number(record?.earlyLeaveMinutes || 0));
 
@@ -71,14 +62,12 @@ export default function ManagerAttendance() {
   const [data, setData] = useState({
     employees: [],
     records: [],
-
     summary: {
       total: 0,
       workDays: 0,
       lateCount: 0,
       lateMinutes: 0,
     },
-
     schedule: {
       startTime: "08:30",
       endTime: "17:30",
@@ -86,13 +75,9 @@ export default function ManagerAttendance() {
   });
 
   const [keyword, setKeyword] = useState("");
-
   const [loading, setLoading] = useState(false);
-
   const [error, setError] = useState("");
-
   const [message, setMessage] = useState("");
-
   const [showSchedule, setShowSchedule] = useState(false);
 
   const [scheduleForm, setScheduleForm] = useState({
@@ -102,10 +87,7 @@ export default function ManagerAttendance() {
 
   const [savingSchedule, setSavingSchedule] = useState(false);
 
-  // =====================================================
   // GỌI API
-  // =====================================================
-
   const request = useCallback(async (url, options = {}) => {
     const token = getToken();
 
@@ -117,14 +99,11 @@ export default function ManagerAttendance() {
 
     const response = await fetch(`${API_URL}${url}`, {
       ...options,
-
       headers: {
         ...(options.body
           ? { "Content-Type": "application/json" }
           : {}),
-
         Authorization: `Bearer ${token}`,
-
         ...options.headers,
       },
     });
@@ -147,15 +126,10 @@ export default function ManagerAttendance() {
     return result;
   }, []);
 
-  // =====================================================
   // TẢI DỮ LIỆU CHẤM CÔNG
-  // =====================================================
-
   const loadAttendance = useCallback(
     async (showLoader = true) => {
-      if (showLoader) {
-        setLoading(true);
-      }
+      if (showLoader) setLoading(true);
 
       setError("");
 
@@ -173,18 +147,15 @@ export default function ManagerAttendance() {
           employees: Array.isArray(result.employees)
             ? result.employees
             : [],
-
           records: Array.isArray(result.records)
             ? result.records
             : [],
-
           summary: result.summary || {
             total: 0,
             workDays: 0,
             lateCount: 0,
             lateMinutes: 0,
           },
-
           schedule: nextSchedule,
         });
 
@@ -197,9 +168,7 @@ export default function ManagerAttendance() {
           err.message || "Không thể tải dữ liệu chấm công."
         );
       } finally {
-        if (showLoader) {
-          setLoading(false);
-        }
+        if (showLoader) setLoading(false);
       }
     },
     [month, request]
@@ -209,10 +178,7 @@ export default function ManagerAttendance() {
     loadAttendance();
   }, [loadAttendance]);
 
-  // =====================================================
   // LẤY BẢN GHI CHẤM CÔNG MỚI NHẤT CỦA TỪNG NHÂN VIÊN
-  // =====================================================
-
   const recordMap = useMemo(() => {
     const map = new Map();
 
@@ -231,10 +197,7 @@ export default function ManagerAttendance() {
     return map;
   }, [data.records]);
 
-  // =====================================================
   // TÌM KIẾM NHÂN VIÊN
-  // =====================================================
-
   const filteredEmployees = useMemo(() => {
     const search = keyword.trim().toLowerCase();
 
@@ -256,10 +219,7 @@ export default function ManagerAttendance() {
     });
   }, [data.employees, keyword, recordMap]);
 
-  // =====================================================
   // MỞ CÀI ĐẶT GIỜ LÀM VIỆC
-  // =====================================================
-
   const openScheduleModal = () => {
     setError("");
     setMessage("");
@@ -272,10 +232,7 @@ export default function ManagerAttendance() {
     setShowSchedule(true);
   };
 
-  // =====================================================
-  // LƯU GIỜ LÀM VIỆC MỚI
-  // =====================================================
-
+  // LƯU GIỜ LÀM VIỆC
   const handleSaveSchedule = async (event) => {
     event.preventDefault();
 
@@ -285,9 +242,7 @@ export default function ManagerAttendance() {
     setMessage("");
 
     if (!scheduleForm.startTime || !scheduleForm.endTime) {
-      setError(
-        "Vui lòng nhập đầy đủ giờ bắt đầu và giờ kết thúc."
-      );
+      setError("Vui lòng nhập đầy đủ giờ bắt đầu và giờ kết thúc.");
       return;
     }
 
@@ -301,7 +256,6 @@ export default function ManagerAttendance() {
     try {
       const result = await request("/attendance/schedule", {
         method: "PUT",
-
         body: JSON.stringify({
           startTime: scheduleForm.startTime,
           endTime: scheduleForm.endTime,
@@ -332,8 +286,6 @@ export default function ManagerAttendance() {
         );
       }
 
-      // Tải lại bảng chấm công.
-      // Không cập nhật lại các bản ghi lịch sử.
       await loadAttendance(false);
     } catch (err) {
       setError(
@@ -344,38 +296,21 @@ export default function ManagerAttendance() {
     }
   };
 
-  // =====================================================
   // THỐNG KÊ
-  // =====================================================
-
   const totalEmployees = Number(
     data.summary.total ?? data.employees.length
   );
 
-  const totalWorkDays = Number(
-    data.summary.workDays || 0
-  );
-
-  const totalLateCount = Number(
-    data.summary.lateCount || 0
-  );
-
-  const totalLateMinutes = Number(
-    data.summary.lateMinutes || 0
-  );
-
-  // =====================================================
-  // GIAO DIỆN
-  // =====================================================
+  const totalWorkDays = Number(data.summary.workDays || 0);
+  const totalLateCount = Number(data.summary.lateCount || 0);
+  const totalLateMinutes = Number(data.summary.lateMinutes || 0);
 
   return (
     <section className="manager-panel manager-data-page">
       {/* HEADER */}
-
       <div className="manager-data-heading">
         <div>
           <h2>Quản lý chấm công</h2>
-
           <p>
             Theo dõi thời gian làm việc và tình trạng chấm công của nhân viên.
           </p>
@@ -401,18 +336,15 @@ export default function ManagerAttendance() {
               size={16}
               className={loading ? "spin" : ""}
             />
-
             {loading ? "Đang tải..." : "Làm mới"}
           </button>
         </div>
       </div>
 
       {/* BỘ LỌC */}
-
       <div className="manager-filter-row">
         <label className="manager-month-filter">
           <CalendarDays size={17} />
-
           <input
             type="month"
             value={month}
@@ -422,7 +354,6 @@ export default function ManagerAttendance() {
 
         <div className="manager-search-filter">
           <Search size={17} />
-
           <input
             value={keyword}
             onChange={(event) => setKeyword(event.target.value)}
@@ -432,7 +363,6 @@ export default function ManagerAttendance() {
       </div>
 
       {/* THÔNG BÁO */}
-
       {error && (
         <div className="manager-error-message" role="alert">
           {error}
@@ -446,7 +376,6 @@ export default function ManagerAttendance() {
       )}
 
       {/* THỐNG KÊ */}
-
       <div className="manager-stats">
         <StatCard
           icon={Users}
@@ -475,21 +404,17 @@ export default function ManagerAttendance() {
         <StatCard
           icon={Clock}
           title="Giờ làm việc"
-          value={`${data.schedule.startTime || "--:--"} - ${
-            data.schedule.endTime || "--:--"
-          }`}
+          value={`${data.schedule.startTime || "--:--"} - ${data.schedule.endTime || "--:--"}`}
           color="purple"
           note="Khung giờ hiện tại"
         />
       </div>
 
       {/* BẢNG CHẤM CÔNG */}
-
       <div className="manager-table-section">
         <div className="panel-heading">
           <div>
             <h2>Bảng chấm công nhân viên</h2>
-
             <p>
               Tháng {month.split("-").reverse().join("/")} ·{" "}
               {filteredEmployees.length} nhân viên
@@ -523,15 +448,10 @@ export default function ManagerAttendance() {
                 </tr>
               ) : (
                 filteredEmployees.map((employee) => {
-                  const record = recordMap.get(
-                    String(employee.id)
-                  );
+                  const record = recordMap.get(String(employee.id));
 
-                  // Dùng số liệu đã lưu, không tính theo lịch mới.
                   const late = getStoredLateMinutes(record);
-
-                  const early =
-                    getStoredEarlyLeaveMinutes(record);
+                  const early = getStoredEarlyLeaveMinutes(record);
 
                   return (
                     <tr key={employee.id}>
@@ -548,7 +468,6 @@ export default function ManagerAttendance() {
                             <strong>
                               {employee.name || "Chưa cập nhật"}
                             </strong>
-
                             <small>
                               {employee.employeeCode || "Chưa có mã"}
                             </small>
@@ -565,7 +484,6 @@ export default function ManagerAttendance() {
                       </td>
 
                       <td>{record?.checkIn || "—"}</td>
-
                       <td>{record?.checkOut || "—"}</td>
 
                       <td>
@@ -591,9 +509,7 @@ export default function ManagerAttendance() {
                       <td>
                         <span
                           className={`status-badge ${
-                            record?.checkIn
-                              ? "approved"
-                              : "pending"
+                            record?.checkIn ? "approved" : "pending"
                           }`}
                         >
                           {record?.checkIn
@@ -613,7 +529,6 @@ export default function ManagerAttendance() {
       </div>
 
       {/* MODAL CÀI ĐẶT GIỜ LÀM VIỆC */}
-
       {showSchedule && (
         <div
           className="manager-modal-backdrop"
@@ -630,7 +545,6 @@ export default function ManagerAttendance() {
             <div className="manager-modal-heading">
               <div>
                 <h3>Cài đặt giờ làm việc</h3>
-
                 <p>
                   Giờ làm mới chỉ áp dụng cho các lượt chấm công
                   phát sinh sau khi lưu. Lịch sử cũ được giữ nguyên.
@@ -651,7 +565,6 @@ export default function ManagerAttendance() {
 
             <label className="manager-form-field">
               <span>Giờ bắt đầu</span>
-
               <input
                 type="time"
                 value={scheduleForm.startTime}
@@ -667,7 +580,6 @@ export default function ManagerAttendance() {
 
             <label className="manager-form-field">
               <span>Giờ kết thúc</span>
-
               <input
                 type="time"
                 value={scheduleForm.endTime}
@@ -697,10 +609,7 @@ export default function ManagerAttendance() {
                 disabled={savingSchedule}
               >
                 <Save size={16} />
-
-                {savingSchedule
-                  ? "Đang lưu..."
-                  : "Lưu thay đổi"}
+                {savingSchedule ? "Đang lưu..." : "Lưu thay đổi"}
               </button>
             </div>
           </form>

@@ -13,6 +13,7 @@ import {
   Sparkles,
   LoaderCircle,
   Wallet,
+  CheckCircle2,
 } from "lucide-react";
 
 import "./Login.css";
@@ -60,7 +61,7 @@ export default function Login({ onLogin }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
+  const [success, setSuccess] = useState("");
   // ========================================
   // CHỌN VAI TRÒ
   // ========================================
@@ -80,7 +81,7 @@ export default function Login({ onLogin }) {
     if (loading) return;
 
     setError("");
-
+    setSuccess("");
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!normalizedEmail || !password) {
@@ -215,11 +216,15 @@ export default function Login({ onLogin }) {
         );
       }
 
+      setSuccess("Đăng nhập thành công!");
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       onLogin(actualRole, data.user);
 
     } catch (err) {
       console.error("Login error:", err);
-
+      setSuccess("");
       setError(
         err instanceof TypeError
           ? "Không thể kết nối máy chủ. Vui lòng kiểm tra Backend."
@@ -237,7 +242,18 @@ export default function Login({ onLogin }) {
 
   return (
     <main className="login-page">
+        {success && (
+  <div className="login-success-toast" role="status">
+    <div className="login-success-icon">
+      <CheckCircle2 size={23} />
+    </div>
 
+    <div className="login-success-content">
+      <strong>Thành công!</strong>
+      <span>{success}</span>
+    </div>
+  </div>
+)}
       {/* ==================================
           BÊN TRÁI
       ================================== */}

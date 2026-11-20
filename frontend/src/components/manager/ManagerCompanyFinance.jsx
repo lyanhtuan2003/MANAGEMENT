@@ -16,7 +16,7 @@ import {
   AlertCircle,
   ReceiptText,
 } from "lucide-react";
-
+import "./ManagerCompanyFinance.css";
 // ========================================
 // API CONFIG
 // ========================================

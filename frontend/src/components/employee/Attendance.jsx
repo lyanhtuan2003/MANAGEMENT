@@ -17,9 +17,9 @@ import {
 
 import "./Attendance.css";
 
-// =====================================================
+// ========================================
 // API CONFIG
-// =====================================================
+// ========================================
 
 const RAW_API_URL =
   import.meta.env.VITE_API_URL || "http://localhost:5000";
@@ -30,9 +30,9 @@ const API_BASE = RAW_API_URL
 
 const API_URL = `${API_BASE}/api/attendance`;
 
-// =====================================================
+// ========================================
 // TIỆN ÍCH
-// =====================================================
+// ========================================
 
 const getToken = () =>
   localStorage.getItem("token") ||
@@ -93,9 +93,9 @@ const readUser = () => {
   }
 };
 
-// =====================================================
+// ========================================
 // API REQUEST
-// =====================================================
+// ========================================
 
 async function request(path, options = {}) {
   const token = getToken();
@@ -108,14 +108,11 @@ async function request(path, options = {}) {
 
   const response = await fetch(`${API_URL}${path}`, {
     ...options,
-
     headers: {
       ...(options.body
         ? { "Content-Type": "application/json" }
         : {}),
-
       Authorization: `Bearer ${token}`,
-
       ...options.headers,
     },
   });
@@ -132,9 +129,9 @@ async function request(path, options = {}) {
   return data;
 }
 
-// =====================================================
+// ========================================
 // COMPONENT CHẤM CÔNG
-// =====================================================
+// ========================================
 
 export default function Attendance() {
   const [records, setRecords] = useState([]);
@@ -157,9 +154,9 @@ export default function Attendance() {
 
   const user = useMemo(() => readUser(), []);
 
-  // =====================================================
-  // TẢI DỮ LIỆU CHẤM CÔNG
-  // =====================================================
+  // ========================================
+  // TẢI DỮ LIỆU
+  // ========================================
 
   const loadData = useCallback(async () => {
     try {
@@ -171,9 +168,7 @@ export default function Attendance() {
       );
 
       setRecords(
-        Array.isArray(data.records)
-          ? data.records
-          : []
+        Array.isArray(data.records) ? data.records : []
       );
 
       setTodayRecord(data.todayRecord || null);
@@ -199,9 +194,9 @@ export default function Attendance() {
     loadData();
   }, [loadData]);
 
-  // =====================================================
+  // ========================================
   // TRẠNG THÁI HÔM NAY
-  // =====================================================
+  // ========================================
 
   const checkedIn = Boolean(
     todayRecord?.checkIn || todayRecord?.checkInTime
@@ -225,17 +220,14 @@ export default function Attendance() {
     Number(todayRecord?.lateMinutes)
   )
     ? Number(todayRecord?.lateMinutes)
-    : calculateLate(
-        todayCheckIn,
-        schedule.startTime
-      );
+    : calculateLate(todayCheckIn, schedule.startTime);
 
   const earlyLeaveMinutes =
     Number(todayRecord?.earlyLeaveMinutes) || 0;
 
-  // =====================================================
+  // ========================================
   // CHẤM CÔNG VÀO / RA
-  // =====================================================
+  // ========================================
 
   const handleAttendance = async (type) => {
     if (submitting || loading) return;
@@ -252,19 +244,14 @@ export default function Attendance() {
       setMessage("");
 
       const data = await request(
-        type === "check-in"
-          ? "/check-in"
-          : "/check-out",
+        type === "check-in" ? "/check-in" : "/check-out",
         {
           method: type === "check-in" ? "POST" : "PATCH",
         }
       );
 
-      setMessage(
-        data.message || "Chấm công thành công."
-      );
+      setMessage(data.message || "Chấm công thành công.");
 
-      // Đồng bộ lại trạng thái với dữ liệu trên server.
       await loadData();
     } catch (err) {
       console.error("Attendance action error:", err);
@@ -273,46 +260,39 @@ export default function Attendance() {
         err.message || "Không thể thực hiện chấm công."
       );
 
-      // Tải lại dữ liệu để tránh trạng thái giao diện sai
-      // nếu server đã ghi nhận yêu cầu.
       await loadData();
     } finally {
       setSubmitting("");
     }
   };
 
-  // =====================================================
+  // ========================================
   // LỊCH SỬ CHẤM CÔNG
-  // =====================================================
+  // ========================================
 
   const history = useMemo(() => {
     return [...records].sort((a, b) =>
-      String(b.date || "").localeCompare(
-        String(a.date || "")
-      )
+      String(b.date || "").localeCompare(String(a.date || ""))
     );
   }, [records]);
 
-  // =====================================================
+  // ========================================
   // RENDER
-  // =====================================================
+  // ========================================
 
   return (
-    <div className="employee-page">
+    <div className="employee-page attendance-page">
 
       {/* TIÊU ĐỀ */}
-
       <div className="employee-section-title">
         <h1>Chấm công</h1>
-
         <p>
-          Xin chào {user.name || "nhân viên"}, theo dõi
-          thời gian làm việc của bạn tại đây.
+          Xin chào {user.name || "nhân viên"}, theo dõi thời gian
+          làm việc của bạn tại đây.
         </p>
       </div>
 
       {/* THÔNG BÁO LỖI */}
-
       {error && (
         <div className="attendance-alert error" role="alert">
           <AlertCircle size={18} />
@@ -321,7 +301,6 @@ export default function Attendance() {
       )}
 
       {/* THÔNG BÁO THÀNH CÔNG */}
-
       {message && (
         <div className="attendance-alert success" role="status">
           <CheckCircle2 size={18} />
@@ -330,7 +309,6 @@ export default function Attendance() {
       )}
 
       {/* CHẤM CÔNG HÔM NAY */}
-
       <section className="employee-panel attendance-panel">
         <div className="employee-panel-heading">
           <div>
@@ -342,7 +320,6 @@ export default function Attendance() {
         </div>
 
         {/* GIỜ LÀM VIỆC */}
-
         <div className="attendance-schedule-info">
           <span>
             <strong>Giờ bắt đầu:</strong>{" "}
@@ -356,7 +333,6 @@ export default function Attendance() {
         </div>
 
         {/* GIỜ VÀO / RA */}
-
         <div className="attendance-time">
           <div className="attendance-time-box">
             <span>GIỜ VÀO</span>
@@ -372,7 +348,6 @@ export default function Attendance() {
         </div>
 
         {/* TRẠNG THÁI ĐI MUỘN */}
-
         {checkedIn && (
           <div
             className={`attendance-alert ${
@@ -394,11 +369,9 @@ export default function Attendance() {
         )}
 
         {/* TRẠNG THÁI VỀ SỚM */}
-
         {checkedOut && earlyLeaveMinutes > 0 && (
           <div className="attendance-alert warning">
             <AlertCircle size={18} />
-
             <span>
               Bạn đã về sớm {earlyLeaveMinutes} phút.
             </span>
@@ -406,16 +379,11 @@ export default function Attendance() {
         )}
 
         {/* NÚT CHẤM CÔNG */}
-
         <div className="attendance-actions">
           <button
             type="button"
             className="attendance-button check-in-button"
-            disabled={
-              loading ||
-              Boolean(submitting) ||
-              checkedIn
-            }
+            disabled={loading || Boolean(submitting) || checkedIn}
             onClick={() => handleAttendance("check-in")}
           >
             {submitting === "check-in" ? (
@@ -463,23 +431,17 @@ export default function Attendance() {
             Đang tải dữ liệu chấm công...
           </p>
         )}
-
       </section>
 
       {/* LỊCH SỬ CHẤM CÔNG */}
-
-      <section className="employee-panel">
-        <div className="employee-panel-heading">
-          <div>
+      <section className="employee-panel attendance-history-panel">
+        <div className="attendance-history-heading">
+          <div className="attendance-history-title">
             <h2>Lịch sử chấm công</h2>
-
-            <p>
-              Danh sách các lần chấm công theo tháng.
-            </p>
+            <p>Danh sách các lần chấm công theo tháng.</p>
           </div>
 
-          {/* CHỌN THÁNG */}
-
+          {/* CHỌN THÁNG VÀ LÀM MỚI */}
           <div className="attendance-history-tools">
             <div className="attendance-month-wrapper">
               <CalendarDays
@@ -492,9 +454,7 @@ export default function Attendance() {
                 aria-label="Chọn tháng chấm công"
                 className="attendance-month-input"
                 value={month}
-                onChange={(event) => {
-                  setMonth(event.target.value);
-                }}
+                onChange={(event) => setMonth(event.target.value)}
               />
             </div>
 
@@ -504,21 +464,19 @@ export default function Attendance() {
               onClick={loadData}
               disabled={loading}
               title="Làm mới dữ liệu"
+              aria-label="Làm mới dữ liệu"
             >
               <RefreshCw
-                size={18}
+                size={17}
                 className={
-                  loading
-                    ? "attendance-refresh-spinning"
-                    : ""
+                  loading ? "attendance-refresh-spinning" : ""
                 }
               />
             </button>
           </div>
         </div>
 
-        {/* BẢNG LỊCH SỬ */}
-
+        {/* DESKTOP TABLE */}
         <div className="employee-table-scroll">
           <table className="employee-table">
             <thead>
@@ -537,7 +495,6 @@ export default function Attendance() {
                 <tr>
                   <td colSpan="6" className="attendance-empty">
                     <CalendarDays size={25} />
-
                     <p>
                       {loading
                         ? "Đang tải dữ liệu..."
@@ -547,13 +504,14 @@ export default function Attendance() {
                 </tr>
               ) : (
                 history.map((item) => {
-                  const late =
-                    Number.isFinite(Number(item.lateMinutes))
-                      ? Number(item.lateMinutes)
-                      : calculateLate(
-                          item.checkIn,
-                          schedule.startTime
-                        );
+                  const late = Number.isFinite(
+                    Number(item.lateMinutes)
+                  )
+                    ? Number(item.lateMinutes)
+                    : calculateLate(
+                        item.checkIn,
+                        schedule.startTime
+                      );
 
                   const early =
                     Number(item.earlyLeaveMinutes) || 0;
@@ -580,11 +538,8 @@ export default function Attendance() {
                   return (
                     <tr key={item._id || item.date}>
                       <td>{formatDate(item.date)}</td>
-
                       <td>{item.checkIn || "--:--"}</td>
-
                       <td>{item.checkOut || "--:--"}</td>
-
                       <td>
                         <span
                           className={
@@ -594,9 +549,7 @@ export default function Attendance() {
                           {late} phút
                         </span>
                       </td>
-
                       <td>{early} phút</td>
-
                       <td>
                         <span
                           className={`attendance-status ${statusClass}`}
@@ -610,6 +563,101 @@ export default function Attendance() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* MOBILE CARD LIST */}
+        <div className="attendance-mobile-list">
+          {history.length === 0 ? (
+            <div className="attendance-mobile-empty">
+              <CalendarDays size={28} />
+              <p>
+                {loading
+                  ? "Đang tải dữ liệu..."
+                  : "Chưa có lịch sử chấm công."}
+              </p>
+            </div>
+          ) : (
+            history.map((item) => {
+              const late = Number.isFinite(
+                Number(item.lateMinutes)
+              )
+                ? Number(item.lateMinutes)
+                : calculateLate(
+                    item.checkIn,
+                    schedule.startTime
+                  );
+
+              const early =
+                Number(item.earlyLeaveMinutes) || 0;
+
+              const hasCheckIn = Boolean(item.checkIn);
+              const hasCheckOut = Boolean(item.checkOut);
+
+              const status = !hasCheckIn
+                ? "Chưa chấm công"
+                : !hasCheckOut
+                ? "Đang làm việc"
+                : late > 0
+                ? "Đi muộn"
+                : "Đúng giờ";
+
+              const statusClass = !hasCheckIn
+                ? "none"
+                : !hasCheckOut
+                ? "working"
+                : late > 0
+                ? "late"
+                : "present";
+
+              return (
+                <article
+                  className="attendance-mobile-card"
+                  key={item._id || item.date}
+                >
+                  <div className="attendance-mobile-card-head">
+                    <div className="attendance-mobile-date">
+                      <CalendarDays size={15} />
+                      <strong>{formatDate(item.date)}</strong>
+                    </div>
+
+                    <span
+                      className={`attendance-status ${statusClass}`}
+                    >
+                      {status}
+                    </span>
+                  </div>
+
+                  <div className="attendance-mobile-details">
+                    <div className="attendance-mobile-detail">
+                      <span>Giờ vào</span>
+                      <strong>{item.checkIn || "--:--"}</strong>
+                    </div>
+
+                    <div className="attendance-mobile-detail">
+                      <span>Giờ ra</span>
+                      <strong>{item.checkOut || "--:--"}</strong>
+                    </div>
+
+                    <div className="attendance-mobile-detail">
+                      <span>Đi muộn</span>
+                      <strong
+                        className={
+                          late > 0 ? "attendance-late" : ""
+                        }
+                      >
+                        {late} phút
+                      </strong>
+                    </div>
+
+                    <div className="attendance-mobile-detail">
+                      <span>Về sớm</span>
+                      <strong>{early} phút</strong>
+                    </div>
+                  </div>
+                </article>
+              );
+            })
+          )}
         </div>
       </section>
     </div>

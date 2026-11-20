@@ -77,6 +77,8 @@ export default function ManagerEmployees() {
   const [editing, setEditing] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [confirmEmployee, setConfirmEmployee] = useState(null);
+  const [unlockEmployeeConfirm, setUnlockEmployeeConfirm] = useState(null);
+  
 
   const [credentials, setCredentials] = useState(null);
   const [copied, setCopied] = useState(false);
@@ -421,47 +423,52 @@ export default function ManagerEmployees() {
     }
   };
 
-  // ========================================
-  // MỞ KHÓA TÀI KHOẢN
-  // ========================================
+// ========================================
+// MỞ KHÓA TÀI KHOẢN
+// ========================================
 
-  const unlockEmployeeAccount = async (employee) => {
-    if (!employee || actionLoading) return;
+const unlockEmployeeAccount = (employee) => {
+  if (!employee || actionLoading) return;
 
-    const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn mở khóa tài khoản ${employee.name}?`
+  // Mở modal xác nhận thay vì dùng window.confirm()
+  setUnlockEmployeeConfirm(employee);
+};
+
+const confirmUnlockEmployeeAccount = async () => {
+  if (!unlockEmployeeConfirm || actionLoading) return;
+
+  try {
+    setActionLoading(true);
+
+    const employee = unlockEmployeeConfirm;
+    const id = getId(employee);
+    const role = getAccountRole(employee);
+
+    const endpoint =
+      role === "accountant"
+        ? `/accountants/${id}/unlock`
+        : `/employees/${id}/unlock`;
+
+    await apiRequest(endpoint, {
+      method: "PATCH",
+    });
+
+    setUnlockEmployeeConfirm(null);
+
+    await fetchEmployees(false);
+
+    setSelectedEmployee(null);
+
+    showToast(
+      "success",
+      `Đã mở khóa tài khoản ${employee.name}.`
     );
-
-    if (!confirmed) return;
-
-    try {
-      setActionLoading(true);
-
-      const id = getId(employee);
-      const role = getAccountRole(employee);
-
-      const endpoint =
-        role === "accountant"
-          ? `/accountants/${id}/unlock`
-          : `/employees/${id}/unlock`;
-
-      await apiRequest(endpoint, {
-        method: "PATCH",
-      });
-
-      await fetchEmployees(false);
-
-      showToast(
-        "success",
-        `Đã mở khóa tài khoản ${employee.name}.`
-      );
-    } catch (err) {
-      showToast("error", err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
+  } catch (err) {
+    showToast("error", err.message);
+  } finally {
+    setActionLoading(false);
+  }
+};
   // ========================================
   // CẤP LẠI MẬT KHẨU
   // ========================================
@@ -1178,7 +1185,112 @@ export default function ManagerEmployees() {
           </div>
         </div>
       )}
+{/* MODAL XÁC NHẬN MỞ KHÓA */}
+{unlockEmployeeConfirm && (
+  <div
+    className="me-unlock-overlay"
+    onMouseDown={(e) => {
+      if (
+        e.target === e.currentTarget &&
+        !actionLoading
+      ) {
+        setUnlockEmployeeConfirm(null);
+      }
+    }}
+  >
+    <div
+      className="me-unlock-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="unlock-modal-title"
+    >
+      <button
+        type="button"
+        className="me-unlock-close"
+        onClick={() => setUnlockEmployeeConfirm(null)}
+        disabled={actionLoading}
+        aria-label="Đóng"
+      >
+        <X size={20} />
+      </button>
 
+      <div className="me-unlock-icon">
+        <KeyRound size={30} />
+      </div>
+
+      <h2 id="unlock-modal-title">
+        Xác nhận mở khóa tài khoản
+      </h2>
+
+      <p className="me-unlock-description">
+        Bạn có chắc chắn muốn mở khóa tài khoản của nhân sự này?
+      </p>
+
+      <div className="me-unlock-employee">
+        <div className="me-unlock-avatar">
+          {unlockEmployeeConfirm.name
+            ?.charAt(0)
+            ?.toUpperCase() || "N"}
+        </div>
+
+        <div className="me-unlock-employee-info">
+          <strong>{unlockEmployeeConfirm.name}</strong>
+
+          <span>
+            {unlockEmployeeConfirm.employeeCode ||
+              "Chưa có mã nhân viên"}
+          </span>
+
+          <small>
+            {getAccountLabel(unlockEmployeeConfirm)}
+          </small>
+        </div>
+      </div>
+
+      <div className="me-unlock-warning">
+        <KeyRound size={17} />
+
+        <span>
+          Sau khi mở khóa, tài khoản có thể tiếp tục
+          đăng nhập vào hệ thống.
+        </span>
+      </div>
+
+      <div className="me-unlock-actions">
+        <button
+          type="button"
+          className="me-unlock-cancel"
+          onClick={() => setUnlockEmployeeConfirm(null)}
+          disabled={actionLoading}
+        >
+          Hủy
+        </button>
+
+        <button
+          type="button"
+          className="me-unlock-submit"
+          onClick={confirmUnlockEmployeeAccount}
+          disabled={actionLoading}
+        >
+          {actionLoading ? (
+            <>
+              <LoaderCircle
+                size={17}
+                className="me-spinning"
+              />
+              Đang xử lý...
+            </>
+          ) : (
+            <>
+              <KeyRound size={17} />
+              Xác nhận mở khóa
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
       {/* XÁC NHẬN KHÓA / NGỪNG KÍCH HOẠT */}
       {confirmEmployee && (
         <EmployeeConfirm

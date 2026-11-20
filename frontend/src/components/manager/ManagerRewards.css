@@ -1,0 +1,805 @@
+
+/* =====================================================
+   MANAGER REWARDS - RESPONSIVE
+   Áp dụng riêng cho trang Quản lý thưởng và phạt
+===================================================== */
+
+.manager-rewards,
+.manager-rewards * {
+  box-sizing: border-box;
+}
+
+.manager-rewards {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.manager-rewards .panel-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+
+.manager-rewards .panel-heading > div {
+  min-width: 0;
+}
+
+.manager-rewards .panel-heading h2 {
+  overflow-wrap: anywhere;
+}
+
+.manager-rewards .panel-heading p {
+  line-height: 1.6;
+}
+
+.manager-rewards .panel-heading button {
+  flex-shrink: 0;
+}
+
+/* =====================================================
+   THÔNG BÁO
+===================================================== */
+
+.manager-rewards .reward-message {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+/* =====================================================
+   THỐNG KÊ
+===================================================== */
+
+.manager-rewards .reward-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+}
+
+.manager-rewards .reward-summary-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.manager-rewards .reward-summary-card > div {
+  min-width: 0;
+}
+
+.manager-rewards .reward-summary-card h2 {
+  overflow-wrap: anywhere;
+}
+
+.manager-rewards .reward-summary-card span,
+.manager-rewards .reward-summary-card small {
+  overflow-wrap: anywhere;
+}
+
+/* =====================================================
+   THANH TÌM KIẾM VÀ LỌC
+===================================================== */
+
+.manager-rewards .reward-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.manager-rewards .reward-search {
+  display: flex;
+  align-items: center;
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.manager-rewards .reward-search input {
+  width: 100%;
+  min-width: 0;
+}
+
+.manager-rewards .reward-toolbar select {
+  flex: 0 1 150px;
+  min-width: 120px;
+  max-width: 100%;
+}
+
+.manager-rewards .reward-toolbar button {
+  flex-shrink: 0;
+}
+
+/* =====================================================
+   BẢNG DỮ LIỆU DESKTOP
+===================================================== */
+
+.manager-rewards .responsive-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.manager-rewards .manager-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.manager-rewards .manager-table th,
+.manager-rewards .manager-table td {
+  overflow-wrap: anywhere;
+}
+
+.manager-rewards .reward-employee-cell {
+  min-width: 0;
+}
+
+.manager-rewards .reward-employee-cell strong {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.manager-rewards .reward-reason {
+  min-width: 100px;
+  max-width: 260px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.manager-rewards .reward-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.manager-rewards .reward-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+.manager-rewards .reward-modal {
+  width: min(520px, calc(100% - 32px));
+  max-width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.manager-rewards .reward-modal-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.manager-rewards .reward-modal-heading > div {
+  min-width: 0;
+}
+
+.manager-rewards .reward-modal-heading h2 {
+  overflow-wrap: anywhere;
+}
+
+.manager-rewards .reward-modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.manager-rewards .reward-modal input,
+.manager-rewards .reward-modal select,
+.manager-rewards .reward-modal textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.manager-rewards .reward-modal textarea {
+  resize: vertical;
+}
+
+.manager-rewards .reward-modal .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* =====================================================
+   TABLET
+===================================================== */
+
+@media (max-width: 1024px) {
+
+  .manager-rewards {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .manager-rewards .reward-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .manager-rewards .responsive-table {
+    overflow-x: auto;
+  }
+
+  .manager-rewards .manager-table {
+    min-width: 760px;
+  }
+
+}
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media (max-width: 640px) {
+
+  .manager-rewards {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+
+  .manager-rewards .panel-heading {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .manager-rewards .panel-heading h2 {
+    font-size: 17px;
+    line-height: 1.4;
+  }
+
+  .manager-rewards .panel-heading p {
+    font-size: 12px;
+  }
+
+  .manager-rewards .panel-heading button {
+    width: 100%;
+    justify-content: center;
+    min-height: 42px;
+  }
+
+  /* THÔNG BÁO */
+
+  .manager-rewards .reward-message {
+    width: 100%;
+    margin-top: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  /* THỐNG KÊ 2 CỘT */
+
+  .manager-rewards .reward-summary {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    width: 100%;
+  }
+
+  .manager-rewards .reward-summary-card {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    min-width: 0;
+    padding: 12px 9px;
+    border-radius: 11px;
+  }
+
+  .manager-rewards .reward-summary-icon {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    flex-shrink: 0;
+  }
+
+  .manager-rewards .reward-summary-icon svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  .manager-rewards .reward-summary-card span {
+    display: block;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+
+  .manager-rewards .reward-summary-card h2 {
+    font-size: 13px;
+    line-height: 1.4;
+    margin: 4px 0;
+    overflow-wrap: anywhere;
+  }
+
+  .manager-rewards .reward-summary-card small {
+    font-size: 9px;
+    line-height: 1.4;
+  }
+
+  /* TÌM KIẾM VÀ LỌC */
+
+  .manager-rewards .reward-toolbar {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 9px;
+    width: 100%;
+  }
+
+  .manager-rewards .reward-search {
+    display: flex;
+    align-items: center;
+    flex: none;
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+  }
+
+  .manager-rewards .reward-search input {
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+    font-size: 12px;
+  }
+
+  .manager-rewards .reward-toolbar select {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    height: 42px;
+    flex: none;
+    font-size: 12px;
+  }
+
+  .manager-rewards .reward-toolbar button {
+    width: 100%;
+    min-height: 40px;
+    justify-content: center;
+  }
+
+  /* BẢNG CHUYỂN THÀNH CARD */
+
+  .manager-rewards .responsive-table {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .manager-rewards .manager-table {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+  }
+
+  .manager-rewards .manager-table thead {
+    display: none;
+  }
+
+  .manager-rewards .manager-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .manager-rewards .manager-table tbody tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 12px;
+    width: 100%;
+    min-width: 0;
+    padding: 12px;
+    margin: 0;
+    background: #fff;
+    border: 1px solid #e7ebf3;
+    border-radius: 12px;
+    box-shadow: 0 2px 7px rgba(15, 23, 42, 0.035);
+  }
+
+  .manager-rewards .manager-table tbody td {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    min-width: 0;
+    min-height: 60px;
+    padding: 9px 3px;
+    border: 0;
+    border-bottom: 1px solid #edf0f5;
+    font-size: 11px;
+    line-height: 1.5;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* NHÂN VIÊN */
+
+  .manager-rewards .manager-table tbody td:nth-child(1) {
+    grid-column: 1 / -1;
+    min-height: 58px;
+    padding: 2px 2px 12px;
+    border-bottom: 1px solid #e7ebf3;
+  }
+
+  .manager-rewards .reward-employee-cell {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .manager-rewards .reward-employee-cell strong {
+    font-size: 12px;
+    line-height: 1.5;
+    color: #253047;
+  }
+
+  .manager-rewards .reward-employee-cell small {
+    display: block;
+    margin-top: 3px;
+    font-size: 10px;
+    color: #8b95a8;
+  }
+
+  /* NHÃN TỪNG TRƯỜNG */
+
+  .manager-rewards .manager-table tbody td:nth-child(n+2)::before {
+    display: block;
+    width: 100%;
+    color: #929bad;
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .manager-rewards .manager-table tbody td:nth-child(2)::before {
+    content: "Hình thức";
+  }
+
+  .manager-rewards .manager-table tbody td:nth-child(3)::before {
+    content: "Số tiền";
+  }
+
+  .manager-rewards .manager-table tbody td:nth-child(4)::before {
+    content: "Lý do";
+  }
+
+  .manager-rewards .manager-table tbody td:nth-child(5)::before {
+    content: "Ngày áp dụng";
+  }
+
+  .manager-rewards .manager-table tbody td:nth-child(6)::before {
+    content: "Thao tác";
+  }
+
+  /* HÌNH THỨC */
+
+  .manager-rewards .manager-table tbody td:nth-child(2) {
+    min-height: 65px;
+  }
+
+  .manager-rewards .manager-table .status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: fit-content;
+    max-width: 100%;
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  /* SỐ TIỀN */
+
+  .manager-rewards .manager-table tbody td:nth-child(3) {
+    min-height: 65px;
+  }
+
+  .manager-rewards .manager-table tbody td:nth-child(3) strong {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  /* LÝ DO */
+
+  .manager-rewards .manager-table tbody td:nth-child(4) {
+    grid-column: 1 / -1;
+    min-height: 55px;
+  }
+
+  .manager-rewards .manager-table tbody td.reward-reason {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /* NGÀY ÁP DỤNG */
+
+  .manager-rewards .manager-table tbody td:nth-child(5) {
+    min-height: 60px;
+  }
+
+  .manager-rewards .reward-date {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    font-size: 10px;
+    white-space: normal;
+  }
+
+  /* THAO TÁC */
+
+  .manager-rewards .manager-table tbody td:nth-child(6) {
+    min-height: 60px;
+    border-bottom: 0;
+  }
+
+  .manager-rewards .reward-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .manager-rewards .reward-edit-btn,
+  .manager-rewards .reward-delete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    flex-shrink: 0;
+  }
+
+  /* TRẠNG THÁI TRỐNG / ĐANG TẢI */
+
+  .manager-rewards .manager-table tbody td[colspan="6"] {
+    display: block;
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 90px;
+    padding: 25px 10px;
+    border: 0;
+    text-align: center;
+    font-size: 12px;
+    color: #8b95a8;
+  }
+
+  .manager-rewards .manager-table tbody td[colspan="6"]::before {
+    content: none;
+    display: none;
+  }
+
+  /* MODAL */
+
+  .manager-rewards .manager-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    overflow-y: auto;
+  }
+
+  .manager-rewards .reward-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - 24px);
+    margin: auto;
+    padding: 16px;
+    overflow-y: auto;
+    border-radius: 14px;
+  }
+
+  .manager-rewards .reward-modal-heading {
+    gap: 8px;
+  }
+
+  .manager-rewards .reward-modal-heading h2 {
+    font-size: 17px;
+    line-height: 1.4;
+  }
+
+  .manager-rewards .reward-modal-heading p {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .manager-rewards .reward-modal-close {
+    flex-shrink: 0;
+  }
+
+  .manager-rewards .reward-modal label {
+    width: 100%;
+    font-size: 12px;
+  }
+
+  .manager-rewards .reward-modal input,
+  .manager-rewards .reward-modal select {
+    height: 42px;
+    font-size: 13px;
+  }
+
+  .manager-rewards .reward-modal textarea {
+    min-height: 90px;
+    font-size: 13px;
+  }
+
+  .manager-rewards .reward-modal .modal-actions {
+    display: flex;
+    flex-direction: column-reverse;
+    width: 100%;
+    gap: 9px;
+  }
+
+  .manager-rewards .reward-modal .modal-actions button {
+    width: 100%;
+    min-height: 42px;
+    justify-content: center;
+  }
+}
+
+/* =====================================================
+   ĐIỆN THOẠI NHỎ
+===================================================== */
+
+@media (max-width: 380px) {
+
+  .manager-rewards .reward-summary {
+    gap: 8px;
+  }
+
+  .manager-rewards .reward-summary-card {
+    gap: 7px;
+    padding: 10px 7px;
+  }
+
+  .manager-rewards .reward-summary-icon {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+  }
+
+  .manager-rewards .reward-summary-card h2 {
+    font-size: 12px;
+  }
+
+  .manager-rewards .manager-table tbody tr {
+    padding: 10px;
+    gap: 0 8px;
+  }
+
+  .manager-rewards .manager-table tbody td {
+    font-size: 10px;
+  }
+}
+.reward-delete-modal {
+  width: min(440px, calc(100vw - 32px));
+  padding: 30px;
+  text-align: center;
+  border-radius: 18px;
+}
+
+.reward-delete-icon {
+  width: 62px;
+  height: 62px;
+  margin: 0 auto 18px;
+  display: grid;
+  place-items: center;
+  color: #dc2626;
+  background: #fef2f2;
+  border-radius: 50%;
+}
+
+.reward-delete-modal h2 {
+  margin: 0 0 12px;
+  color: #172554;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.reward-delete-modal p {
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.reward-delete-modal p strong {
+  color: #1e293b;
+}
+
+.reward-delete-modal .reward-delete-warning {
+  margin-top: 10px;
+  color: #dc2626;
+  font-size: 12px;
+}
+
+.reward-delete-modal .modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.reward-confirm-delete-btn {
+  min-height: 42px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 9px;
+  color: #fff;
+  background: #dc2626;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.reward-confirm-delete-btn:hover {
+  background: #b91c1c;
+}
+
+.reward-confirm-delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .reward-delete-modal {
+    padding: 24px 18px;
+  }
+
+  .reward-delete-modal h2 {
+    font-size: 18px;
+  }
+
+  .reward-delete-modal .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .reward-delete-modal .modal-actions button {
+    width: 100%;
+  }
+}

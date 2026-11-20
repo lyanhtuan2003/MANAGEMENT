@@ -3,19 +3,36 @@ import mongoose from "mongoose";
 import Reward from "../models/Reward.js";
 import User from "../models/User.js";
 
-// Lấy thông tin nhân viên hợp lệ
+const ACTIVE_ROLES = ["employee", "accountant"];
+
+const INACTIVE_STATUSES = [
+  "resigned",
+  "inactive",
+  "locked",
+  "terminated",
+];
+
+// ======================================
+// KIỂM TRA NHÂN VIÊN / KẾ TOÁN
+// ======================================
 const getEmployee = async (employeeId) => {
-  if (!mongoose.Types.ObjectId.isValid(employeeId)) {
+  if (!employeeId || !mongoose.Types.ObjectId.isValid(employeeId)) {
     return null;
   }
 
   return User.findOne({
     _id: employeeId,
-    role: "employee",
-  }).select("name employeeCode department position status isActive");
+    role: { $in: ACTIVE_ROLES },
+    isActive: { $ne: false },
+    status: { $nin: INACTIVE_STATUSES },
+  }).select(
+    "name employeeCode department position role status isActive"
+  );
 };
 
-// Kiểm tra ngày
+// ======================================
+// CHUYỂN ĐỔI NGÀY
+// ======================================
 const parseDate = (value) => {
   if (!value) return new Date();
 
@@ -28,7 +45,9 @@ const parseDate = (value) => {
   return date;
 };
 
-// Chuẩn hóa dữ liệu
+// ======================================
+// KIỂM TRA DỮ LIỆU
+// ======================================
 const validateRewardData = (body) => {
   const type = String(body.type || "").trim();
   const reason = String(body.reason || "").trim();
@@ -39,8 +58,13 @@ const validateRewardData = (body) => {
     return { error: "Hình thức thưởng phạt không hợp lệ." };
   }
 
-  if (!Number.isFinite(amount) || amount <= 0) {
-    return { error: "Số tiền phải lớn hơn 0." };
+  if (
+    !Number.isSafeInteger(amount) ||
+    amount <= 0
+  ) {
+    return {
+      error: "Số tiền phải là số nguyên lớn hơn 0.",
+    };
   }
 
   if (!reason) {
@@ -48,7 +72,9 @@ const validateRewardData = (body) => {
   }
 
   if (reason.length > 1000) {
-    return { error: "Lý do không được vượt quá 1000 ký tự." };
+    return {
+      error: "Lý do không được vượt quá 1000 ký tự.",
+    };
   }
 
   if (!date) {
@@ -66,12 +92,49 @@ const validateRewardData = (body) => {
 };
 
 // ======================================
+// QUẢN LÝ: DANH SÁCH NHÂN VIÊN THƯỞNG PHẠT
+// GET /api/rewards/manager/employees
+// ======================================
+export const getRewardEmployees = async (req, res) => {
+  try {
+    const employees = await User.find({
+      role: { $in: ACTIVE_ROLES },
+      isActive: { $ne: false },
+      status: { $nin: INACTIVE_STATUSES },
+    })
+      .select(
+        "name employeeCode department position role status isActive"
+      )
+      .sort({ name: 1 })
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      employees,
+    });
+  } catch (error) {
+    console.error("getRewardEmployees:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Không thể tải danh sách nhân viên.",
+    });
+  }
+};
+
+// ======================================
 // QUẢN LÝ: DANH SÁCH THƯỞNG PHẠT
 // GET /api/rewards/manager
 // ======================================
 export const getManagerRewards = async (req, res) => {
   try {
-    const { type, employeeId, keyword, from, to } = req.query;
+    const {
+      type,
+      employeeId,
+      keyword,
+      from,
+      to,
+    } = req.query;
 
     const filter = {};
 
@@ -79,15 +142,23 @@ export const getManagerRewards = async (req, res) => {
       filter.type = type;
     }
 
-    if (employeeId && mongoose.Types.ObjectId.isValid(employeeId)) {
+    if (employeeId) {
+      if (!mongoose.Types.ObjectId.isValid(employeeId)) {
+        return res.status(400).json({
+          success: false,
+          message: "Mã nhân viên không hợp lệ.",
+        });
+      }
+
       filter.employee = employeeId;
     }
 
-    if (keyword) {
-      const regex = new RegExp(
-        String(keyword).trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-        "i"
-      );
+    if (keyword?.trim()) {
+      const escapedKeyword = String(keyword)
+        .trim()
+        .replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+      const regex = new RegExp(escapedKeyword, "i");
 
       filter.$or = [
         { employeeName: regex },
@@ -101,35 +172,43 @@ export const getManagerRewards = async (req, res) => {
 
       if (from) {
         const start = parseDate(from);
+
         if (!start) {
           return res.status(400).json({
             success: false,
             message: "Ngày bắt đầu không hợp lệ.",
           });
         }
+
         start.setHours(0, 0, 0, 0);
         filter.date.$gte = start;
       }
 
       if (to) {
         const end = parseDate(to);
+
         if (!end) {
           return res.status(400).json({
             success: false,
             message: "Ngày kết thúc không hợp lệ.",
           });
         }
+
         end.setHours(23, 59, 59, 999);
         filter.date.$lte = end;
       }
     }
 
     const records = await Reward.find(filter)
-      .populate("employee", "name employeeCode department position")
+      .populate(
+        "employee",
+        "name employeeCode department position role"
+      )
       .populate("createdBy", "name")
+      .populate("updatedBy", "name")
       .sort({ date: -1, createdAt: -1 });
 
-    const summary = await Reward.aggregate([
+    const summaryResult = await Reward.aggregate([
       { $match: filter },
       {
         $group: {
@@ -140,7 +219,7 @@ export const getManagerRewards = async (req, res) => {
       },
     ]);
 
-    const rewardSummary = {
+    const summary = {
       totalReward: 0,
       totalPenalty: 0,
       rewardCount: 0,
@@ -148,22 +227,22 @@ export const getManagerRewards = async (req, res) => {
       totalRecords: records.length,
     };
 
-    summary.forEach((item) => {
+    summaryResult.forEach((item) => {
       if (item._id === "Thưởng") {
-        rewardSummary.totalReward = item.totalAmount;
-        rewardSummary.rewardCount = item.count;
+        summary.totalReward = item.totalAmount;
+        summary.rewardCount = item.count;
       }
 
       if (item._id === "Phạt") {
-        rewardSummary.totalPenalty = item.totalAmount;
-        rewardSummary.penaltyCount = item.count;
+        summary.totalPenalty = item.totalAmount;
+        summary.penaltyCount = item.count;
       }
     });
 
     return res.status(200).json({
       success: true,
       records,
-      summary: rewardSummary,
+      summary,
     });
   } catch (error) {
     console.error("getManagerRewards:", error);
@@ -194,10 +273,11 @@ export const createReward = async (req, res) => {
 
     const employee = await getEmployee(employeeId);
 
-    if (!employee || !employee.isActive || employee.status === "resigned") {
+    if (!employee) {
       return res.status(404).json({
         success: false,
-        message: "Nhân viên không tồn tại hoặc đã ngừng hoạt động.",
+        message:
+          "Nhân viên không tồn tại, đã bị khóa hoặc ngừng hoạt động.",
       });
     }
 
@@ -210,7 +290,10 @@ export const createReward = async (req, res) => {
     });
 
     const populated = await Reward.findById(record._id)
-      .populate("employee", "name employeeCode department position")
+      .populate(
+        "employee",
+        "name employeeCode department position role"
+      )
       .populate("createdBy", "name");
 
     return res.status(201).json({
@@ -229,7 +312,7 @@ export const createReward = async (req, res) => {
 };
 
 // ======================================
-// QUẢN LÝ: CẬP NHẬT
+// QUẢN LÝ: CẬP NHẬT QUYẾT ĐỊNH
 // PUT /api/rewards/manager/:id
 // ======================================
 export const updateReward = async (req, res) => {
@@ -263,26 +346,32 @@ export const updateReward = async (req, res) => {
 
     const employee = await getEmployee(req.body.employeeId);
 
-    if (!employee || !employee.isActive || employee.status === "resigned") {
+    if (!employee) {
       return res.status(404).json({
         success: false,
-        message: "Nhân viên không tồn tại hoặc đã ngừng hoạt động.",
+        message:
+          "Nhân viên không tồn tại, đã bị khóa hoặc ngừng hoạt động.",
       });
     }
 
     record.employee = employee._id;
     record.employeeName = employee.name;
     record.employeeCode = employee.employeeCode || "";
+
     record.type = validation.value.type;
     record.amount = validation.value.amount;
     record.reason = validation.value.reason;
     record.date = validation.value.date;
+
     record.updatedBy = req.user._id;
 
     await record.save();
 
     const populated = await Reward.findById(record._id)
-      .populate("employee", "name employeeCode department position")
+      .populate(
+        "employee",
+        "name employeeCode department position role"
+      )
       .populate("createdBy", "name")
       .populate("updatedBy", "name");
 
@@ -340,7 +429,7 @@ export const deleteReward = async (req, res) => {
 };
 
 // ======================================
-// NHÂN VIÊN: LỊCH SỬ CỦA CHÍNH MÌNH
+// NHÂN VIÊN / KẾ TOÁN: LỊCH SỬ CỦA MÌNH
 // GET /api/rewards/me
 // ======================================
 export const getMyRewards = async (req, res) => {
@@ -362,7 +451,7 @@ export const getMyRewards = async (req, res) => {
       if (record.type === "Thưởng") {
         summary.totalReward += record.amount;
         summary.rewardCount += 1;
-      } else {
+      } else if (record.type === "Phạt") {
         summary.totalPenalty += record.amount;
         summary.penaltyCount += 1;
       }
