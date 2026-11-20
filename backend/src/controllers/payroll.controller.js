@@ -190,8 +190,8 @@ const getActivePayrollEmployees = async () => {
     },
   })
     .select(
-      "name fullName employeeCode code department position salary role isActive status"
-    )
+  "name fullName employeeCode code department position salary role isActive status bankInfo"
+  )
     .sort({ name: 1 })
     .lean();
 };
@@ -279,14 +279,20 @@ const getMonthlyRows = async (month, year) => {
 
       return {
         employee: {
-          _id: employee._id,
-          name: getEmployeeName(employee),
-          employeeCode: getEmployeeCode(employee),
-          department: employee.department || "",
-          position: employee.position || "",
-          role: employee.role,
-        },
+  _id: employee._id,
+  name: getEmployeeName(employee),
+  employeeCode: getEmployeeCode(employee),
+  department: employee.department || "",
+  position: employee.position || "",
+  role: employee.role,
 
+  bankInfo: {
+    bankName: employee.bankInfo?.bankName || "",
+    accountNumber: employee.bankInfo?.accountNumber || "",
+    accountHolder: employee.bankInfo?.accountHolder || "",
+    branch: employee.bankInfo?.branch || "",
+  },
+},
         payroll,
         attendance,
 

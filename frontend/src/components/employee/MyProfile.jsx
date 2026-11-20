@@ -1,3 +1,4 @@
+import { useState } from "react";
 
 import {
   UserRound,
@@ -9,7 +10,20 @@ import {
   Building2,
   BadgeCheck,
   Users,
+  Landmark,
+  Save,
+  Pencil,
+  X,
 } from "lucide-react";
+
+const RAW_API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const API_URL = `${RAW_API_URL.replace(/\/+$/, "").replace(/\/api$/i, "")}/api`;
+
+const getToken = () =>
+  localStorage.getItem("token") ||
+  localStorage.getItem("authToken") ||
+  localStorage.getItem("accessToken");
 
 // ========================================
 // LẤY THÔNG TIN TÀI KHOẢN ĐĂNG NHẬP
@@ -131,6 +145,102 @@ const getInitials = (name = "") => {
 
 export default function MyProfile() {
   const employeeData = getCurrentUser();
+    const [bankInfo, setBankInfo] = useState({
+    bankName: employeeData.bankInfo?.bankName || "",
+    accountNumber: employeeData.bankInfo?.accountNumber || "",
+    accountHolder: employeeData.bankInfo?.accountHolder || "",
+    branch: employeeData.bankInfo?.branch || "",
+  });
+
+  const [editingBank, setEditingBank] = useState(false);
+  const [savingBank, setSavingBank] = useState(false);
+  const [bankMessage, setBankMessage] = useState("");
+  const [bankError, setBankError] = useState("");
+
+
+  const handleSaveBankInfo = async (event) => {
+    event.preventDefault();
+
+    if (savingBank) return;
+
+    if (
+      !bankInfo.bankName.trim() ||
+      !bankInfo.accountNumber.trim() ||
+      !bankInfo.accountHolder.trim()
+    ) {
+      setBankError("Vui lòng nhập ngân hàng, số tài khoản và chủ tài khoản.");
+      setBankMessage("");
+      return;
+    }
+
+    const token = getToken();
+
+    if (!token) {
+      setBankError("Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.");
+      return;
+    }
+
+    try {
+      setSavingBank(true);
+      setBankError("");
+      setBankMessage("");
+
+      const response = await fetch(`${API_URL}/profile/bank-info`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(bankInfo),
+      });
+
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || result.success === false) {
+        throw new Error(result.message || "Không thể lưu thông tin ngân hàng.");
+      }
+
+      const savedBankInfo = result.bankInfo || bankInfo;
+
+      setBankInfo({
+        bankName: savedBankInfo.bankName || "",
+        accountNumber: savedBankInfo.accountNumber || "",
+        accountHolder: savedBankInfo.accountHolder || "",
+        branch: savedBankInfo.branch || "",
+      });
+
+      // Cập nhật thông tin ngân hàng trong dữ liệu đăng nhập đang lưu.
+      ["user", "currentUser", "authUser"].forEach((key) => {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) return;
+
+          const parsed = JSON.parse(raw);
+
+          if (parsed && typeof parsed === "object") {
+            if (parsed.user && typeof parsed.user === "object") {
+              parsed.user.bankInfo = savedBankInfo;
+            } else if (parsed.data?.user) {
+              parsed.data.user.bankInfo = savedBankInfo;
+            } else {
+              parsed.bankInfo = savedBankInfo;
+            }
+
+            localStorage.setItem(key, JSON.stringify(parsed));
+          }
+        } catch (error) {
+          console.error("Không thể cập nhật dữ liệu hồ sơ:", error);
+        }
+      });
+
+      setEditingBank(false);
+      setBankMessage("Cập nhật tài khoản ngân hàng thành công!");
+    } catch (error) {
+      setBankError(error.message || "Có lỗi xảy ra khi lưu thông tin.");
+    } finally {
+      setSavingBank(false);
+    }
+  };
 
   const name = employeeData.name || "Chưa cập nhật";
 
@@ -573,6 +683,180 @@ export default function MyProfile() {
 
         }
 
+.profile-bank-panel {
+  margin-top: 22px;
+  padding: 26px 30px;
+  background: #fff;
+  border: 1px solid #e8edf5;
+  border-radius: 16px;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.035);
+}
+
+.profile-bank-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 22px;
+}
+
+.profile-bank-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #3988ed;
+}
+
+.profile-bank-title h2 {
+  margin: 0;
+  color: #172554;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.profile-bank-heading p {
+  margin: 8px 0 0;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.profile-bank-edit,
+.profile-bank-save,
+.profile-bank-cancel {
+  min-height: 39px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.profile-bank-edit {
+  border: 1px solid #d8e7ff;
+  background: #edf5ff;
+  color: #2878e8;
+}
+
+.profile-bank-save {
+  border: 1px solid #3988ed;
+  background: #3988ed;
+  color: white;
+}
+
+.profile-bank-cancel {
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+}
+
+.profile-bank-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.profile-bank-grid label,
+.profile-bank-item {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  color: #64748b;
+  font-size: 12px;
+}
+
+.profile-bank-grid input {
+  width: 100%;
+  min-height: 43px;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  outline: none;
+  font: inherit;
+  color: #172554;
+}
+
+.profile-bank-grid input:focus {
+  border-color: #3988ed;
+  box-shadow: 0 0 0 3px rgba(57, 136, 237, .1);
+}
+
+.profile-bank-item {
+  padding: 15px;
+  background: #f6f8fc;
+  border: 1px solid #e8edf5;
+  border-radius: 9px;
+}
+
+.profile-bank-item span {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.profile-bank-item strong {
+  color: #172554;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.profile-bank-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.profile-bank-success,
+.profile-bank-error {
+  margin-bottom: 15px;
+  padding: 11px 13px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+
+.profile-bank-success {
+  color: #15803d;
+  background: #f0fdf4;
+}
+
+.profile-bank-error {
+  color: #dc2626;
+  background: #fef2f2;
+}
+
+.profile-bank-save:disabled,
+.profile-bank-cancel:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .profile-bank-panel {
+    padding: 20px 16px;
+  }
+
+  .profile-bank-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .profile-bank-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-bank-actions {
+    flex-wrap: wrap;
+  }
+}
+
+
       `}</style>
 
       {/* =====================================
@@ -655,6 +939,180 @@ export default function MyProfile() {
 
         </div>
 
+      </section>
+
+      {/* =====================================
+          THÔNG TIN TÀI KHOẢN NGÂN HÀNG
+      ===================================== */}
+
+      <section className="profile-bank-panel">
+        <div className="profile-bank-heading">
+          <div>
+            <div className="profile-bank-title">
+              <Landmark size={21} />
+              <h2>Thông tin tài khoản ngân hàng</h2>
+            </div>
+
+            <p>
+              Thông tin dùng để công ty chuyển khoản lương cho bạn.
+            </p>
+          </div>
+
+          {!editingBank && (
+            <button
+              type="button"
+              className="profile-bank-edit"
+              onClick={() => {
+                setBankError("");
+                setBankMessage("");
+                setEditingBank(true);
+              }}
+            >
+              <Pencil size={15} />
+              Chỉnh sửa
+            </button>
+          )}
+        </div>
+
+        {bankMessage && (
+          <div className="profile-bank-success">
+            {bankMessage}
+          </div>
+        )}
+
+        {bankError && (
+          <div className="profile-bank-error">
+            {bankError}
+          </div>
+        )}
+
+        {editingBank ? (
+          <form onSubmit={handleSaveBankInfo}>
+            <div className="profile-bank-grid">
+              <label>
+                Tên ngân hàng *
+                <input
+                  type="text"
+                  placeholder="Ví dụ: Vietcombank"
+                  value={bankInfo.bankName}
+                  onChange={(e) =>
+                    setBankInfo((prev) => ({
+                      ...prev,
+                      bankName: e.target.value,
+                    }))
+                  }
+                  maxLength={100}
+                  required
+                />
+              </label>
+
+              <label>
+                Số tài khoản *
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="Nhập số tài khoản"
+                  value={bankInfo.accountNumber}
+                  onChange={(e) =>
+                    setBankInfo((prev) => ({
+                      ...prev,
+                      accountNumber: e.target.value.replace(/\s/g, ""),
+                    }))
+                  }
+                  maxLength={50}
+                  required
+                />
+              </label>
+
+              <label>
+                Chủ tài khoản *
+                <input
+                  type="text"
+                  placeholder="NGUYEN VAN A"
+                  value={bankInfo.accountHolder}
+                  onChange={(e) =>
+                    setBankInfo((prev) => ({
+                      ...prev,
+                      accountHolder: e.target.value,
+                    }))
+                  }
+                  maxLength={150}
+                  required
+                />
+              </label>
+
+              <label>
+                Chi nhánh
+                <input
+                  type="text"
+                  placeholder="Tên chi nhánh (không bắt buộc)"
+                  value={bankInfo.branch}
+                  onChange={(e) =>
+                    setBankInfo((prev) => ({
+                      ...prev,
+                      branch: e.target.value,
+                    }))
+                  }
+                  maxLength={150}
+                />
+              </label>
+            </div>
+
+            <div className="profile-bank-actions">
+              <button
+                type="button"
+                className="profile-bank-cancel"
+                disabled={savingBank}
+                onClick={() => {
+                  setBankInfo({
+                    bankName: employeeData.bankInfo?.bankName || "",
+                    accountNumber: employeeData.bankInfo?.accountNumber || "",
+                    accountHolder: employeeData.bankInfo?.accountHolder || "",
+                    branch: employeeData.bankInfo?.branch || "",
+                  });
+
+                  setEditingBank(false);
+                  setBankError("");
+                  setBankMessage("");
+                }}
+              >
+                <X size={16} />
+                Hủy
+              </button>
+
+              <button
+                type="submit"
+                className="profile-bank-save"
+                disabled={savingBank}
+              >
+                <Save size={16} />
+                {savingBank ? "Đang lưu..." : "Lưu thông tin"}
+              </button>
+            </div>
+          </form>
+        ) : (
+          <div className="profile-bank-grid">
+            <div className="profile-bank-item">
+              <span>Ngân hàng</span>
+              <strong>{bankInfo.bankName || "Chưa cập nhật"}</strong>
+            </div>
+
+            <div className="profile-bank-item">
+              <span>Số tài khoản</span>
+              <strong>{bankInfo.accountNumber || "Chưa cập nhật"}</strong>
+            </div>
+
+            <div className="profile-bank-item">
+              <span>Chủ tài khoản</span>
+              <strong>{bankInfo.accountHolder || "Chưa cập nhật"}</strong>
+            </div>
+
+            <div className="profile-bank-item">
+              <span>Chi nhánh</span>
+              <strong>{bankInfo.branch || "Chưa cập nhật"}</strong>
+            </div>
+          </div>
+        )}
       </section>
     </div>
   );

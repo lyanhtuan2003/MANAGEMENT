@@ -14,6 +14,7 @@ const escapeRegex = (value = "") =>
 
 const validStatuses = ["working", "probation", "resigned"];
 
+
 const employeeResponse = (user) => ({
   id: user._id,
   _id: user._id,
@@ -25,6 +26,14 @@ const employeeResponse = (user) => ({
   position: user.position || "",
   department: user.department || "",
   salary: Number(user.salary || 0),
+
+  bankInfo: {
+    bankName: user.bankInfo?.bankName || "",
+    accountNumber: user.bankInfo?.accountNumber || "",
+    accountHolder: user.bankInfo?.accountHolder || "",
+    branch: user.bankInfo?.branch || "",
+  },
+
   status: user.status || "working",
   role: user.role,
   isActive: user.isActive,
@@ -764,6 +773,79 @@ export const resetAccountantPassword = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Không thể cấp lại mật khẩu kế toán.",
+    });
+  }
+};
+// ==========================================
+// NHÂN VIÊN / KẾ TOÁN CẬP NHẬT TÀI KHOẢN NGÂN HÀNG
+// PATCH /api/profile/bank-info
+// ==========================================
+
+export const updateMyBankInfo = async (req, res) => {
+  try {
+    const userId = req.user?._id || req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: "Không xác định được tài khoản đăng nhập.",
+      });
+    }
+
+    const {
+      bankName,
+      accountHolder,
+      accountNumber,
+      branch,
+    } = req.body;
+
+    if (
+      !bankName?.trim() ||
+      !accountHolder?.trim() ||
+      !accountNumber?.trim()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng nhập ngân hàng, chủ tài khoản và số tài khoản.",
+      });
+    }
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy tài khoản.",
+      });
+    }
+
+    if (!["employee", "accountant"].includes(user.role)) {
+      return res.status(403).json({
+        success: false,
+        message: "Tài khoản này không được phép thực hiện thao tác.",
+      });
+    }
+
+    user.bankInfo = {
+      bankName: bankName.trim(),
+      accountHolder: accountHolder.trim(),
+      accountNumber: accountNumber.trim(),
+      branch: String(branch || "").trim(),
+    };
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Cập nhật thông tin ngân hàng thành công.",
+      bankInfo: user.bankInfo,
+    });
+  } catch (error) {
+    console.error("updateMyBankInfo:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Không thể cập nhật thông tin ngân hàng.",
     });
   }
 };

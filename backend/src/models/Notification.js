@@ -59,6 +59,11 @@ const notificationSchema = new mongoose.Schema(
       ref: "Project",
       default: null,
     },
+    // Liên kết nhiệm vụ được giao
+taskId: {
+  type: mongoose.Schema.Types.ObjectId,
+  default: null,
+},
 
     // Liên kết đơn nghỉ phép nếu có
     leaveRequest: {

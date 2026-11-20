@@ -1,10 +1,12 @@
 
+import MyProjectTasks from "./MyProjectTasks";
 import { useCallback, useEffect, useState } from "react";
 import {
   FolderKanban,
   CalendarDays,
   Users,
   RefreshCw,
+  Eye,
 } from "lucide-react";
 
 const RAW_API_URL =
@@ -40,7 +42,7 @@ export default function MyProjects() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
   // ========================================
   // TẢI DANH SÁCH DỰ ÁN
   // ========================================
@@ -338,6 +340,30 @@ export default function MyProjects() {
             gap: 9px;
           }
         }
+          .my-project-detail-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 7px;
+          width: 100%;
+          min-height: 39px;
+          margin-top: 15px;
+          padding: 8px 12px;
+          border: 1px solid #dbe5f2;
+          border-radius: 8px;
+          background: #f8fafc;
+          color: #3986e8;
+          font-family: inherit;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: 0.2s;
+        }
+
+        .my-project-detail-btn:hover {
+          background: #eaf2ff;
+          border-color: #93c5fd;
+        }
       `}</style>
 
       {/* TIÊU ĐỀ */}
@@ -468,11 +494,51 @@ export default function MyProjects() {
                     {project.leader || "Chưa phân công"}
                   </strong>
                 </div>
+
+                <button
+                  type="button"
+                  className="my-project-detail-btn"
+                  onClick={() => setSelectedProjectId(project._id)}
+                >
+                  <Eye size={14} />
+                  Xem nhiệm vụ của tôi
+                </button>
               </article>
             );
           })}
         </div>
-      )}
+      )}{selectedProjectId && (
+  <div
+    className="mpt-overlay"
+    style={{
+      position: "fixed",
+      inset: 0,
+      zIndex: 9999,
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 12,
+      background: "rgba(15, 23, 42, 0.58)",
+    }}
+  >
+    <div
+      style={{
+        width: "100%",
+        maxWidth: 950,
+        maxHeight: "94vh",
+        overflowY: "auto",
+        padding: 20,
+        borderRadius: 14,
+        background: "#f8fafc",
+      }}
+    >
+      <MyProjectTasks
+        projectId={selectedProjectId}
+        onClose={() => setSelectedProjectId(null)}
+      />
+    </div>
+  </div>
+)}
     </div>
   );
 }

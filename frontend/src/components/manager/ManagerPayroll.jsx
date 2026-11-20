@@ -31,7 +31,7 @@ import {
   PlusCircle,
 
   Banknote,
-
+  Copy,
 } from "lucide-react";
 
 
@@ -752,7 +752,20 @@ export default function ManagerPayroll() {
 
   };
 
+const handleCopyBankAccount = async (accountNumber) => {
+  if (!accountNumber) {
+    setError("Nhân viên chưa cập nhật số tài khoản ngân hàng.");
+    return;
+  }
 
+  try {
+    await navigator.clipboard.writeText(accountNumber);
+    setSuccess("Đã sao chép số tài khoản ngân hàng.");
+    setError("");
+  } catch (error) {
+    setError("Không thể sao chép. Vui lòng sao chép thủ công.");
+  }
+};
 
   // ===================================================
 
@@ -1625,6 +1638,57 @@ export default function ManagerPayroll() {
               </div>
 
             </div>
+
+{/* THÔNG TIN TÀI KHOẢN NGÂN HÀNG */}
+<h4>Thông tin tài khoản ngân hàng</h4>
+
+<div className="manager-payroll-bank-info">
+  <div>
+    <span>Ngân hàng</span>
+    <strong>
+      {selectedItem.employee?.bankInfo?.bankName || "Chưa cập nhật"}
+    </strong>
+  </div>
+
+  <div>
+    <span>Chủ tài khoản</span>
+    <strong>
+      {selectedItem.employee?.bankInfo?.accountHolder || "Chưa cập nhật"}
+    </strong>
+  </div>
+
+  <div>
+    <span>Số tài khoản</span>
+    <div className="manager-payroll-bank-account">
+      <strong>
+        {selectedItem.employee?.bankInfo?.accountNumber || "Chưa cập nhật"}
+      </strong>
+
+      {selectedItem.employee?.bankInfo?.accountNumber && (
+        <button
+          type="button"
+          onClick={() =>
+            handleCopyBankAccount(
+              selectedItem.employee.bankInfo.accountNumber
+            )
+          }
+          title="Sao chép số tài khoản"
+        >
+          <Copy size={15} />
+          Sao chép
+        </button>
+      )}
+    </div>
+  </div>
+
+  <div>
+    <span>Chi nhánh</span>
+    <strong>
+      {selectedItem.employee?.bankInfo?.branch || "Chưa cập nhật"}
+    </strong>
+  </div>
+</div>
+
 
 
 

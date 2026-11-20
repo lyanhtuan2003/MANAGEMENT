@@ -57,6 +57,36 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+bankInfo: {
+  bankName: {
+    type: String,
+    default: "",
+    trim: true,
+    maxlength: 100,
+  },
+
+  accountNumber: {
+    type: String,
+    default: "",
+    trim: true,
+    maxlength: 50,
+  },
+
+  accountHolder: {
+    type: String,
+    default: "",
+    trim: true,
+    maxlength: 150,
+  },
+
+  branch: {
+    type: String,
+    default: "",
+    trim: true,
+    maxlength: 150,
+  },
+},
+
     avatar: {
       type: String,
       default: "",

@@ -1,12 +1,12 @@
+
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
+import path from "path";
+import { fileURLToPath } from "url";
 
-// ======================================
 // IMPORT ROUTES
-// ======================================
-
 import authRoutes from "./routes/auth.routes.js";
 import employeeRoutes from "./routes/employee.routes.js";
 import accountantRoutes from "./routes/accountant.routes.js";
@@ -17,18 +17,31 @@ import projectRoutes from "./routes/project.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import rewardRoutes from "./routes/reward.routes.js";
 import companyTransactionRoutes from "./routes/companyTransaction.routes.js";
-
-// ======================================
-// IMPORT ERROR HANDLER
-// ======================================
-
+import profileRoutes from "./routes/profile.routes.js";
+// ERROR HANDLER
 import errorHandler from "./middleware/errorHandler.js";
 
+const app = express();
+
 // ======================================
-// KHỞI TẠO EXPRESS
+// CẤU HÌNH THƯ MỤC UPLOAD
 // ======================================
 
-const app = express();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// app.js nằm trong backend/src
+// Thư mục uploads nằm trong backend/uploads
+const uploadDirectory = path.resolve(__dirname, "../uploads");
+
+app.use(
+  "/uploads",
+  express.static(uploadDirectory, {
+    setHeaders: (res) => {
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    },
+  })
+);
 
 // ======================================
 // BẢO MẬT SERVER
@@ -53,8 +66,6 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Cho phép request không có origin
-      // Ví dụ: Postman hoặc request nội bộ
       if (!origin || allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
@@ -63,9 +74,7 @@ app.use(
         new Error("Origin không được phép truy cập API.")
       );
     },
-
     credentials: true,
-
     methods: [
       "GET",
       "POST",
@@ -74,7 +83,6 @@ app.use(
       "DELETE",
       "OPTIONS",
     ],
-
     allowedHeaders: [
       "Content-Type",
       "Authorization",
@@ -83,7 +91,7 @@ app.use(
 );
 
 // ======================================
-// MIDDLEWARE XỬ LÝ REQUEST
+// MIDDLEWARE REQUEST
 // ======================================
 
 app.use(express.json({ limit: "10mb" }));
@@ -99,7 +107,6 @@ app.use(morgan("dev"));
 
 // ======================================
 // KIỂM TRA SERVER
-// GET /
 // ======================================
 
 app.get("/", (req, res) => {
@@ -140,34 +147,16 @@ app.get("/", (req, res) => {
 // ĐĂNG KÝ API
 // ======================================
 
-// 1. XÁC THỰC VÀ ĐĂNG NHẬP
 app.use("/api/auth", authRoutes);
-
-// 2. QUẢN LÝ NHÂN VIÊN
 app.use("/api/employees", employeeRoutes);
-
-// 3. QUẢN LÝ TÀI KHOẢN KẾ TOÁN
 app.use("/api/accountants", accountantRoutes);
-
-// 4. QUẢN LÝ CHẤM CÔNG
 app.use("/api/attendance", attendanceRoutes);
-
-// 5. QUẢN LÝ NGHỈ PHÉP
 app.use("/api/leave", leaveRoutes);
-
-// 6. QUẢN LÝ BẢNG LƯƠNG
 app.use("/api/payroll", payrollRoutes);
-
-// 7. QUẢN LÝ DỰ ÁN
 app.use("/api/projects", projectRoutes);
-
-// 8. QUẢN LÝ THÔNG BÁO
 app.use("/api/notifications", notificationRoutes);
-
-// 9. QUẢN LÝ THƯỞNG VÀ PHẠT
 app.use("/api/rewards", rewardRoutes);
-
-// 10. QUẢN LÝ THU CHI CÔNG TY
+app.use("/api/profile", profileRoutes);
 app.use(
   "/api/company-transactions",
   companyTransactionRoutes
@@ -186,14 +175,9 @@ app.use((req, res) => {
 });
 
 // ======================================
-// XỬ LÝ LỖI TOÀN HỆ THỐNG
+// XỬ LÝ LỖI
 // ======================================
 
 app.use(errorHandler);
 
-// ======================================
-// EXPORT APP
-// ======================================
-
 export default app;
-

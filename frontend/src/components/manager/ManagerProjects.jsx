@@ -1,4 +1,5 @@
-
+import { Eye } from "lucide-react";
+import ProjectTaskManager from "./ProjectTaskManager";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
@@ -91,7 +92,7 @@ export default function ManagerProjects() {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(initialForm);
-
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [deleteProjectConfirm, setDeleteProjectConfirm] =
     useState(null);
 
@@ -1405,6 +1406,15 @@ export default function ManagerProjects() {
                   <button
                     className="mp-icon-btn"
                     type="button"
+                    onClick={() => setSelectedProjectId(project._id)}
+                  >
+                    <Eye size={14} />
+                    Chi tiết / Giao việc
+                  </button>
+
+                  <button
+                    className="mp-icon-btn"
+                    type="button"
                     onClick={() => openEdit(project)}
                   >
                     <Pencil size={14} />
@@ -1730,7 +1740,29 @@ export default function ManagerProjects() {
             </div>
           </div>
         </div>
-      )}
+      )}{selectedProjectId && (
+  <div
+    className="ptm-overlay"
+    style={{ zIndex: 1050 }}
+  >
+    <div
+      style={{
+        width: "100%",
+        maxWidth: 1100,
+        maxHeight: "94vh",
+        overflowY: "auto",
+        background: "#f8fafc",
+        borderRadius: 14,
+        padding: 20,
+      }}
+    >
+      <ProjectTaskManager
+        projectId={selectedProjectId}
+        onClose={() => setSelectedProjectId(null)}
+      />
+    </div>
+  </div>
+)}
     </section>
   );
 }
