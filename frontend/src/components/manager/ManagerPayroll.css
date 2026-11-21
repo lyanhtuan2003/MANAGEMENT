@@ -1268,3 +1268,370 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* =========================================
+   PHÂN TRANG QUẢN LÝ BẢNG LƯƠNG
+========================================= */
+
+.payroll-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 18px 20px;
+  border-top: 1px solid #edf0f5;
+  background: #fff;
+}
+
+.payroll-pagination-info {
+  color: #8793a5;
+  font-size: 13px;
+}
+
+.payroll-pagination-info strong {
+  color: #263653;
+  font-weight: 700;
+}
+
+.payroll-pagination-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.payroll-page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.payroll-page-btn,
+.payroll-page-number {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 11px;
+  border: 1px solid #e3eaf4;
+  border-radius: 8px;
+  background: #fff;
+  color: #526783;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.payroll-page-btn:hover:not(:disabled),
+.payroll-page-number:hover:not(.active) {
+  border-color: #5b61e8;
+  color: #5b61e8;
+  background: #f5f4ff;
+}
+
+.payroll-page-number.active {
+  border-color: #6259e8;
+  background: #6259e8;
+  color: #fff;
+}
+
+.payroll-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .payroll-pagination {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 15px 12px;
+  }
+
+  .payroll-pagination-info {
+    text-align: center;
+  }
+
+  .payroll-pagination-controls {
+    justify-content: center;
+  }
+
+  .payroll-page-btn {
+    padding: 0 9px;
+    font-size: 11px;
+  }
+
+  .payroll-page-number {
+    min-width: 32px;
+    height: 34px;
+    padding: 0 8px;
+  }
+}
+
+/* =========================================
+   THÔNG TIN NGÂN HÀNG TRONG MODAL THANH TOÁN
+========================================= */
+
+.manager-payment-bank {
+  width: 100%;
+  margin: 20px 0 16px;
+  padding: 17px;
+  box-sizing: border-box;
+  border: 1px solid #e8e4f5;
+  border-radius: 14px;
+  background: #faf9ff;
+}
+
+.manager-payment-bank-heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 16px;
+}
+
+.manager-payment-bank-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6741c8;
+  background: #eee9ff;
+  border-radius: 11px;
+}
+
+.manager-payment-bank-heading h4 {
+  margin: 0 0 4px;
+  color: #29243b;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.manager-payment-bank-heading p {
+  margin: 0;
+  color: #9290a2;
+  font-size: 12px;
+}
+
+.manager-payment-bank-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.manager-payment-bank-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 11px 0;
+  border-top: 1px solid #eeeaf5;
+}
+
+.manager-payment-bank-row > span {
+  flex-shrink: 0;
+  color: #858197;
+  font-size: 13px;
+}
+
+.manager-payment-bank-row > strong {
+  color: #29243b;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.manager-payment-account {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 9px;
+  min-width: 0;
+}
+
+.manager-payment-account strong {
+  color: #5536b4;
+  font-size: 14px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.manager-payment-account button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px 9px;
+  border: 1px solid #e2dafb;
+  border-radius: 7px;
+  color: #6040bd;
+  background: #f1edff;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.manager-payment-account button:hover {
+  background: #e7e0ff;
+}
+
+.manager-payment-bank-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px;
+  color: #b7791f;
+  background: #fff8e9;
+  border: 1px solid #f7e5bd;
+  border-radius: 9px;
+}
+
+.manager-payment-bank-empty svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.manager-payment-bank-empty strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 13px;
+}
+
+.manager-payment-bank-empty p {
+  margin: 0;
+  color: #987849;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+/* Modal có chiều cao tối đa và cuộn riêng */
+.manager-payment-confirm {
+  width: min(100%, 490px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+}
+
+.manager-payment-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  overflow-y: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+/* =========================================
+   RESPONSIVE TABLET
+========================================= */
+
+@media (max-width: 768px) {
+  .manager-payment-confirm {
+    width: min(100%, 470px);
+    padding: 24px;
+  }
+
+  .manager-payment-bank {
+    padding: 14px;
+  }
+}
+
+/* =========================================
+   RESPONSIVE MOBILE
+========================================= */
+
+@media (max-width: 480px) {
+  .manager-payment-confirm-backdrop {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .manager-payment-confirm {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+    margin: auto 0;
+    padding: 22px 16px 18px;
+    border-radius: 16px;
+  }
+
+  .manager-payment-confirm h3 {
+    font-size: 18px;
+  }
+
+  .manager-payment-confirm-description {
+    font-size: 13px;
+  }
+
+  .manager-payment-bank {
+    margin: 16px 0;
+    padding: 13px;
+  }
+
+  .manager-payment-bank-row {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .manager-payment-bank-row > span {
+    font-size: 12px;
+  }
+
+  .manager-payment-bank-row > strong {
+    max-width: 60%;
+    font-size: 12px;
+  }
+
+  .manager-payment-account {
+    max-width: 65%;
+  }
+
+  .manager-payment-account strong {
+    font-size: 12px;
+  }
+
+  .manager-payment-confirm-summary {
+    padding: 13px;
+  }
+
+  .manager-payment-confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .manager-payment-confirm-actions button {
+    width: 100%;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 360px) {
+  .manager-payment-confirm {
+    padding: 19px 13px 15px;
+  }
+
+  .manager-payment-bank-heading h4 {
+    font-size: 13px;
+  }
+
+  .manager-payment-bank-row {
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .manager-payment-bank-row > strong {
+    max-width: 100%;
+    text-align: left;
+  }
+
+  .manager-payment-account {
+    max-width: 100%;
+    justify-content: flex-start;
+  }
+}

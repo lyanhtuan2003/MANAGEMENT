@@ -42,6 +42,8 @@ const statusInfo = {
 export default function LeaveRequest() {
   const [showModal, setShowModal] = useState(false);
   const [requests, setRequests] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState("");
@@ -228,6 +230,34 @@ export default function LeaveRequest() {
     }
   };
 
+        // =====================================
+      // PHÂN TRANG ĐƠN NGHỈ PHÉP
+      // =====================================
+
+      const totalItems = requests.length;
+
+      const totalPages = Math.max(
+        1,
+        Math.ceil(totalItems / itemsPerPage)
+      );
+
+      const startIndex = (currentPage - 1) * itemsPerPage;
+
+      const endIndex = Math.min(
+        startIndex + itemsPerPage,
+        totalItems
+      );
+
+      const paginatedRequests = requests.slice(
+        startIndex,
+        endIndex
+      );
+
+      useEffect(() => {
+        if (currentPage > totalPages) {
+          setCurrentPage(totalPages);
+        }
+      }, [currentPage, totalPages]);
   // =====================================
   // GIAO DIỆN
   // =====================================
@@ -414,7 +444,77 @@ export default function LeaveRequest() {
           border-radius: 10px;
           font-size: 13px;
         }
+          /* PHÂN TRANG */
 
+          .leave-request-page .leave-pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            flex-wrap: wrap;
+            padding: 16px 8px 4px;
+            border-top: 1px solid #edf1f6;
+            margin-top: 4px;
+          }
+
+          .leave-request-page .leave-pagination-info {
+            color: #8492a6;
+            font-size: 13px;
+          }
+
+          .leave-request-page .leave-pagination-info strong {
+            color: #34445b;
+            font-weight: 700;
+          }
+
+          .leave-request-page .leave-pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+          }
+
+          .leave-request-page .leave-pagination button {
+            min-width: 38px;
+            height: 36px;
+            padding: 0 12px;
+            border: 1px solid #e5eaf2;
+            border-radius: 8px;
+            background: #fff;
+            color: #718096;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all .2s ease;
+          }
+
+          .leave-request-page .leave-pagination button:hover:not(:disabled) {
+            color: #fff;
+            background: #6258e8;
+            border-color: #6258e8;
+          }
+
+          .leave-request-page .leave-pagination button.active {
+            color: #fff;
+            background: #6258e8;
+            border-color: #6258e8;
+          }
+
+          .leave-request-page .leave-pagination button:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+          }
+
+          @media (max-width: 520px) {
+            .leave-request-page .leave-pagination {
+              align-items: flex-start;
+              flex-direction: column;
+            }
+
+            .leave-request-page .leave-pagination-controls {
+              width: 100%;
+              justify-content: flex-end;
+            }
+          }
         /* MOBILE CARD */
 
         .leave-request-page .leave-mobile-list {
@@ -852,7 +952,7 @@ export default function LeaveRequest() {
               Đang tải dữ liệu...
             </div>
           ) : requests.length > 0 ? (
-            requests.map((item) => {
+            paginatedRequests.map((item) => {
               const id = item._id || item.id;
 
               const status = statusInfo[item.status] || {
@@ -987,7 +1087,7 @@ export default function LeaveRequest() {
                   </td>
                 </tr>
               ) : requests.length > 0 ? (
-                requests.map((item) => {
+                paginatedRequests.map((item) => {
                   const id = item._id || item.id;
 
                   const status = statusInfo[item.status] || {
@@ -1058,8 +1158,62 @@ export default function LeaveRequest() {
                 </tr>
               )}
             </tbody>
-          </table>
+                    </table>
         </div>
+
+        {/* PHÂN TRANG */}
+        {!loading && requests.length > 0 && (
+          <div className="leave-pagination">
+            <div className="leave-pagination-info">
+              Đang xem{" "}
+              <strong>
+                {startIndex + 1}–{endIndex}
+              </strong>{" "}
+              trên tổng{" "}
+              <strong>{totalItems}</strong> đơn
+            </div>
+
+            <div className="leave-pagination-controls">
+              <button
+                type="button"
+                disabled={currentPage === 1}
+                onClick={() =>
+                  setCurrentPage((prev) => Math.max(1, prev - 1))
+                }
+              >
+                Trang trước
+              </button>
+
+              {Array.from(
+                { length: totalPages },
+                (_, index) => index + 1
+              ).map((page) => (
+                <button
+                  type="button"
+                  key={page}
+                  className={
+                    currentPage === page ? "active" : ""
+                  }
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button
+                type="button"
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage((prev) =>
+                    Math.min(totalPages, prev + 1)
+                  )
+                }
+              >
+                Trang sau
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* MODAL TẠO ĐƠN */}

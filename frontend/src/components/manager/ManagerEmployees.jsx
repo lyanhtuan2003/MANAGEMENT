@@ -18,6 +18,7 @@ import {
   KeyRound,
   LoaderCircle,
   Users,
+  CalendarDays,
 } from "lucide-react";
 
 import "./ManagerEmployees.css";
@@ -54,6 +55,31 @@ const getId = (item) => item?.id || item?._id;
 const formatMoney = (value) =>
   Number(value || 0).toLocaleString("vi-VN") + " đ";
 
+// Chuyển ngày từ API sang định dạng YYYY-MM-DD
+const formatDateInput = (value) => {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+const formatDisplayDate = (value) => {
+  if (!value) return "Chưa thiết lập";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Chưa thiết lập";
+  }
+
+  return date.toLocaleDateString("vi-VN");
+};
 const getAccountRole = (item) =>
   item?.role === "accountant" ? "accountant" : "employee";
 
@@ -63,6 +89,9 @@ const getAccountLabel = (item) =>
 export default function ManagerEmployees() {
   const [employees, setEmployees] = useState([]);
   const [search, setSearch] = useState("");
+  // PHÂN TRANG
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -85,6 +114,15 @@ export default function ManagerEmployees() {
 
   const [form, setForm] = useState(emptyForm);
   const [toast, setToast] = useState(null);
+  // THIẾT LẬP LỊCH LƯƠNG
+  const [salarySettingsEmployee, setSalarySettingsEmployee] = useState(null);
+
+  const [salarySettingsForm, setSalarySettingsForm] = useState({
+    startDate: "",
+    payday: "",
+  });
+
+  const [savingSalarySettings, setSavingSalarySettings] = useState(false);
 
   // ========================================
   // THÔNG BÁO
@@ -223,6 +261,55 @@ export default function ManagerEmployees() {
         .includes(keyword)
     );
   }, [employees, search]);
+
+  // ========================================
+// PHÂN TRANG
+// ========================================
+
+const totalEmployees = filteredEmployees.length;
+
+const totalPages = Math.max(
+  1,
+  Math.ceil(totalEmployees / itemsPerPage)
+);
+
+// Khi tìm kiếm hoặc thay đổi danh sách, quay về trang 1
+useEffect(() => {
+  setCurrentPage(1);
+}, [search]);
+
+// Nếu xóa nhân viên khiến số trang giảm,
+// tự động chuyển về trang cuối cùng còn tồn tại
+useEffect(() => {
+  if (currentPage > totalPages) {
+    setCurrentPage(totalPages);
+  }
+}, [currentPage, totalPages]);
+
+const paginatedEmployees = useMemo(() => {
+  const startIndex = (currentPage - 1) * itemsPerPage;
+
+  return filteredEmployees.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+}, [filteredEmployees, currentPage]);
+
+const displayedFrom =
+  totalEmployees === 0
+    ? 0
+    : (currentPage - 1) * itemsPerPage + 1;
+
+const displayedTo = Math.min(
+  currentPage * itemsPerPage,
+  totalEmployees
+);
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages) return;
+
+  setCurrentPage(page);
+};
 
   // ========================================
   // MỞ FORM THÊM / SỬA
@@ -473,50 +560,49 @@ const confirmUnlockEmployeeAccount = async () => {
   // CẤP LẠI MẬT KHẨU
   // ========================================
 
-  const resetEmployeePassword = async (employee) => {
-    if (!employee || actionLoading) return;
+    const resetEmployeePassword = async (employee) => {
+      if (!employee || actionLoading) return;
 
-    const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn cấp lại mật khẩu cho ${employee.name}?\n\nMật khẩu hiện tại sẽ không còn sử dụng được.`
-    );
+      try {
+        setActionLoading(true);
 
-    if (!confirmed) return;
+        const id = getId(employee);
+        const role = getAccountRole(employee);
 
-    try {
-      setActionLoading(true);
+        const endpoint =
+          role === "accountant"
+            ? `/accountants/${id}/reset-password`
+            : `/employees/${id}/reset-password`;
 
-      const id = getId(employee);
-      const role = getAccountRole(employee);
+        const data = await apiRequest(endpoint, {
+          method: "PATCH",
+        });
 
-      const endpoint =
-        role === "accountant"
-          ? `/accountants/${id}/reset-password`
-          : `/employees/${id}/reset-password`;
+        if (!data.credentials) {
+          throw new Error(
+            "Máy chủ không trả về thông tin mật khẩu mới."
+          );
+        }
 
-      const data = await apiRequest(endpoint, {
-        method: "PATCH",
-      });
+        // Lưu thông tin mật khẩu mới
+        setCredentials({
+          ...data.credentials,
+          action: "reset",
+        });
 
-      if (!data.credentials) {
-        throw new Error(
-          "Máy chủ không trả về thông tin mật khẩu tạm."
+        setCopied(false);
+        setShowCredentials(true);
+
+        showToast(
+          "success",
+          `Đã cấp lại mật khẩu mới cho ${employee.name} thành công!`
         );
+      } catch (err) {
+        showToast("error", err.message);
+      } finally {
+        setActionLoading(false);
       }
-
-      setCredentials(data.credentials);
-      setCopied(false);
-      setShowCredentials(true);
-
-      showToast(
-        "success",
-        data.message || "Đã cấp lại mật khẩu thành công."
-      );
-    } catch (err) {
-      showToast("error", err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
+    };
 
   // ========================================
   // SAO CHÉP THÔNG TIN TÀI KHOẢN
@@ -552,6 +638,102 @@ const confirmUnlockEmployeeAccount = async () => {
     setCopied(false);
   };
 
+  // ========================================
+// THIẾT LẬP LỊCH LƯƠNG NHÂN VIÊN
+// ========================================
+
+const openSalarySettings = (employee) => {
+  const currentSettings = employee.salarySettings || {};
+
+  setSalarySettingsEmployee(employee);
+
+  setSalarySettingsForm({
+    startDate: formatDateInput(currentSettings.startDate),
+    payday: formatDateInput(currentSettings.payday),
+  });
+};
+
+const closeSalarySettings = () => {
+  if (savingSalarySettings) return;
+
+  setSalarySettingsEmployee(null);
+
+  setSalarySettingsForm({
+    startDate: "",
+    payday: "",
+  });
+};
+
+const saveSalarySettings = async (e) => {
+  e.preventDefault();
+
+  if (!salarySettingsEmployee) return;
+
+  const { startDate, payday } = salarySettingsForm;
+
+  if (!startDate) {
+    showToast("error", "Vui lòng chọn ngày bắt đầu tính lương.");
+    return;
+  }
+
+  if (!payday) {
+    showToast("error", "Vui lòng chọn ngày trả lương.");
+    return;
+  }
+
+  if (new Date(`${payday}T00:00:00`) < new Date(`${startDate}T00:00:00`)) {
+    showToast(
+      "error",
+      "Ngày trả lương không được trước ngày bắt đầu tính lương."
+    );
+    return;
+  }
+
+  try {
+    setSavingSalarySettings(true);
+
+    const id = getId(salarySettingsEmployee);
+
+    const payload = {
+      startDate,
+      payday,
+    };
+
+    const role = getAccountRole(salarySettingsEmployee);
+
+    const endpoint =
+      role === "accountant"
+        ? `/accountants/${id}/salary-settings`
+        : `/employees/${id}/salary-settings`;
+
+    await apiRequest(endpoint, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
+
+    setEmployees((prev) =>
+      prev.map((emp) =>
+        getId(emp) === id
+          ? {
+              ...emp,
+              salarySettings: payload,
+            }
+          : emp
+      )
+    );
+
+    showToast(
+      "success",
+      `Đã lưu lịch lương cho ${salarySettingsEmployee.name}.`
+    );
+
+    closeSalarySettings();
+  } catch (err) {
+    showToast("error", err.message);
+  } finally {
+    setSavingSalarySettings(false);
+  }
+};
   // ========================================
   // GIAO DIỆN
   // ========================================
@@ -633,6 +815,7 @@ const confirmUnlockEmployeeAccount = async () => {
               <th>Phòng ban</th>
               <th>Chức vụ</th>
               <th>Lương cơ bản</th>
+              <th>Ngày trả lương</th>
               <th>Trạng thái</th>
               <th>Tài khoản</th>
               <th>Thao tác</th>
@@ -651,7 +834,7 @@ const confirmUnlockEmployeeAccount = async () => {
                 </td>
               </tr>
             ) : filteredEmployees.length > 0 ? (
-              filteredEmployees.map((emp) => {
+              paginatedEmployees.map((emp) => {
                 const role = getAccountRole(emp);
                 const active = emp.isActive !== false;
 
@@ -691,6 +874,12 @@ const confirmUnlockEmployeeAccount = async () => {
                     <td>{formatMoney(emp.salary)}</td>
 
                     <td>
+                      <span className="me-payday">
+                        {formatDisplayDate(emp.salarySettings?.payday)}
+                      </span>
+                    </td>
+
+                    <td>
                       <span
                         className={`me-status me-status-${emp.status || "working"}`}
                       >
@@ -711,6 +900,15 @@ const confirmUnlockEmployeeAccount = async () => {
 
                     <td>
                       <div className="table-actions">
+                        <button
+                            type="button"
+                            className="table-action-btn salary-action"
+                            title="Thiết lập lịch lương"
+                            aria-label="Thiết lập lịch lương"
+                            onClick={() => openSalarySettings(emp)}
+                          >
+                            <CalendarDays />
+                          </button>
                         {/* ICON 1: XEM */}
                         <button
                           type="button"
@@ -799,8 +997,61 @@ const confirmUnlockEmployeeAccount = async () => {
               </tr>
             )}
           </tbody>
-        </table>
+                </table>
       </div>
+
+      {/* PHÂN TRANG */}
+      {!loading && totalEmployees > 0 && (
+        <div className="me-pagination">
+          <div className="me-pagination-info">
+            Đang xem{" "}
+            <strong>
+              {displayedFrom}–{displayedTo}
+            </strong>
+            {" "}trên tổng{" "}
+            <strong>{totalEmployees}</strong>
+            {" "}tài khoản
+          </div>
+
+          <div className="me-pagination-controls">
+            <button
+              type="button"
+              className="me-page-btn"
+              disabled={currentPage === 1}
+              onClick={() => goToPage(currentPage - 1)}
+            >
+              Trang trước
+            </button>
+
+            <div className="me-page-numbers">
+              {Array.from(
+                { length: totalPages },
+                (_, index) => index + 1
+              ).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  className={`me-page-number ${
+                    currentPage === page ? "active" : ""
+                  }`}
+                  onClick={() => goToPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="me-page-btn"
+              disabled={currentPage === totalPages}
+              onClick={() => goToPage(currentPage + 1)}
+            >
+              Trang sau
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* MODAL THÊM / CHỈNH SỬA */}
       {showForm && (
@@ -988,6 +1239,121 @@ const confirmUnlockEmployeeAccount = async () => {
         </div>
       )}
 
+      {/* MODAL THIẾT LẬP LỊCH LƯƠNG */}
+{salarySettingsEmployee && (
+  <div
+    className="me-overlay"
+    onMouseDown={(e) => {
+      if (e.target === e.currentTarget) {
+        closeSalarySettings();
+      }
+    }}
+  >
+    <form
+      className="me-modal"
+      onSubmit={saveSalarySettings}
+    >
+      <div className="me-modal-header">
+        <div>
+          <h2>Thiết lập lịch lương</h2>
+          <p>
+            Cấu hình thời gian tính lương và ngày trả lương cho nhân viên.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          className="me-close"
+          onClick={closeSalarySettings}
+          disabled={savingSalarySettings}
+        >
+          <X size={21} />
+        </button>
+      </div>
+
+      <div className="me-form-note">
+        <CalendarDays size={19} />
+        <span>
+          Nhân viên: <strong>{salarySettingsEmployee.name}</strong>
+        </span>
+      </div>
+
+          <div className="me-form-grid">
+        <label>
+          Ngày bắt đầu tính lương *
+          <input
+            type="date"
+            value={salarySettingsForm.startDate}
+            onChange={(e) =>
+              setSalarySettingsForm((prev) => ({
+                ...prev,
+                startDate: e.target.value,
+              }))
+            }
+            required
+          />
+        </label>
+
+        <label>
+          Ngày trả lương *
+          <input
+            type="date"
+            value={salarySettingsForm.payday}
+            onChange={(e) =>
+              setSalarySettingsForm((prev) => ({
+                ...prev,
+                payday: e.target.value,
+              }))
+            }
+            min={salarySettingsForm.startDate || undefined}
+            required
+          />
+        </label>
+      </div>
+
+      <div className="me-form-note">
+        <Wallet size={19} />
+        <span>
+          Hệ thống sẽ sử dụng ngày bắt đầu tính lương và ngày trả lương
+          này trong quá trình quản lý bảng lương.
+        </span>
+      </div>
+
+      <div className="me-modal-actions">
+        <button
+          type="button"
+          className="secondary-btn"
+          onClick={closeSalarySettings}
+          disabled={savingSalarySettings}
+        >
+          Hủy
+        </button>
+
+        <button
+          type="submit"
+          className="primary-btn"
+          disabled={savingSalarySettings}
+        >
+          {savingSalarySettings ? (
+            <>
+              <LoaderCircle
+                size={17}
+                className="me-spinning"
+              />
+              Đang lưu...
+            </>
+          ) : (
+            <>
+              <Check size={17} />
+              Lưu thiết lập
+            </>
+          )}
+        </button>
+      </div>
+    </form>
+  </div>
+)}
+
       {/* MODAL THÔNG TIN ĐĂNG NHẬP */}
       {showCredentials && credentials && (
         <div className="me-overlay">
@@ -995,13 +1361,17 @@ const confirmUnlockEmployeeAccount = async () => {
             <div className="me-success-icon">
               <Check size={30} />
             </div>
+                <h2>
+                  {credentials.action === "reset"
+                    ? "Cấp lại mật khẩu thành công!"
+                    : "Tạo tài khoản thành công!"}
+                </h2>
 
-            <h2>Thông tin tài khoản</h2>
-
-            <p>
-              Gửi thông tin dưới đây cho nhân sự.
-              Mật khẩu tạm chỉ được hiển thị trong lần này.
-            </p>
+                <p>
+                  {credentials.action === "reset"
+                    ? "Mật khẩu cũ đã được thay thế. Đây là mật khẩu tạm mới của nhân viên."
+                    : "Gửi thông tin dưới đây cho nhân sự. Mật khẩu tạm chỉ được hiển thị trong lần này."}
+                </p>
 
             <div className="me-credentials">
               <div>

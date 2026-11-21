@@ -1,8 +1,8 @@
+
 import { useState } from "react";
 import {
   Bell,
   Menu,
-  Search,
   X,
   CheckCheck,
   CalendarDays,
@@ -89,10 +89,17 @@ export default function ManagerHeader({
     "Quản lý"
   );
 
-  const avatarText = userName.trim().charAt(0).toUpperCase() || "S";
+  const avatarText =
+    userName.trim().charAt(0).toUpperCase() || "S";
+
+  const userRole =
+    safeText(user?.role, "Administrator") === "accountant"
+      ? "Kế toán"
+      : "Administrator";
 
   return (
     <header className="manager-header">
+      {/* BÊN TRÁI */}
       <div className="manager-header-left">
         <button
           type="button"
@@ -106,17 +113,11 @@ export default function ManagerHeader({
         <div className="manager-page-title">
           <h1>{safeText(title, "Tổng quan hệ thống")}</h1>
         </div>
-
-        <div className="manager-search">
-          <Search size={18} />
-          <input
-            type="text"
-            placeholder="Tìm kiếm thông tin..."
-          />
-        </div>
       </div>
 
+      {/* BÊN PHẢI */}
       <div className="manager-header-right">
+        {/* THÔNG BÁO */}
         <div className="manager-notification-wrapper">
           <button
             type="button"
@@ -151,6 +152,7 @@ export default function ManagerHeader({
                 <div className="manager-notification-heading">
                   <div>
                     <h3>Thông báo</h3>
+
                     <p>
                       {unreadCount > 0
                         ? `Bạn có ${unreadCount} thông báo chưa đọc`
@@ -231,7 +233,9 @@ export default function ManagerHeader({
                   ) : (
                     <div className="manager-notification-empty">
                       <Bell size={35} />
+
                       <strong>Chưa có thông báo</strong>
+
                       <p>
                         Khi có thông báo mới, nội dung sẽ xuất hiện
                         tại đây.
@@ -244,16 +248,15 @@ export default function ManagerHeader({
           )}
         </div>
 
+        {/* TÀI KHOẢN QUẢN LÝ */}
         <div className="header-user">
-          <div className="avatar">{avatarText}</div>
+          <div className="avatar">
+            {avatarText}
+          </div>
 
           <div className="header-user-info">
             <strong>{userName}</strong>
-            <span>
-              {safeText(user?.role, "Administrator") === "accountant"
-                ? "Kế toán"
-                : "Administrator"}
-            </span>
+            <span>{userRole}</span>
           </div>
         </div>
       </div>

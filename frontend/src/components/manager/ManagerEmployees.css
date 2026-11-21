@@ -1735,3 +1735,127 @@
     min-height: 45px;
   }
 }
+
+/* ========================================
+   PHÂN TRANG - QUẢN LÝ NHÂN VIÊN
+======================================== */
+
+.me-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 18px;
+  margin-top: 0;
+  border-top: 1px solid #e9edf3;
+  background: #fff;
+}
+
+.me-pagination-info {
+  color: #94a3b8;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.me-pagination-info strong {
+  color: #334155;
+  font-weight: 600;
+}
+
+.me-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.me-page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.me-page-btn,
+.me-page-number {
+  min-width: 38px;
+  height: 36px;
+  padding: 0 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  background: #fff;
+  color: #64748b;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.me-page-btn:hover:not(:disabled),
+.me-page-number:hover:not(.active) {
+  border-color: #a5b4fc;
+  background: #f5f3ff;
+  color: #635bdb;
+}
+
+.me-page-number.active {
+  border-color: #635bdb;
+  background: #635bdb;
+  color: #fff;
+  font-weight: 600;
+}
+
+.me-page-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .me-pagination {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 13px;
+    padding: 14px 8px;
+  }
+
+  .me-pagination-info {
+    text-align: center;
+  }
+
+  .me-pagination-controls {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .me-page-btn,
+  .me-page-number {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 8px;
+    font-size: 11px;
+  }
+}
+/* NÚT THIẾT LẬP LỊCH LƯƠNG */
+.table-action-btn.salary-action {
+  color: #0d9488;
+  border-color: #ccfbf1;
+  background: #f0fdfa;
+}
+
+.table-action-btn.salary-action:hover {
+  color: #ffffff;
+  background: #0d9488;
+  border-color: #0d9488;
+}
+.me-payday {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: #eef6ff;
+  color: #2878df;
+  font-weight: 600;
+  font-size: 12px;
+  white-space: nowrap;
+}

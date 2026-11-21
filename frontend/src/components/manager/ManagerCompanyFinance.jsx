@@ -103,6 +103,9 @@ export default function ManagerCompanyFinance() {
   // STATE
   // ======================================
   const [transactions, setTransactions] = useState([]);
+  // PHÂN TRANG
+const [currentPage, setCurrentPage] = useState(1);
+const PAGE_SIZE = 10;
 
   const [summary, setSummary] = useState({
     totalIncome: 0,
@@ -131,7 +134,37 @@ export default function ManagerCompanyFinance() {
     amount: "",
     transactionDate: getLocalDateTime(),
   });
+// ======================================
+// XỬ LÝ PHÂN TRANG
+// ======================================
 
+const totalTransactions = transactions.length;
+
+const totalPages = Math.max(
+  1,
+  Math.ceil(totalTransactions / PAGE_SIZE)
+);
+
+const startIndex = (currentPage - 1) * PAGE_SIZE;
+
+const paginatedTransactions = transactions.slice(
+  startIndex,
+  startIndex + PAGE_SIZE
+);
+
+const displayedFrom =
+  totalTransactions === 0 ? 0 : startIndex + 1;
+
+const displayedTo = Math.min(
+  startIndex + PAGE_SIZE,
+  totalTransactions
+);
+
+const goToPage = (page) => {
+  setCurrentPage(
+    Math.min(Math.max(1, page), totalPages)
+  );
+};
   // ======================================
   // HEADERS
   // ======================================
@@ -265,6 +298,11 @@ export default function ManagerCompanyFinance() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+// Khi thay đổi bộ lọc, quay về trang đầu tiên
+useEffect(() => {
+  setCurrentPage(1);
+}, [search, typeFilter, fromDate, toDate]);
 
   // ======================================
   // MỞ MODAL THÊM GIAO DỊCH
@@ -869,6 +907,93 @@ export default function ManagerCompanyFinance() {
             flex: 1;
           }
         }
+          /* ======================================
+   PHÂN TRANG GIAO DỊCH
+====================================== */
+
+.cf-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding-top: 20px;
+  margin-top: 14px;
+  border-top: 1px solid #edf0f5;
+}
+
+.cf-pagination-info {
+  color: #8794ad;
+  font-size: 12px;
+}
+
+.cf-pagination-info strong {
+  color: #263650;
+  font-weight: 700;
+}
+
+.cf-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.cf-page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.cf-page-btn,
+.cf-page-number {
+  min-width: 35px;
+  height: 35px;
+  padding: 0 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #52627c;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+
+.cf-page-btn:hover:not(:disabled),
+.cf-page-number:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+  background: #f0f5ff;
+}
+
+.cf-page-number.active {
+  border-color: #2563eb;
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 3px 8px rgba(37, 99, 235, .2);
+}
+
+.cf-page-btn:disabled {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .cf-pagination {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cf-pagination-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .cf-page-btn {
+    padding: 0 8px;
+  }
+}
       `}</style>
 
       {/* ==================================
@@ -1086,7 +1211,7 @@ export default function ManagerCompanyFinance() {
                     </td>
                   </tr>
                 ) : (
-                  transactions.map((transaction) => (
+                  paginatedTransactions.map((transaction) => (
                     <tr key={transaction._id}>
                       <td>
                         {formatDateTime(transaction.transactionDate)}
@@ -1148,6 +1273,57 @@ export default function ManagerCompanyFinance() {
                 )}
               </tbody>
             </table>
+          </div>
+        )}
+
+        {/* PHÂN TRANG */}
+        {totalTransactions > 0 && (
+          <div className="cf-pagination">
+            <div className="cf-pagination-info">
+              Đang xem{" "}
+              <strong>{displayedFrom}–{displayedTo}</strong>
+              {" "}trên tổng{" "}
+              <strong>{totalTransactions}</strong>
+              {" "}giao dịch
+            </div>
+
+            <div className="cf-pagination-controls">
+              <button
+                type="button"
+                className="cf-page-btn"
+                disabled={currentPage === 1}
+                onClick={() => goToPage(currentPage - 1)}
+              >
+                Trang trước
+              </button>
+
+              <div className="cf-page-numbers">
+                {Array.from(
+                  { length: totalPages },
+                  (_, index) => index + 1
+                ).map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    className={`cf-page-number ${
+                      currentPage === page ? "active" : ""
+                    }`}
+                    onClick={() => goToPage(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="cf-page-btn"
+                disabled={currentPage === totalPages}
+                onClick={() => goToPage(currentPage + 1)}
+              >
+                Trang sau
+              </button>
+            </div>
           </div>
         )}
 

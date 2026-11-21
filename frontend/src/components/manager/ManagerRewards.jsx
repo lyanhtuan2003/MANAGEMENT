@@ -123,6 +123,9 @@ export default function ManagerRewards() {
   const [form, setForm] = useState(createEmptyForm);
   const [keyword, setKeyword] = useState("");
   const [filterType, setFilterType] = useState("Tất cả");
+  // PHÂN TRANG
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 10;
 
   // Modal xác nhận xóa tùy chỉnh
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -277,6 +280,56 @@ export default function ManagerRewards() {
     });
   }, [records, keyword, filterType]);
 
+    // ========================================
+// PAGINATION
+// ========================================
+
+// Tổng số trang sau khi tìm kiếm và lọc
+const totalPages = Math.max(
+  1,
+  Math.ceil(filteredRecords.length / pageSize)
+);
+
+// Danh sách quyết định của trang hiện tại
+const paginatedRecords = useMemo(() => {
+  const startIndex = (currentPage - 1) * pageSize;
+
+  return filteredRecords.slice(
+    startIndex,
+    startIndex + pageSize
+  );
+}, [filteredRecords, currentPage]);
+
+// Vị trí bản ghi đang hiển thị
+const displayedFrom =
+  filteredRecords.length === 0
+    ? 0
+    : (currentPage - 1) * pageSize + 1;
+
+const displayedTo = Math.min(
+  currentPage * pageSize,
+  filteredRecords.length
+);
+
+// Chuyển trang
+const goToPage = (page) => {
+  setCurrentPage(
+    Math.max(1, Math.min(page, totalPages))
+  );
+};
+
+// Khi tìm kiếm hoặc lọc thì quay về trang đầu
+useEffect(() => {
+  setCurrentPage(1);
+}, [keyword, filterType]);
+
+// Khi xóa bản ghi làm giảm số trang,
+// tự động chuyển về trang hợp lệ
+useEffect(() => {
+  if (currentPage > totalPages) {
+    setCurrentPage(totalPages);
+  }
+}, [currentPage, totalPages]);
   // ========================================
   // OPEN CREATE FORM
   // ========================================
@@ -649,7 +702,7 @@ export default function ManagerRewards() {
                 </td>
               </tr>
             ) : (
-              filteredRecords.map((record) => {
+              paginatedRecords.map((record) => {
                 const employeeName =
                   record.employee?.name ||
                   record.employeeName ||
@@ -739,6 +792,58 @@ export default function ManagerRewards() {
 
         </table>
       </div>
+            {/* PHÂN TRANG */}
+{!loading && filteredRecords.length > 0 && (
+  <div className="reward-pagination">
+    <div className="reward-pagination-info">
+      Đang xem{" "}
+      <strong>
+        {displayedFrom}–{displayedTo}
+      </strong>{" "}
+      trên tổng{" "}
+      <strong>{filteredRecords.length}</strong>{" "}
+      quyết định
+    </div>
+
+    <div className="reward-pagination-controls">
+      <button
+        type="button"
+        className="reward-page-btn"
+        disabled={currentPage === 1}
+        onClick={() => goToPage(currentPage - 1)}
+      >
+        Trang trước
+      </button>
+
+      <div className="reward-page-numbers">
+        {Array.from(
+          { length: totalPages },
+          (_, index) => index + 1
+        ).map((page) => (
+          <button
+            key={page}
+            type="button"
+            className={`reward-page-number ${
+              currentPage === page ? "active" : ""
+            }`}
+            onClick={() => goToPage(page)}
+          >
+            {page}
+          </button>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        className="reward-page-btn"
+        disabled={currentPage === totalPages}
+        onClick={() => goToPage(currentPage + 1)}
+      >
+        Trang sau
+      </button>
+    </div>
+  </div>
+)}
 
       {/* CREATE / EDIT FORM */}
       {showForm && (

@@ -98,6 +98,24 @@ bankInfo: {
       min: 0,
     },
 
+    // ======================================
+    // THIẾT LẬP LỊCH LƯƠNG NHÂN VIÊN
+    // ======================================
+
+      salarySettings: {
+      // Ngày bắt đầu tính lương
+      startDate: {
+        type: Date,
+        default: null,
+      },
+
+      // Ngày trả lương cụ thể
+      payday: {
+        type: Date,
+        default: null,
+      },
+    },
+
     status: {
       type: String,
       enum: ["working", "probation", "resigned"],

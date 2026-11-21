@@ -85,6 +85,9 @@ export default function ManagerLeaveRequests({
 }) {
   const [keyword, setKeyword] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  // PHÂN TRANG
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const [processingId, setProcessingId] = useState("");
   const [error, setError] = useState("");
@@ -144,6 +147,38 @@ export default function ManagerLeaveRequests({
       return matchesKeyword && matchesStatus;
     });
   }, [requests, keyword, statusFilter]);
+  // ========================================
+  // PHÂN TRANG
+  // ========================================
+
+  const totalTransactions = filteredRequests.length;
+
+  const totalPages = Math.ceil(totalTransactions / PAGE_SIZE);
+
+  const paginatedRequests = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE;
+
+    return filteredRequests.slice(
+      startIndex,
+      startIndex + PAGE_SIZE
+    );
+  }, [filteredRequests, currentPage]);
+
+  const displayedFrom =
+    totalTransactions === 0
+      ? 0
+      : (currentPage - 1) * PAGE_SIZE + 1;
+
+  const displayedTo = Math.min(
+    currentPage * PAGE_SIZE,
+    totalTransactions
+  );
+
+  const goToPage = (page) => {
+    if (page < 1 || page > totalPages) return;
+
+    setCurrentPage(page);
+  };
 
   // ========================================
   // GỌI API DUYỆT / TỪ CHỐI ĐƠN
@@ -350,13 +385,19 @@ export default function ManagerLeaveRequests({
             type="text"
             placeholder="Tìm nhân viên, mã nhân viên, lý do..."
             value={keyword}
-            onChange={(event) => setKeyword(event.target.value)}
+            onChange={(event) => {
+              setKeyword(event.target.value);
+              setCurrentPage(1);
+            }}
           />
 
           {keyword && (
             <button
               type="button"
-              onClick={() => setKeyword("")}
+              onClick={() => {
+                setKeyword("");
+                setCurrentPage(1);
+              }}  
               aria-label="Xóa tìm kiếm"
             >
               <X size={15} />
@@ -367,7 +408,10 @@ export default function ManagerLeaveRequests({
         <select
           className="manager-leave-select"
           value={statusFilter}
-          onChange={(event) => setStatusFilter(event.target.value)}
+          onChange={(event) => {
+            setStatusFilter(event.target.value);
+            setCurrentPage(1);
+          }}
         >
           <option value="all">Tất cả trạng thái</option>
           <option value="pending">Chờ duyệt</option>
@@ -422,7 +466,7 @@ export default function ManagerLeaveRequests({
                 </td>
               </tr>
             ) : filteredRequests.length > 0 ? (
-              filteredRequests.map((item) => {
+              paginatedRequests.map((item) => {
                 const status = statusInfo[item.status] || {
                   label: "Không xác định",
                   className: "pending",
@@ -573,6 +617,61 @@ export default function ManagerLeaveRequests({
 
         </table>
       </div>
+
+
+        {/* PHÂN TRANG */}
+        {!loading && totalTransactions > 0 && (
+          <div className="leave-pagination">
+            <div className="leave-pagination-info">
+              Đang xem{" "}
+              <strong>
+                {displayedFrom}–{displayedTo}
+              </strong>
+              {" "}trên tổng{" "}
+              <strong>{totalTransactions}</strong>
+              {" "}đơn nghỉ phép
+            </div>
+
+            <div className="leave-pagination-controls">
+              <button
+                type="button"
+                className="leave-page-btn"
+                disabled={currentPage === 1}
+                onClick={() => goToPage(currentPage - 1)}
+              >
+                Trang trước
+              </button>
+
+              <div className="leave-page-numbers">
+                {Array.from(
+                  { length: totalPages },
+                  (_, index) => index + 1
+                ).map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    className={`leave-page-number ${
+                      currentPage === page ? "active" : ""
+                    }`}
+                    onClick={() => goToPage(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="leave-page-btn"
+                disabled={currentPage === totalPages}
+                onClick={() => goToPage(currentPage + 1)}
+              >
+                Trang sau
+              </button>
+            </div>
+          </div>
+        )}
+
 
       {/* MODAL TỪ CHỐI */}
 

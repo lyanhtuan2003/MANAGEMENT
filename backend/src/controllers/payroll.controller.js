@@ -55,11 +55,13 @@ const getMonthKey = (month, year) =>
 // Khoảng thời gian tháng theo múi giờ Việt Nam.
 const getMonthRange = (month, year) => {
   const start = new Date(
-    Date.UTC(Number(year), Number(month) - 1, 1) - 7 * 60 * 60 * 1000
+    Date.UTC(Number(year), Number(month) - 1, 1) -
+      7 * 60 * 60 * 1000
   );
 
   const end = new Date(
-    Date.UTC(Number(year), Number(month), 1) - 7 * 60 * 60 * 1000
+    Date.UTC(Number(year), Number(month), 1) -
+      7 * 60 * 60 * 1000
   );
 
   return { start, end };
@@ -70,6 +72,14 @@ const getEmployeeName = (employee) =>
 
 const getEmployeeCode = (employee) =>
   employee?.employeeCode || employee?.code || "";
+
+// Chuẩn hóa thông tin ngân hàng trả về frontend.
+const getEmployeeBankInfo = (employee) => ({
+  bankName: employee?.bankInfo?.bankName || "",
+  accountNumber: employee?.bankInfo?.accountNumber || "",
+  accountHolder: employee?.bankInfo?.accountHolder || "",
+  branch: employee?.bankInfo?.branch || "",
+});
 
 // ========================================
 // LẤY THƯỞNG VÀ PHẠT THEO THÁNG
@@ -175,6 +185,7 @@ const getAttendanceStats = async (month, year) => {
 // ========================================
 // LẤY DANH SÁCH NHÂN VIÊN VÀ KẾ TOÁN
 // Không loại tài khoản nếu isActive chưa được khai báo.
+// LẤY CẢ THÔNG TIN NGÂN HÀNG
 // ========================================
 
 const getActivePayrollEmployees = async () => {
@@ -190,8 +201,8 @@ const getActivePayrollEmployees = async () => {
     },
   })
     .select(
-  "name fullName employeeCode code department position salary role isActive status bankInfo"
-  )
+      "name fullName employeeCode code department position salary role isActive status bankInfo"
+    )
     .sort({ name: 1 })
     .lean();
 };
@@ -279,20 +290,17 @@ const getMonthlyRows = async (month, year) => {
 
       return {
         employee: {
-  _id: employee._id,
-  name: getEmployeeName(employee),
-  employeeCode: getEmployeeCode(employee),
-  department: employee.department || "",
-  position: employee.position || "",
-  role: employee.role,
+          _id: employee._id,
+          name: getEmployeeName(employee),
+          employeeCode: getEmployeeCode(employee),
+          department: employee.department || "",
+          position: employee.position || "",
+          role: employee.role,
 
-  bankInfo: {
-    bankName: employee.bankInfo?.bankName || "",
-    accountNumber: employee.bankInfo?.accountNumber || "",
-    accountHolder: employee.bankInfo?.accountHolder || "",
-    branch: employee.bankInfo?.branch || "",
-  },
-},
+          // THÔNG TIN NGÂN HÀNG
+          bankInfo: getEmployeeBankInfo(employee),
+        },
+
         payroll,
         attendance,
 
@@ -303,7 +311,9 @@ const getMonthlyRows = async (month, year) => {
           payroll.standardWorkDays || 0
         ),
 
-        workDays: Number(payroll.workDays ?? attendance.workDays),
+        workDays: Number(
+          payroll.workDays ?? attendance.workDays
+        ),
 
         allowance,
         bonus,
@@ -347,6 +357,9 @@ const getMonthlyRows = async (month, year) => {
         department: employee.department || "",
         position: employee.position || "",
         role: employee.role,
+
+        // THÔNG TIN NGÂN HÀNG
+        bankInfo: getEmployeeBankInfo(employee),
       },
 
       payroll: null,

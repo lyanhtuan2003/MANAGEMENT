@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   Plus,
@@ -53,6 +53,7 @@ const initialTask = {
 };
 
 export default function ProjectTaskManager({ projectId, onClose }) {
+  const pageRef = useRef(null);
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -66,6 +67,22 @@ export default function ProjectTaskManager({ projectId, onClose }) {
   const [taskToDelete, setTaskToDelete] = useState(null);
 const [attachmentToDelete, setAttachmentToDelete] = useState(null);
   // ================= API =================
+useEffect(() => {
+  const handleOutsideClick = (event) => {
+    if (
+      pageRef.current &&
+      !pageRef.current.contains(event.target)
+    ) {
+      onClose?.();
+    }
+  };
+
+  document.addEventListener("mousedown", handleOutsideClick);
+
+  return () => {
+    document.removeEventListener("mousedown", handleOutsideClick);
+  };
+}, [onClose]);
 
   const apiRequest = useCallback(async (path, options = {}) => {
     const token = getToken();
@@ -310,7 +327,7 @@ const deleteAttachment = async () => {
   // ================= GIAO DIỆN =================
 
   return (
-    <section className="ptm-page">
+    <section className="ptm-page" ref={pageRef}>
       <style>{`
         .ptm-page {
           width: 100%;

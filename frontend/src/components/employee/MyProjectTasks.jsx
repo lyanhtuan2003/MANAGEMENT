@@ -1,5 +1,5 @@
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   CalendarDays,
@@ -47,6 +47,7 @@ const getFileUrl = (file) => {
 };
 
 export default function MyProjectTasks({ projectId, onClose }) {
+  const pageRef = useRef(null);
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState("");
@@ -55,6 +56,23 @@ export default function MyProjectTasks({ projectId, onClose }) {
   const [message, setMessage] = useState("");
 
   // Dữ liệu chỉnh sửa riêng cho từng nhiệm vụ
+useEffect(() => {
+  const handleOutsideClick = (event) => {
+    if (
+      pageRef.current &&
+      !pageRef.current.contains(event.target)
+    ) {
+      onClose?.();
+    }
+  };
+
+  document.addEventListener("mousedown", handleOutsideClick);
+
+  return () => {
+    document.removeEventListener("mousedown", handleOutsideClick);
+  };
+}, [onClose]);
+
   const [taskEdits, setTaskEdits] = useState({});
 
   const apiRequest = useCallback(async (path, options = {}) => {
@@ -171,7 +189,7 @@ export default function MyProjectTasks({ projectId, onClose }) {
   ).length;
 
   return (
-    <section className="mpt-page">
+   <section className="mpt-page" ref={pageRef}>
       <style>{`
         .mpt-page {
           width: 100%;

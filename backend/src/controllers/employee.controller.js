@@ -27,6 +27,11 @@ const employeeResponse = (user) => ({
   department: user.department || "",
   salary: Number(user.salary || 0),
 
+ salarySettings: {
+  startDate: user.salarySettings?.startDate || null,
+  payday: user.salarySettings?.payday || null,
+},
+
   bankInfo: {
     bankName: user.bankInfo?.bankName || "",
     accountNumber: user.bankInfo?.accountNumber || "",
@@ -431,6 +436,115 @@ const updateAccount = async (req, res, role) => {
 export const updateEmployee = (req, res) =>
   updateAccount(req, res, "employee");
 
+
+// ==========================================
+// THIẾT LẬP LỊCH LƯƠNG NHÂN VIÊN
+// PATCH /api/employees/:id/salary-settings
+// ==========================================
+
+
+export const updateEmployeeSalarySettings = async (req, res) => {
+  try {
+    const employee = await findEmployee(req.params.id);
+
+    if (!employee) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy nhân viên.",
+      });
+    }
+
+    const { startDate, payday } = req.body;
+
+    // Chuyển chuỗi YYYY-MM-DD thành Date và kiểm tra ngày hợp lệ
+    const parseDate = (value) => {
+      if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return null;
+      }
+
+      const [year, month, day] = value.split("-").map(Number);
+      const date = new Date(Date.UTC(year, month - 1, day));
+
+      if (
+        date.getUTCFullYear() !== year ||
+        date.getUTCMonth() !== month - 1 ||
+        date.getUTCDate() !== day
+      ) {
+        return null;
+      }
+
+      return date;
+    };
+
+    if (!employee.salarySettings) {
+      employee.salarySettings = {};
+    }
+
+    // Cập nhật ngày bắt đầu tính lương
+    if (startDate !== undefined) {
+      if (startDate === null || startDate === "") {
+        employee.salarySettings.startDate = null;
+      } else {
+        const parsedStartDate = parseDate(startDate);
+
+        if (!parsedStartDate) {
+          return res.status(400).json({
+            success: false,
+            message: "Ngày bắt đầu tính lương không hợp lệ.",
+          });
+        }
+
+        employee.salarySettings.startDate = parsedStartDate;
+      }
+    }
+
+    // Cập nhật ngày trả lương cụ thể
+    if (payday !== undefined) {
+      if (payday === null || payday === "") {
+        employee.salarySettings.payday = null;
+      } else {
+        const parsedPayday = parseDate(payday);
+
+        if (!parsedPayday) {
+          return res.status(400).json({
+            success: false,
+            message: "Ngày trả lương không hợp lệ.",
+          });
+        }
+
+        employee.salarySettings.payday = parsedPayday;
+      }
+    }
+
+    // Kiểm tra ngày trả lương không được trước ngày bắt đầu tính lương
+    const savedStartDate = employee.salarySettings.startDate;
+    const savedPayday = employee.salarySettings.payday;
+
+    if (savedStartDate && savedPayday && savedPayday < savedStartDate) {
+      return res.status(400).json({
+        success: false,
+        message: "Ngày trả lương không được trước ngày bắt đầu tính lương.",
+      });
+    }
+
+    await employee.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Cập nhật lịch lương nhân viên thành công.",
+      employee: employeeResponse(employee),
+    });
+  } catch (error) {
+    console.error("Update employee salary settings:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Không thể cập nhật lịch lương nhân viên.",
+    });
+  }
+};
+
+
 // ==========================================
 // KHÓA / MỞ KHÓA / NGHỈ VIỆC NHÂN VIÊN
 // ==========================================
@@ -660,6 +774,121 @@ export const getAccountantById = async (req, res) => {
 
 export const updateAccountant = (req, res) =>
   updateAccount(req, res, "accountant");
+
+
+// ==========================================
+// THIẾT LẬP LỊCH LƯƠNG KẾ TOÁN
+// PATCH /api/accountants/:id/salary-settings
+// ==========================================
+
+export const updateAccountantSalarySettings = async (req, res) => {
+  try {
+    const accountant = await findAccountant(req.params.id);
+
+    if (!accountant) {
+      return res.status(404).json({
+        success: false,
+        message: "Không tìm thấy tài khoản kế toán.",
+      });
+    }
+
+    const { startDate, payday } = req.body;
+
+    // Kiểm tra định dạng ngày YYYY-MM-DD
+    const parseDate = (value) => {
+      if (
+        typeof value !== "string" ||
+        !/^\d{4}-\d{2}-\d{2}$/.test(value)
+      ) {
+        return null;
+      }
+
+      const [year, month, day] = value.split("-").map(Number);
+      const date = new Date(Date.UTC(year, month - 1, day));
+
+      if (
+        date.getUTCFullYear() !== year ||
+        date.getUTCMonth() !== month - 1 ||
+        date.getUTCDate() !== day
+      ) {
+        return null;
+      }
+
+      return date;
+    };
+
+    if (!accountant.salarySettings) {
+      accountant.salarySettings = {};
+    }
+
+    // Ngày bắt đầu tính lương
+    if (startDate !== undefined) {
+      if (startDate === null || startDate === "") {
+        accountant.salarySettings.startDate = null;
+      } else {
+        const parsedStartDate = parseDate(startDate);
+
+        if (!parsedStartDate) {
+          return res.status(400).json({
+            success: false,
+            message: "Ngày bắt đầu tính lương không hợp lệ.",
+          });
+        }
+
+        accountant.salarySettings.startDate = parsedStartDate;
+      }
+    }
+
+    // Ngày trả lương cụ thể
+    if (payday !== undefined) {
+      if (payday === null || payday === "") {
+        accountant.salarySettings.payday = null;
+      } else {
+        const parsedPayday = parseDate(payday);
+
+        if (!parsedPayday) {
+          return res.status(400).json({
+            success: false,
+            message: "Ngày trả lương không hợp lệ.",
+          });
+        }
+
+        accountant.salarySettings.payday = parsedPayday;
+      }
+    }
+
+    // Kiểm tra ngày trả lương
+    const savedStartDate = accountant.salarySettings.startDate;
+    const savedPayday = accountant.salarySettings.payday;
+
+    if (
+      savedStartDate &&
+      savedPayday &&
+      savedPayday < savedStartDate
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Ngày trả lương không được trước ngày bắt đầu tính lương.",
+      });
+    }
+
+    await accountant.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Cập nhật lịch lương kế toán thành công.",
+      accountant: accountantResponse(accountant),
+    });
+  } catch (error) {
+    console.error("Update accountant salary settings:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Không thể cập nhật lịch lương kế toán.",
+    });
+  }
+};
+
 
 // ==========================================
 // KHÓA / MỞ KHÓA KẾ TOÁN

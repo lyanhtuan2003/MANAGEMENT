@@ -803,3 +803,89 @@
     width: 100%;
   }
 }
+/* ========================================
+   PHÂN TRANG THƯỞNG VÀ PHẠT
+======================================== */
+
+.manager-rewards .reward-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 20px;
+  padding: 16px 4px 4px;
+  border-top: 1px solid #edf0f5;
+}
+
+.manager-rewards .reward-pagination-info {
+  color: #8b98ad;
+  font-size: 12px;
+}
+
+.manager-rewards .reward-pagination-info strong {
+  color: #253047;
+  font-weight: 700;
+}
+
+.manager-rewards .reward-pagination-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.manager-rewards .reward-page-btn,
+.manager-rewards .reward-page-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 11px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.manager-rewards .reward-page-btn:hover:not(:disabled),
+.manager-rewards .reward-page-number:hover {
+  border-color: #6254e7;
+  color: #6254e7;
+  background: #f5f3ff;
+}
+
+.manager-rewards .reward-page-number.active {
+  border-color: #6254e7;
+  background: #6254e7;
+  color: #fff;
+}
+
+.manager-rewards .reward-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .manager-rewards .reward-pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .manager-rewards .reward-pagination-info {
+    text-align: center;
+  }
+
+  .manager-rewards .reward-pagination-controls {
+    justify-content: center;
+  }
+
+  .manager-rewards .reward-page-btn {
+    flex: 1;
+  }
+}

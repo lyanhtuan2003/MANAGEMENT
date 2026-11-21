@@ -198,7 +198,9 @@ export default function ManagerPayroll() {
 
   const [keyword, setKeyword] = useState("");
 
-
+  // PHÂN TRANG
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(10);
 
   const [loading, setLoading] = useState(false);
 
@@ -537,7 +539,54 @@ export default function ManagerPayroll() {
 
   }, [employees, keyword]);
 
+      // ===================================================
+// PAGINATION - PHÂN TRANG BẢNG LƯƠNG
+// ===================================================
 
+const totalTransactions = filteredEmployees.length;
+
+const totalPages = Math.ceil(
+  totalTransactions / pageSize
+);
+
+const safeCurrentPage = Math.min(
+  currentPage,
+  Math.max(totalPages, 1)
+);
+
+const displayedFrom =
+  totalTransactions === 0
+    ? 0
+    : (safeCurrentPage - 1) * pageSize + 1;
+
+const displayedTo = Math.min(
+  safeCurrentPage * pageSize,
+  totalTransactions
+);
+
+// Danh sách nhân viên của trang hiện tại
+const paginatedEmployees = useMemo(() => {
+  const startIndex = (safeCurrentPage - 1) * pageSize;
+
+  return filteredEmployees.slice(
+    startIndex,
+    startIndex + pageSize
+  );
+}, [filteredEmployees, safeCurrentPage, pageSize]);
+
+// Chuyển trang
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages) return;
+
+  setCurrentPage(page);
+};
+
+// Nếu dữ liệu thay đổi khiến trang hiện tại không còn hợp lệ
+useEffect(() => {
+  if (currentPage !== safeCurrentPage) {
+    setCurrentPage(safeCurrentPage);
+  }
+}, [currentPage, safeCurrentPage]);
 
   // ===================================================
 
@@ -851,15 +900,12 @@ const handleCopyBankAccount = async (accountNumber) => {
 
             value={month}
 
-            onChange={(event) => {
-
-              setMonth(event.target.value);
-
-              setSuccess("");
-
-              setError("");
-
-            }}
+           onChange={(event) => {
+            setMonth(event.target.value);
+            setCurrentPage(1);
+            setSuccess("");
+            setError("");
+          }}
 
           />
 
@@ -877,7 +923,10 @@ const handleCopyBankAccount = async (accountNumber) => {
 
             value={keyword}
 
-            onChange={(event) => setKeyword(event.target.value)}
+            onChange={(event) => {
+              setKeyword(event.target.value);
+              setCurrentPage(1);
+            }}
 
             placeholder="Tìm tên, mã nhân viên, phòng ban..."
 
@@ -1105,7 +1154,7 @@ const handleCopyBankAccount = async (accountNumber) => {
 
               ) : (
 
-                filteredEmployees.map((item, index) => {
+                paginatedEmployees.map((item, index) => {
 
                   const employee = item.employee || {};
 
@@ -1470,6 +1519,59 @@ const handleCopyBankAccount = async (accountNumber) => {
         </div>
 
 
+{/* PHÂN TRANG BẢNG LƯƠNG */}
+        {!loading && totalTransactions > 0 && (
+          <div className="payroll-pagination">
+            <div className="payroll-pagination-info">
+              Đang xem{" "}
+              <strong>
+                {displayedFrom}–{displayedTo}
+              </strong>
+              {" "}trên tổng{" "}
+              <strong>{totalTransactions}</strong>
+              {" "}nhân viên
+            </div>
+
+            <div className="payroll-pagination-controls">
+              <button
+                type="button"
+                className="payroll-page-btn"
+                disabled={safeCurrentPage === 1}
+                onClick={() => goToPage(safeCurrentPage - 1)}
+              >
+                Trang trước
+              </button>
+
+              <div className="payroll-page-numbers">
+                {Array.from(
+                  { length: totalPages },
+                  (_, index) => index + 1
+                ).map((page) => (
+                  <button
+                    key={page}
+                    type="button"
+                    className={`payroll-page-number ${
+                      safeCurrentPage === page ? "active" : ""
+                    }`}
+                    onClick={() => goToPage(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                className="payroll-page-btn"
+                disabled={safeCurrentPage === totalPages}
+                onClick={() => goToPage(safeCurrentPage + 1)}
+              >
+                Trang sau
+              </button>
+            </div>
+          </div>
+        )}
+
 
         {/* FOOTNOTE */}
 
@@ -1499,43 +1601,197 @@ const handleCopyBankAccount = async (accountNumber) => {
 
 
 
-      {/* PAYMENT CONFIRMATION MODAL */}
-      {paymentConfirmItem && (
+      
+    {/* PAYMENT CONFIRMATION MODAL */}
+    {paymentConfirmItem && (() => {
+      const bankInfo = paymentConfirmItem.employee?.bankInfo || {};
+
+      const hasBankInfo = Boolean(
+        bankInfo.bankName ||
+        bankInfo.accountNumber ||
+        bankInfo.accountHolder ||
+        bankInfo.branch
+      );
+
+      return (
         <div
           className="manager-modal-backdrop manager-payment-confirm-backdrop"
           onMouseDown={(event) => {
-            if (event.target === event.currentTarget && !payingId) {
+            if (
+              event.target === event.currentTarget &&
+              !payingId
+            ) {
               setPaymentConfirmItem(null);
             }
           }}
         >
-          <div className="manager-modal manager-payment-confirm" role="dialog" aria-modal="true" aria-labelledby="payment-confirm-title">
-            <div className="manager-payment-confirm-icon"><Banknote size={27} /></div>
-            <button type="button" className="manager-icon-button manager-payment-confirm-close" aria-label="Đóng" disabled={Boolean(payingId)} onClick={() => setPaymentConfirmItem(null)}>
+          <div
+            className="manager-modal manager-payment-confirm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="payment-confirm-title"
+          >
+            <div className="manager-payment-confirm-icon">
+              <Banknote size={27} />
+            </div>
+
+            <button
+              type="button"
+              className="manager-icon-button manager-payment-confirm-close"
+              aria-label="Đóng"
+              disabled={Boolean(payingId)}
+              onClick={() => setPaymentConfirmItem(null)}
+            >
               <X size={18} />
             </button>
-            <h3 id="payment-confirm-title">Xác nhận thanh toán lương</h3>
+
+            <h3 id="payment-confirm-title">
+              Xác nhận thanh toán lương
+            </h3>
+
             <p className="manager-payment-confirm-description">
               Bạn có chắc chắn muốn xác nhận đã thanh toán lương cho
-              <strong> {paymentConfirmItem.employee?.name || "nhân viên này"}</strong>?
+              <strong>
+                {" "}
+                {paymentConfirmItem.employee?.name || "nhân viên này"}
+              </strong>?
             </p>
-            <div className="manager-payment-confirm-summary">
-              <div><span>Kỳ lương</span><strong>{getSelectedMonthText(month)}</strong></div>
-              <div><span>Mã nhân viên</span><strong>{paymentConfirmItem.employee?.employeeCode || "—"}</strong></div>
-              <div className="manager-payment-confirm-total"><span>Tổng thực nhận</span><strong>{money(paymentConfirmItem.totalSalary)}</strong></div>
+
+            {/* THÔNG TIN NGÂN HÀNG */}
+            <div className="manager-payment-bank">
+              <div className="manager-payment-bank-heading">
+                <div className="manager-payment-bank-icon">
+                  <Wallet size={19} />
+                </div>
+
+                <div>
+                  <h4>Thông tin ngân hàng nhận lương</h4>
+                  <p>Tài khoản ngân hàng của nhân viên</p>
+                </div>
+              </div>
+
+              {hasBankInfo ? (
+                <div className="manager-payment-bank-content">
+                  <div className="manager-payment-bank-row">
+                    <span>Ngân hàng</span>
+                    <strong>
+                      {bankInfo.bankName || "Chưa cập nhật"}
+                    </strong>
+                  </div>
+
+                  <div className="manager-payment-bank-row">
+                    <span>Chủ tài khoản</span>
+                    <strong>
+                      {bankInfo.accountHolder || "Chưa cập nhật"}
+                    </strong>
+                  </div>
+
+                  <div className="manager-payment-bank-row">
+                    <span>Số tài khoản</span>
+
+                    <div className="manager-payment-account">
+                      <strong>
+                        {bankInfo.accountNumber || "Chưa cập nhật"}
+                      </strong>
+
+                      {bankInfo.accountNumber && (
+                        <button
+                          type="button"
+                          title="Sao chép số tài khoản"
+                          onClick={() =>
+                            handleCopyBankAccount(bankInfo.accountNumber)
+                          }
+                        >
+                          <Copy size={15} />
+                          Sao chép
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="manager-payment-bank-row">
+                    <span>Chi nhánh</span>
+                    <strong>
+                      {bankInfo.branch || "Chưa cập nhật"}
+                    </strong>
+                  </div>
+                </div>
+              ) : (
+                <div className="manager-payment-bank-empty">
+                  <AlertCircle size={18} />
+                  <div>
+                    <strong>Chưa có thông tin ngân hàng</strong>
+                    <p>
+                      Nhân viên chưa cập nhật tài khoản nhận lương.
+                      Vui lòng kiểm tra trước khi thanh toán.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
+
+            {/* THÔNG TIN BẢNG LƯƠNG */}
+            <div className="manager-payment-confirm-summary">
+              <div>
+                <span>Kỳ lương</span>
+                <strong>{getSelectedMonthText(month)}</strong>
+              </div>
+
+              <div>
+                <span>Mã nhân viên</span>
+                <strong>
+                  {paymentConfirmItem.employee?.employeeCode || "—"}
+                </strong>
+              </div>
+
+              <div className="manager-payment-confirm-total">
+                <span>Tổng thực nhận</span>
+                <strong>
+                  {money(paymentConfirmItem.totalSalary)}
+                </strong>
+              </div>
+            </div>
+
             <p className="manager-payment-confirm-note">
-              Sau khi xác nhận, bảng lương sẽ chuyển sang trạng thái đã thanh toán.
+              Sau khi xác nhận, bảng lương sẽ chuyển sang trạng thái
+              đã thanh toán. Hãy kiểm tra chính xác thông tin người nhận
+              trước khi thực hiện chuyển khoản.
             </p>
+
             <div className="manager-payment-confirm-actions">
-              <button type="button" className="manager-payment-cancel" disabled={Boolean(payingId)} onClick={() => setPaymentConfirmItem(null)}>Hủy</button>
-              <button type="button" className="manager-payment-submit" disabled={Boolean(payingId)} onClick={confirmMarkPaid}>
-                {payingId ? <><RefreshCw size={16} className="spin" /> Đang xử lý...</> : <><CheckCircle2 size={17} /> Xác nhận thanh toán</>}
+              <button
+                type="button"
+                className="manager-payment-cancel"
+                disabled={Boolean(payingId)}
+                onClick={() => setPaymentConfirmItem(null)}
+              >
+                Hủy
+              </button>
+
+              <button
+                type="button"
+                className="manager-payment-submit"
+                disabled={Boolean(payingId)}
+                onClick={confirmMarkPaid}
+              >
+                {payingId ? (
+                  <>
+                    <RefreshCw size={16} className="spin" />
+                    Đang xử lý...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={17} />
+                    Xác nhận thanh toán
+                  </>
+                )}
               </button>
             </div>
           </div>
         </div>
-      )}
+      );
+    })()}
+
 
       {/* DETAIL MODAL */}
 
@@ -1640,7 +1896,7 @@ const handleCopyBankAccount = async (accountNumber) => {
             </div>
 
 {/* THÔNG TIN TÀI KHOẢN NGÂN HÀNG */}
-<h4>Thông tin tài khoản ngân hàng</h4>
+{/* <h4>Thông tin tài khoản ngân hàng</h4>
 
 <div className="manager-payroll-bank-info">
   <div>
@@ -1687,7 +1943,7 @@ const handleCopyBankAccount = async (accountNumber) => {
       {selectedItem.employee?.bankInfo?.branch || "Chưa cập nhật"}
     </strong>
   </div>
-</div>
+</div> */}
 
 
 

@@ -9,6 +9,7 @@ import {
   lockAccountant,
   unlockAccountant,
   resetAccountantPassword,
+  updateAccountantSalarySettings,
 } from "../controllers/employee.controller.js";
 
 import {
@@ -43,4 +44,6 @@ router.get("/:id", getAccountantById);
 // Cập nhật thông tin
 router.put("/:id", updateAccountant);
 
+// Thiết lập lịch lương kế toán
+router.patch("/:id/salary-settings", updateAccountantSalarySettings);
 export default router;

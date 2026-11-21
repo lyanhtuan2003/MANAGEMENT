@@ -1054,3 +1054,85 @@
     transition-duration: .01ms !important;
   }
 }
+
+/* ========================================
+   PHÂN TRANG ĐƠN NGHỈ PHÉP
+======================================== */
+
+.leave-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 18px 4px 4px;
+  margin-top: 14px;
+  border-top: 1px solid #e8edf5;
+}
+
+.leave-pagination-info {
+  color: #8492a6;
+  font-size: 13px;
+}
+
+.leave-pagination-info strong {
+  color: #263750;
+  font-weight: 700;
+}
+
+.leave-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.leave-page-numbers {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.leave-page-btn,
+.leave-page-number {
+  height: 36px;
+  min-width: 36px;
+  padding: 0 12px;
+  border: 1px solid #e1e8f2;
+  border-radius: 8px;
+  background: #fff;
+  color: #52647e;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.leave-page-btn:hover:not(:disabled),
+.leave-page-number:hover:not(.active) {
+  border-color: #6658ed;
+  color: #6658ed;
+  background: #f5f3ff;
+}
+
+.leave-page-number.active {
+  background: #6658ed;
+  border-color: #6658ed;
+  color: #fff;
+}
+
+.leave-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .leave-pagination {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .leave-pagination-controls {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}

@@ -148,6 +148,9 @@ export default function Attendance() {
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState("");
+  // PHÂN TRANG LỊCH SỬ CHẤM CÔNG
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -275,6 +278,41 @@ export default function Attendance() {
       String(b.date || "").localeCompare(String(a.date || ""))
     );
   }, [records]);
+
+  // ========================================
+// LOGIC PHÂN TRANG
+// ========================================
+
+const totalPages = Math.max(
+  1,
+  Math.ceil(history.length / itemsPerPage)
+);
+
+const safeCurrentPage = Math.min(currentPage, totalPages);
+
+const paginatedHistory = useMemo(() => {
+  const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+
+  return history.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+}, [history, safeCurrentPage]);
+
+const displayedFrom =
+  history.length === 0
+    ? 0
+    : (safeCurrentPage - 1) * itemsPerPage + 1;
+
+const displayedTo = Math.min(
+  safeCurrentPage * itemsPerPage,
+  history.length
+);
+
+const goToPage = (page) => {
+  if (page < 1 || page > totalPages) return;
+  setCurrentPage(page);
+};
 
   // ========================================
   // RENDER
@@ -454,7 +492,10 @@ export default function Attendance() {
                 aria-label="Chọn tháng chấm công"
                 className="attendance-month-input"
                 value={month}
-                onChange={(event) => setMonth(event.target.value)}
+                onChange={(event) => {
+                  setMonth(event.target.value);
+                  setCurrentPage(1);
+                }}
               />
             </div>
 
@@ -503,7 +544,7 @@ export default function Attendance() {
                   </td>
                 </tr>
               ) : (
-                history.map((item) => {
+                paginatedHistory.map((item) => {
                   const late = Number.isFinite(
                     Number(item.lateMinutes)
                   )
@@ -577,7 +618,7 @@ export default function Attendance() {
               </p>
             </div>
           ) : (
-            history.map((item) => {
+            paginatedHistory.map((item) => {
               const late = Number.isFinite(
                 Number(item.lateMinutes)
               )
@@ -659,6 +700,60 @@ export default function Attendance() {
             })
           )}
         </div>
+
+          {/* PHÂN TRANG */}
+{history.length > 0 && (
+  <div className="attendance-pagination">
+    <div className="attendance-pagination-info">
+      Đang xem{" "}
+      <strong>
+        {displayedFrom}–{displayedTo}
+      </strong>
+      {" "}trên tổng{" "}
+      <strong>{history.length}</strong>
+      {" "}bản ghi
+    </div>
+
+    <div className="attendance-pagination-controls">
+      <button
+        type="button"
+        className="attendance-page-btn"
+        disabled={safeCurrentPage === 1}
+        onClick={() => goToPage(safeCurrentPage - 1)}
+      >
+        Trang trước
+      </button>
+
+      <div className="attendance-page-numbers">
+        {Array.from(
+          { length: totalPages },
+          (_, index) => index + 1
+        ).map((page) => (
+          <button
+            key={page}
+            type="button"
+            className={`attendance-page-number ${
+              safeCurrentPage === page ? "active" : ""
+            }`}
+            onClick={() => goToPage(page)}
+          >
+            {page}
+          </button>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        className="attendance-page-btn"
+        disabled={safeCurrentPage === totalPages}
+        onClick={() => goToPage(safeCurrentPage + 1)}
+      >
+        Trang sau
+      </button>
+    </div>
+  </div>
+)}
+
       </section>
     </div>
   );

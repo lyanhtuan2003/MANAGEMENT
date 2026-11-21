@@ -259,20 +259,26 @@ export const checkIn = async (req, res) => {
       schedule.startTime
     );
 
-    if (record) {
-      record.checkIn = now.time;
-      record.checkInAt = now.timestamp;
-      record.lateMinutes = lateMinutes;
+   if (record) {
+        record.checkIn = now.time;
+        record.checkInAt = now.timestamp;
+        record.lateMinutes = lateMinutes;
 
-      Object.assign(record, employeeSnapshot(req.user));
+        // Lưu giờ làm việc áp dụng tại thời điểm chấm công
+        record.scheduledStartTime = schedule.startTime;
+        record.scheduledEndTime = schedule.endTime;
 
-      await record.save();
-    } else {
+        Object.assign(record, employeeSnapshot(req.user));
+
+        await record.save();
+      } else {
       record = await Attendance.create({
         ...employeeSnapshot(req.user),
         date: now.date,
         checkIn: now.time,
         checkInAt: now.timestamp,
+        scheduledStartTime: schedule.startTime,
+        scheduledEndTime: schedule.endTime,
         lateMinutes,
         earlyLeaveMinutes: 0,
       });
@@ -368,17 +374,30 @@ export const checkOut = async (req, res) => {
 // GET /api/attendance/manager
 // =====================================================
 
+
 export const getManagerAttendance = async (req, res) => {
   try {
-    const currentMonth = getVietnamDateTime().date.slice(0, 7);
+    const currentDate = getVietnamDateTime().date;
+    const selectedDate = req.query.date || currentDate;
 
-    const selectedMonth =
-      req.query.month || currentMonth;
+    // Kiểm tra định dạng và ngày thực tế YYYY-MM-DD
+    const validDate =
+      /^\d{4}-\d{2}-\d{2}$/.test(selectedDate) &&
+      (() => {
+        const [year, month, day] = selectedDate.split("-").map(Number);
+        const date = new Date(Date.UTC(year, month - 1, day));
 
-    if (!validMonth(selectedMonth)) {
+        return (
+          date.getUTCFullYear() === year &&
+          date.getUTCMonth() === month - 1 &&
+          date.getUTCDate() === day
+        );
+      })();
+
+    if (!validDate) {
       return res.status(400).json({
         success: false,
-        message: "Tháng chấm công không hợp lệ.",
+        message: "Ngày chấm công không hợp lệ.",
       });
     }
 
@@ -386,20 +405,17 @@ export const getManagerAttendance = async (req, res) => {
       getSchedule(),
 
       User.find({
-        role: {
-          $in: STAFF_ROLES,
-        },
+        role: { $in: STAFF_ROLES },
       })
         .select(
           "name email employeeCode department position status isActive role"
         )
         .sort({ name: 1 }),
 
+      // Chỉ lấy bản ghi của ngày được chọn
       Attendance.find({
-        date: {
-          $regex: `^${selectedMonth}`,
-        },
-      }).sort({ date: -1 }),
+        date: selectedDate,
+      }).sort({ employeeName: 1 }),
     ]);
 
     const employeeList = employees.map((employee) => ({
@@ -414,8 +430,13 @@ export const getManagerAttendance = async (req, res) => {
       role: employee.role,
     }));
 
-    // Sử dụng số phút đã lưu trong MongoDB.
-    // Không tính lại theo lịch làm việc hiện tại.
+    const checkedInRecords = records.filter(
+      (record) => Boolean(record.checkIn)
+    );
+
+    const checkedOutRecords = records.filter(
+      (record) => Boolean(record.checkOut)
+    );
 
     const lateRecords = records.filter(
       (record) => Number(record.lateMinutes || 0) > 0
@@ -423,13 +444,11 @@ export const getManagerAttendance = async (req, res) => {
 
     const summary = {
       total: employees.length,
-
-      workDays: records.filter(
-        (record) => Boolean(record.checkIn)
-      ).length,
-
+      workDays: checkedInRecords.length,
+      checkedIn: checkedInRecords.length,
+      checkedOut: checkedOutRecords.length,
+      notCheckedIn: employees.length - checkedInRecords.length,
       lateCount: lateRecords.length,
-
       lateMinutes: records.reduce(
         (sum, record) =>
           sum + Number(record.lateMinutes || 0),
@@ -439,7 +458,7 @@ export const getManagerAttendance = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      month: selectedMonth,
+      date: selectedDate,
       schedule,
       employees: employeeList,
       records,
@@ -595,6 +614,114 @@ export const getWorkSchedule = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Không thể lấy lịch làm việc.",
+    });
+  }
+};
+// =====================================================
+// 7. QUẢN LÝ XEM LỊCH SỬ CHẤM CÔNG THEO KHOẢNG NGÀY
+// GET /api/attendance/manager/history?from=YYYY-MM-DD&to=YYYY-MM-DD
+// =====================================================
+
+export const getManagerAttendanceHistory = async (req, res) => {
+  try {
+    const { from, to } = req.query;
+
+    const isValidDate = (value) => {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(value || "")) {
+        return false;
+      }
+
+      const [year, month, day] = value.split("-").map(Number);
+      const date = new Date(Date.UTC(year, month - 1, day));
+
+      return (
+        date.getUTCFullYear() === year &&
+        date.getUTCMonth() === month - 1 &&
+        date.getUTCDate() === day
+      );
+    };
+
+    if (!isValidDate(from) || !isValidDate(to)) {
+      return res.status(400).json({
+        success: false,
+        message: "Vui lòng chọn khoảng ngày hợp lệ.",
+      });
+    }
+
+    if (from > to) {
+      return res.status(400).json({
+        success: false,
+        message: "Ngày bắt đầu không được lớn hơn ngày kết thúc.",
+      });
+    }
+
+    const records = await Attendance.find({
+      date: {
+        $gte: from,
+        $lte: to,
+      },
+    }).sort({
+      date: -1,
+      employeeName: 1,
+    });
+
+    const checkedInRecords = records.filter(
+      (record) => Boolean(record.checkIn)
+    );
+
+    const lateRecords = records.filter(
+      (record) => Number(record.lateMinutes || 0) > 0
+    );
+
+    const earlyLeaveRecords = records.filter(
+      (record) => Number(record.earlyLeaveMinutes || 0) > 0
+    );
+
+    const summary = {
+      totalRecords: records.length,
+
+      // Tổng lượt công có chấm công vào
+      workDays: checkedInRecords.length,
+
+      // Tổng lượt đi muộn
+      lateCount: lateRecords.length,
+
+      // Tổng số phút đi muộn
+      lateMinutes: records.reduce(
+        (sum, record) =>
+          sum + Math.max(0, Number(record.lateMinutes || 0)),
+        0
+      ),
+
+      // Tổng lượt về sớm
+      earlyLeaveCount: earlyLeaveRecords.length,
+
+      // Tổng số phút về sớm
+      earlyLeaveMinutes: records.reduce(
+        (sum, record) =>
+          sum + Math.max(0, Number(record.earlyLeaveMinutes || 0)),
+        0
+      ),
+
+      // Tổng lượt đã chấm công ra
+      checkedOut: records.filter(
+        (record) => Boolean(record.checkOut)
+      ).length,
+    };
+
+    return res.status(200).json({
+      success: true,
+      from,
+      to,
+      summary,
+      records,
+    });
+  } catch (error) {
+    console.error("Get manager attendance history error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Không thể tải lịch sử chấm công.",
     });
   }
 };

@@ -10,6 +10,7 @@ import {
   lockEmployee,
   unlockEmployee,
   resetEmployeePassword,
+  updateEmployeeSalarySettings,
 } from "../controllers/employee.controller.js";
 
 import {
@@ -51,6 +52,9 @@ router.get("/:id", getEmployeeById);
 
 // Cập nhật nhân viên
 router.put("/:id", updateEmployee);
+
+// Thiết lập lịch lương nhân viên
+router.patch("/:id/salary-settings", updateEmployeeSalarySettings);
 
 // Ngừng kích hoạt / cho nghỉ việc
 router.delete("/:id", deleteEmployee);

@@ -8,6 +8,7 @@ import {
   getManagerAttendance,
   updateSchedule,
   getWorkSchedule,
+  getManagerAttendanceHistory
 } from "../controllers/attendance.controller.js";
 
 import {
@@ -63,6 +64,12 @@ router.get(
   "/manager",
   authorize("manager"),
   getManagerAttendance
+);
+
+router.get(
+  "/manager/history",
+  authorize("manager"),
+  getManagerAttendanceHistory
 );
 
 router.put(
