@@ -25,12 +25,67 @@ import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
 
-// ======================================
-// CẤU HÌNH CƠ BẢN
-// ======================================
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// ======================================
+// CORS CONFIGURATION
+// ======================================
+
+const normalizeOrigin = (origin) =>
+  origin.trim().replace(/\/+$/, "");
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  ...(process.env.CLIENT_URL || "")
+    .split(",")
+    .filter(Boolean),
+  ...(process.env.FRONTEND_URL || "")
+    .split(",")
+    .filter(Boolean),
+]
+  .map(normalizeOrigin)
+  .filter((value, index, array) => array.indexOf(value) === index);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Cho phép request không có Origin (server-to-server, health check)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    const normalizedOrigin = normalizeOrigin(origin);
+
+    if (allowedOrigins.includes(normalizedOrigin)) {
+      return callback(null, true);
+    }
+
+    console.error("CORS blocked origin:", normalizedOrigin);
+    return callback(new Error("Origin không được phép truy cập API."));
+  },
+
+  credentials: true,
+
+  methods: [
+    "GET",
+    "POST",
+    "PUT",
+    "PATCH",
+    "DELETE",
+    "OPTIONS",
+  ],
+
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+  ],
+
+  optionsSuccessStatus: 204,
+};
+
+// ======================================
+// SECURITY & MIDDLEWARE
+// ======================================
 
 app.use(
   helmet({
@@ -40,33 +95,8 @@ app.use(
   })
 );
 
-const allowedOrigins = (
-  process.env.CLIENT_URL || "http://localhost:5173"
-)
-  .split(",")
-  .map((origin) => origin.trim().replace(/\/+$/, ""))
-  .filter(Boolean);
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin) return callback(null, true);
-
-      const normalizedOrigin = origin.replace(/\/+$/, "");
-
-      if (allowedOrigins.includes(normalizedOrigin)) {
-        return callback(null, true);
-      }
-
-      return callback(
-        new Error("Origin không được phép truy cập API.")
-      );
-    },
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// CORS phải được xử lý trước khi kết nối database
+app.use(cors(corsOptions));
 
 app.use(express.json({ limit: "10mb" }));
 
@@ -80,15 +110,65 @@ app.use(
 app.use(morgan("dev"));
 
 // ======================================
-// KẾT NỐI MONGODB TRƯỚC KHI XỬ LÝ API
+// STATIC UPLOADS
 // ======================================
 
-app.use(async (req, res, next) => {
+const uploadDirectory = path.resolve(__dirname, "../uploads");
+
+app.use(
+  "/uploads",
+  express.static(uploadDirectory, {
+    setHeaders: (res) => {
+      res.setHeader(
+        "Cross-Origin-Resource-Policy",
+        "cross-origin"
+      );
+    },
+  })
+);
+
+// ======================================
+// HEALTH CHECK
+// ======================================
+
+app.get("/", async (req, res) => {
   try {
     await connectDB();
-    next();
+
+    return res.status(200).json({
+      success: true,
+      message: "Internal Management API is running.",
+      version: "1.0.0",
+      database: "Connected",
+      modules: [
+        "Authentication",
+        "Employee Management",
+        "Accountant Management",
+        "Attendance Management",
+        "Leave Management",
+        "Payroll Management",
+        "Project Management",
+        "Notification Management",
+        "Reward & Penalty Management",
+        "Company Finance Management",
+        "Profile Management",
+      ],
+      endpoints: {
+        authentication: "/api/auth",
+        employees: "/api/employees",
+        accountants: "/api/accountants",
+        attendance: "/api/attendance",
+        leave: "/api/leave",
+        payroll: "/api/payroll",
+        projects: "/api/projects",
+        notifications: "/api/notifications",
+        rewards: "/api/rewards",
+        profiles: "/api/profile",
+        companyTransactions: "/api/company-transactions",
+      },
+    });
   } catch (error) {
-    console.error("Database connection error:", error.message);
+    console.error("Health check error:", error);
 
     return res.status(500).json({
       success: false,
@@ -98,63 +178,25 @@ app.use(async (req, res, next) => {
 });
 
 // ======================================
-// UPLOADS LOCAL
-// Lưu ý: Vercel không lưu file upload lâu dài
-// Nên dùng Cloudinary cho file trên production
+// DATABASE CONNECTION FOR API
 // ======================================
 
-const uploadDirectory = path.resolve(__dirname, "../uploads");
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("Database connection error:", error);
 
-app.use(
-  "/uploads",
-  express.static(uploadDirectory, {
-    setHeaders: (res) => {
-      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-    },
-  })
-);
-
-// ======================================
-// KIỂM TRA BACKEND
-// ======================================
-
-app.get("/", (req, res) => {
-  return res.status(200).json({
-    success: true,
-    message: "Internal Management API is running.",
-    version: "1.0.0",
-    database: "Connected",
-    modules: [
-      "Authentication",
-      "Employee Management",
-      "Accountant Management",
-      "Attendance Management",
-      "Leave Management",
-      "Payroll Management",
-      "Project Management",
-      "Notification Management",
-      "Reward & Penalty Management",
-      "Company Finance Management",
-      "Profile Management",
-    ],
-    endpoints: {
-      authentication: "/api/auth",
-      employees: "/api/employees",
-      accountants: "/api/accountants",
-      attendance: "/api/attendance",
-      leave: "/api/leave",
-      payroll: "/api/payroll",
-      projects: "/api/projects",
-      notifications: "/api/notifications",
-      rewards: "/api/rewards",
-      profiles: "/api/profile",
-      companyTransactions: "/api/company-transactions",
-    },
-  });
+    return res.status(500).json({
+      success: false,
+      message: "Không thể kết nối cơ sở dữ liệu.",
+    });
+  }
 });
 
 // ======================================
-// ĐĂNG KÝ API
+// API ROUTES
 // ======================================
 
 app.use("/api/auth", authRoutes);
@@ -170,7 +212,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/company-transactions", companyTransactionRoutes);
 
 // ======================================
-// API KHÔNG TỒN TẠI
+// 404
 // ======================================
 
 app.use((req, res) => {
@@ -182,7 +224,7 @@ app.use((req, res) => {
 });
 
 // ======================================
-// XỬ LÝ LỖI
+// ERROR HANDLER
 // ======================================
 
 app.use(errorHandler);
