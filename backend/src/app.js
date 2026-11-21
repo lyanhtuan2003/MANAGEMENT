@@ -6,6 +6,8 @@ import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
 
+import connectDB from "./config/db.js";
+
 // IMPORT ROUTES
 import authRoutes from "./routes/auth.routes.js";
 import employeeRoutes from "./routes/employee.routes.js";
@@ -18,34 +20,17 @@ import notificationRoutes from "./routes/notification.routes.js";
 import rewardRoutes from "./routes/reward.routes.js";
 import companyTransactionRoutes from "./routes/companyTransaction.routes.js";
 import profileRoutes from "./routes/profile.routes.js";
-// ERROR HANDLER
+
 import errorHandler from "./middleware/errorHandler.js";
 
 const app = express();
 
 // ======================================
-// CẤU HÌNH THƯ MỤC UPLOAD
+// CẤU HÌNH CƠ BẢN
 // ======================================
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// app.js nằm trong backend/src
-// Thư mục uploads nằm trong backend/uploads
-const uploadDirectory = path.resolve(__dirname, "../uploads");
-
-app.use(
-  "/uploads",
-  express.static(uploadDirectory, {
-    setHeaders: (res) => {
-      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
-    },
-  })
-);
-
-// ======================================
-// BẢO MẬT SERVER
-// ======================================
 
 app.use(
   helmet({
@@ -54,11 +39,6 @@ app.use(
     },
   })
 );
-
-
-// ======================================
-// CORS
-// ======================================
 
 const allowedOrigins = (
   process.env.CLIENT_URL || "http://localhost:5173"
@@ -70,9 +50,7 @@ const allowedOrigins = (
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin) {
-        return callback(null, true);
-      }
+      if (!origin) return callback(null, true);
 
       const normalizedOrigin = origin.replace(/\/+$/, "");
 
@@ -85,52 +63,10 @@ app.use(
       );
     },
     credentials: true,
-    methods: [
-      "GET",
-      "POST",
-      "PUT",
-      "PATCH",
-      "DELETE",
-      "OPTIONS",
-    ],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-    ],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
-
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(
-        new Error("Origin không được phép truy cập API.")
-      );
-    },
-    credentials: true,
-    methods: [
-      "GET",
-      "POST",
-      "PUT",
-      "PATCH",
-      "DELETE",
-      "OPTIONS",
-    ],
-    allowedHeaders: [
-      "Content-Type",
-      "Authorization",
-    ],
-  })
-);
-
-// ======================================
-// MIDDLEWARE REQUEST
-// ======================================
 
 app.use(express.json({ limit: "10mb" }));
 
@@ -144,7 +80,42 @@ app.use(
 app.use(morgan("dev"));
 
 // ======================================
-// KIỂM TRA SERVER
+// KẾT NỐI MONGODB TRƯỚC KHI XỬ LÝ API
+// ======================================
+
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    console.error("Database connection error:", error.message);
+
+    return res.status(500).json({
+      success: false,
+      message: "Không thể kết nối cơ sở dữ liệu.",
+    });
+  }
+});
+
+// ======================================
+// UPLOADS LOCAL
+// Lưu ý: Vercel không lưu file upload lâu dài
+// Nên dùng Cloudinary cho file trên production
+// ======================================
+
+const uploadDirectory = path.resolve(__dirname, "../uploads");
+
+app.use(
+  "/uploads",
+  express.static(uploadDirectory, {
+    setHeaders: (res) => {
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    },
+  })
+);
+
+// ======================================
+// KIỂM TRA BACKEND
 // ======================================
 
 app.get("/", (req, res) => {
@@ -152,7 +123,7 @@ app.get("/", (req, res) => {
     success: true,
     message: "Internal Management API is running.",
     version: "1.0.0",
-
+    database: "Connected",
     modules: [
       "Authentication",
       "Employee Management",
@@ -164,8 +135,8 @@ app.get("/", (req, res) => {
       "Notification Management",
       "Reward & Penalty Management",
       "Company Finance Management",
+      "Profile Management",
     ],
-
     endpoints: {
       authentication: "/api/auth",
       employees: "/api/employees",
@@ -176,6 +147,7 @@ app.get("/", (req, res) => {
       projects: "/api/projects",
       notifications: "/api/notifications",
       rewards: "/api/rewards",
+      profiles: "/api/profile",
       companyTransactions: "/api/company-transactions",
     },
   });
@@ -195,10 +167,7 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/rewards", rewardRoutes);
 app.use("/api/profile", profileRoutes);
-app.use(
-  "/api/company-transactions",
-  companyTransactionRoutes
-);
+app.use("/api/company-transactions", companyTransactionRoutes);
 
 // ======================================
 // API KHÔNG TỒN TẠI
