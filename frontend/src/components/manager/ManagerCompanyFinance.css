@@ -597,3 +597,23 @@
     grid-template-columns: 1fr !important;
   }
 }
+
+/* FIX IPHONE TỰ PHÓNG TO KHI NHẤN INPUT - QUẢN LÝ THU CHI */
+
+@media screen and (max-width: 768px) {
+  .company-finance input,
+  .company-finance select,
+  .company-finance textarea,
+  .company-finance .cf-input,
+  .company-finance .cf-select {
+    font-size: 16px !important;
+    line-height: 1.4 !important;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .company-finance input:focus,
+  .company-finance select:focus,
+  .company-finance textarea:focus {
+    font-size: 16px !important;
+  }
+}
