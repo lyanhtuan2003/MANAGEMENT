@@ -617,3 +617,27 @@
     font-size: 16px !important;
   }
 }
+
+/* ==========================================
+   FIX SAFARI AUTO ZOOM - MODAL TẠO THU CHI
+========================================== */
+
+@media screen and (max-width: 768px) {
+  .company-finance .cf-modal input,
+  .company-finance .cf-modal select,
+  .company-finance .cf-modal textarea,
+  .company-finance .cf-modal .cf-input,
+  .company-finance .cf-modal .cf-select,
+  .company-finance .cf-modal .cf-form-group .cf-input,
+  .company-finance .cf-modal .cf-form-group .cf-select {
+    font-size: 16px !important;
+    line-height: 1.4 !important;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  .company-finance .cf-modal input:focus,
+  .company-finance .cf-modal select:focus,
+  .company-finance .cf-modal textarea:focus {
+    font-size: 16px !important;
+  }
+}
