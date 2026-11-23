@@ -222,3 +222,42 @@
 }
 
 }
+
+/* ==========================================
+   FIX IOS SAFARI AUTO ZOOM
+========================================== */
+
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+    line-height: 1.5;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    font-size: 16px;
+  }
+
+  .header-search input,
+  .search-box input,
+  .form-group input,
+  .form-group select,
+  .form-group textarea,
+  .employee-form input,
+  .employee-form select,
+  .employee-form textarea,
+  .reward-form input,
+  .reward-form select,
+  .reward-form textarea {
+    font-size: 16px !important;
+  }
+
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+    min-width: 0;
+  }
+}
