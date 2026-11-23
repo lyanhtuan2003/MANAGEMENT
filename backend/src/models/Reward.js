@@ -58,15 +58,29 @@ const rewardSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+
+    // null: chưa được quyết toán trong bảng lương
+    // ObjectId: đã được đưa vào bảng lương tương ứng
+    payrollBatchId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Payroll",
+      default: null,
+      index: true,
+    },
   },
   {
     timestamps: true,
   }
 );
 
+// Các index phục vụ truy vấn thưởng/phạt
 rewardSchema.index({ employee: 1, date: -1 });
 rewardSchema.index({ type: 1, date: -1 });
 
-const Reward = mongoose.model("Reward", rewardSchema);
+// Truy vấn nhanh các khoản chưa quyết toán
+rewardSchema.index({ employee: 1, payrollBatchId: 1 });
+
+const Reward =
+  mongoose.models.Reward || mongoose.model("Reward", rewardSchema);
 
 export default Reward;

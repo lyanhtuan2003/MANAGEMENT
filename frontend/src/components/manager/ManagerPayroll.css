@@ -1,872 +1,224 @@
 
-.manager-payroll-page {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  width: 100%;
-  min-width: 0;
-  color: #203451;
-}
-
-.manager-payroll-heading,
-.manager-payroll-panel-heading {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.manager-payroll-eyebrow {
-  color: #6884b1;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .8px;
-}
-
-.manager-payroll-heading h1 {
-  margin: 7px 0;
-  font-size: 25px;
-}
-
-.manager-payroll-heading p,
-.manager-payroll-panel-heading p {
-  margin: 0;
-  color: #8793a5;
-  font-size: 13px;
-}
-
-.manager-payroll-month,
-.manager-payroll-search {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 11px 13px;
-  background: #fff;
-  border: 1px solid #e6ebf2;
-  border-radius: 10px;
-}
-
-.manager-payroll-month input,
-.manager-payroll-search input {
-  border: 0;
-  outline: 0;
-  color: #334762;
-  background: transparent;
-  font: inherit;
-}
-
-.manager-payroll-stats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 15px;
-}
-
-.manager-payroll-stat {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding: 19px;
-  background: #fff;
-  border: 1px solid #e9edf3;
-  border-radius: 13px;
-}
-
-.manager-payroll-stat svg {
-  width: 22px;
-  height: 22px;
-  color: #497fe0;
-}
-
-.manager-payroll-stat span {
-  color: #8491a4;
-  font-size: 12px;
-}
-
-.manager-payroll-stat strong {
-  font-size: 19px;
-  overflow-wrap: anywhere;
-}
-
-.manager-payroll-panel {
-  overflow: hidden;
-  background: #fff;
-  border: 1px solid #e9edf3;
-  border-radius: 14px;
-}
-
-.manager-payroll-panel-heading {
-  padding: 20px;
-}
-
-.manager-payroll-panel-heading h2 {
-  margin: 0 0 6px;
-  font-size: 17px;
-}
-
-.manager-payroll-search {
-  width: min(290px, 100%);
-}
-
-.manager-payroll-search input {
-  width: 100%;
-  min-width: 0;
-}
-
-.manager-payroll-table-wrap {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.manager-payroll-table {
-  width: 100%;
-  min-width: 980px;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.manager-payroll-table th {
-  padding: 14px;
-  text-align: left;
-  color: #74839a;
-  background: #f7f9fc;
-  white-space: nowrap;
-}
-
-.manager-payroll-table td {
-  padding: 15px 14px;
-  border-top: 1px solid #edf0f4;
-  white-space: nowrap;
-}
-
-.manager-payroll-table td small {
-  display: block;
-  margin-top: 5px;
-  color: #99a3b1;
-  font-size: 11px;
-}
-
-.manager-payroll-table td strong {
-  color: #2b405e;
-}
-
-.manager-payroll-table .positive,
-.positive {
-  color: #07966d;
-  font-weight: 700;
-}
-
-.manager-payroll-table .negative,
-.negative {
-  color: #dc5252;
-  font-weight: 700;
-}
-
-.manager-payroll-detail-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 11px;
-  border: 0;
-  border-radius: 8px;
-  color: #3479e8;
-  background: #edf4ff;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.manager-payroll-empty {
-  padding: 25px;
-  text-align: center;
-  color: #8c98a9;
-}
-
-.manager-payroll-error {
-  margin: 0 20px 15px;
-  padding: 12px;
-  color: #c83f3f;
-  background: #fff0f0;
-  border-radius: 8px;
-}
-
-.manager-payroll-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 18px;
-  background: rgba(15, 23, 42, .5);
-}
-
-.manager-payroll-modal {
-  width: min(850px, 100%);
-  max-height: 90vh;
-  overflow-y: auto;
-  padding: 24px;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,.2);
-}
-
-.manager-payroll-modal-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 15px;
-  margin-bottom: 22px;
-}
-
-.manager-payroll-modal-header > div > span {
-  color: #3479e8;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.manager-payroll-modal-header h2 {
-  margin: 7px 0;
-  font-size: 21px;
-}
-
-.manager-payroll-modal-header p {
-  margin: 0;
-  color: #8793a5;
-  font-size: 12px;
-}
-
-.manager-payroll-modal-header button {
-  width: 36px;
-  height: 36px;
-  border: 0;
-  border-radius: 9px;
-  background: #f0f3f7;
-  color: #61718a;
-  cursor: pointer;
-}
-
-.manager-payroll-detail-stats,
-.manager-payroll-reward-totals {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-.manager-payroll-detail-stats > div,
-.manager-payroll-reward-totals > div {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 14px;
-  background: #f7f9fc;
-  border-radius: 10px;
-}
-
-.manager-payroll-detail-stats span,
-.manager-payroll-reward-totals span {
-  color: #8a96a7;
-  font-size: 12px;
-}
-
-.manager-payroll-detail-stats strong,
-.manager-payroll-reward-totals strong {
-  font-size: 17px;
-}
-
-.manager-payroll-detail-section {
-  margin-top: 24px;
-}
-
-.manager-payroll-detail-section h3 {
-  margin: 0 0 13px;
-  font-size: 15px;
-  color: #304764;
-}
-
-.manager-payroll-detail-list {
-  max-height: 300px;
-  overflow-y: auto;
-  border: 1px solid #edf0f4;
-  border-radius: 10px;
-}
-
-.manager-payroll-day {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  align-items: center;
-  gap: 12px;
-  padding: 13px;
-  border-bottom: 1px solid #edf0f4;
-}
-
-.manager-payroll-day:last-child {
-  border-bottom: 0;
-}
-
-.manager-payroll-day > div:first-child {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.manager-payroll-day small {
-  color: #98a2b1;
-  font-size: 11px;
-}
-
-.manager-payroll-times {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.manager-payroll-times span {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: #61738c;
-  font-size: 12px;
-}
-
-.manager-payroll-day-status {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 5px;
-}
-
-.manager-payroll-day-status span {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 5px 7px;
-  border-radius: 6px;
-  font-size: 10px;
-}
-
-.manager-payroll-day-status .late,
-.manager-payroll-day-status .early {
-  color: #ae751c;
-  background: #fff5df;
-}
-
-.manager-payroll-day-status .ontime {
-  color: #07835e;
-  background: #e8f8f1;
-}
-
-.manager-payroll-reward-totals {
-  grid-template-columns: repeat(2, 1fr);
-  margin-bottom: 12px;
-}
-
-.manager-payroll-reward {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 13px 2px;
-  border-bottom: 1px solid #edf0f4;
-}
-
-.manager-payroll-reward > div {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-@media (max-width: 900px) {
-  .manager-payroll-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 600px) {
-  .manager-payroll-heading h1 {
-    font-size: 21px;
-  }
-
-  .manager-payroll-month {
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .manager-payroll-month input {
-    flex: 1;
-  }
-
-  .manager-payroll-search {
-    width: 100%;
-    box-sizing: border-box;
-  }
-
-  .manager-payroll-modal {
-    padding: 16px;
-  }
-
-  .manager-payroll-day {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ========================================
-   MANAGER PAYROLL
-======================================== */
-
-.manager-payroll-page {
-  min-width: 0;
-  width: 100%;
-}
-
-.manager-payroll-count {
-  padding: 7px 12px;
-  border-radius: 20px;
-  background: #edf3ff;
-  color: #2864ed;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.manager-payroll-table {
-  min-width: 1450px;
-}
-
-.manager-money-basic {
-  color: #263653;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.manager-money-total {
-  color: #2563eb;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.manager-payroll-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 9px;
-  border-radius: 20px;
-  font-size: 11px;
-  font-weight: 650;
-  white-space: nowrap;
-}
-
-.manager-payroll-status.paid {
-  color: #11985a;
-  background: #e9f8ef;
-}
-
-.manager-payroll-status.draft {
-  color: #d18a17;
-  background: #fff5df;
-}
-
-.manager-payroll-status.not-created {
-  color: #64748b;
-  background: #f1f5f9;
-}
-
-.manager-payroll-note {
-  display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  margin-top: 16px;
-  padding: 12px;
-  background: #f7f9fd;
-  border-radius: 9px;
-  color: #75839c;
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.manager-payroll-note svg {
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.manager-payroll-detail-info {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin: 16px 0;
-}
-
-.manager-payroll-detail-info > div {
-  min-width: 0;
-  padding: 13px;
-  background: #f7f9fc;
-  border-radius: 9px;
-}
-
-.manager-payroll-detail-info span {
-  display: block;
-  margin-bottom: 7px;
-  color: #8491a6;
-  font-size: 12px;
-}
-
-.manager-payroll-detail-info strong {
-  display: block;
-  color: #263653;
-  font-size: 14px;
-  overflow-wrap: anywhere;
-}
-
-.manager-payroll-detail h4 {
-  margin: 20px 0 12px;
-  color: #263653;
-  font-size: 14px;
-}
-
-.manager-payroll-breakdown {
-  padding: 5px 14px;
-  border: 1px solid #e8edf5;
-  border-radius: 10px;
-}
-
-.manager-payroll-breakdown > div {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 15px;
-  padding: 13px 0;
-  border-bottom: 1px solid #edf0f5;
-  font-size: 13px;
-}
-
-.manager-payroll-breakdown > div:last-child {
-  border-bottom: none;
-}
-
-.manager-payroll-breakdown span {
-  color: #75839c;
-}
-
-.manager-payroll-breakdown strong {
-  color: #263653;
-  white-space: nowrap;
-}
-
-.manager-payroll-breakdown .manager-payroll-final {
-  margin-top: 5px;
-  padding: 16px 0;
-}
-
-.manager-payroll-final span {
-  color: #263653;
-  font-weight: 750;
-}
-
-.manager-payroll-final strong {
-  color: #2563eb;
-  font-size: 19px;
-  font-weight: 800;
-}
-
-.manager-payroll-modal-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 1px solid #edf0f5;
-}
-
-.manager-payroll-modal-footer > span {
-  color: #8491a6;
-  font-size: 12px;
-}
-
-@media (max-width: 600px) {
-  .manager-payroll-detail-info {
-    grid-template-columns: 1fr;
-  }
-
-  .manager-payroll-modal-footer {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .manager-payroll-modal-footer button {
-    width: 100%;
-  }
-}
-
-/* =========================================
-   PAYROLL ACTION BUTTONS
-========================================= */
-
-.manager-create-payroll-button,
-.manager-payroll-pay-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 8px 11px;
-  border: none;
-  border-radius: 8px;
-  white-space: nowrap;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.manager-create-payroll-button:hover,
-.manager-payroll-pay-button:hover {
-  opacity: 0.88;
-  transform: translateY(-1px);
-}
-
-.manager-create-payroll-button:disabled,
-.manager-payroll-pay-button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.manager-success-message {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 12px 15px;
-  margin: 12px 0;
-  color: #087a45;
-  background: #eafaf1;
-  border: 1px solid #b8ebcf;
-  border-radius: 9px;
-  font-size: 14px;
-}
-
-.manager-payroll-table {
-  min-width: 1250px;
-}
-
-.manager-payroll-table th,
-.manager-payroll-table td {
-  white-space: nowrap;
-}
-
-@media (max-width: 768px) {
-  .manager-create-payroll-button,
-  .manager-payroll-pay-button {
-    padding: 7px 9px;
-    font-size: 11px;
-  }
-}
-
-/* Custom payroll payment confirmation */
-.manager-payment-confirm-backdrop {
-  z-index: 1200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  background: rgba(15, 23, 42, 0.58);
-  backdrop-filter: blur(4px);
-  animation: payrollFadeIn 0.18s ease-out;
-}
-
-.manager-payment-confirm {
-  position: relative;
-  width: min(100%, 440px);
-  padding: 30px;
-  border: 1px solid #eceaf4;
-  border-radius: 20px;
-  background: #fff;
-  box-shadow: 0 24px 70px rgba(20, 18, 45, 0.22);
-  animation: payrollModalIn 0.22s ease-out;
-}
-
-.manager-payment-confirm-icon {
-  width: 56px;
-  height: 56px;
-  display: grid;
-  place-items: center;
-  margin-bottom: 19px;
-  color: #6541c8;
-  background: #f0ebff;
-  border-radius: 16px;
-}
-
-.manager-payment-confirm-close {
-  position: absolute;
-  top: 17px;
-  right: 17px;
-}
-
-.manager-payment-confirm h3 {
-  margin: 0 34px 9px 0;
-  color: #19162b;
-  font-size: 20px;
-  font-weight: 750;
-  letter-spacing: -0.35px;
-}
-
-.manager-payment-confirm-description {
-  margin: 0;
-  color: #667085;
-  font-size: 14px;
-  line-height: 1.7;
-}
-
-.manager-payment-confirm-description strong {
-  color: #29243b;
-  font-weight: 700;
-}
-
-.manager-payment-confirm-summary {
-  display: grid;
-  gap: 13px;
-  margin: 22px 0 15px;
-  padding: 17px;
-  border: 1px solid #eeeaf7;
-  border-radius: 14px;
-  background: #faf9fd;
-}
-
-.manager-payment-confirm-summary > div {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  color: #667085;
-  font-size: 13px;
-}
-
-.manager-payment-confirm-summary strong {
-  color: #29243b;
-  font-size: 13px;
-  font-weight: 650;
-  text-align: right;
-}
-
-.manager-payment-confirm-summary .manager-payment-confirm-total {
-  margin-top: 3px;
-  padding-top: 13px;
-  border-top: 1px solid #e9e5f1;
-}
-
-.manager-payment-confirm-summary .manager-payment-confirm-total strong {
-  color: #5b35bd;
-  font-size: 17px;
-  font-weight: 800;
-}
-
-.manager-payment-confirm-note {
-  margin: 0 0 23px;
-  color: #858196;
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.manager-payment-confirm-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-}
-
-.manager-payment-confirm-actions button {
-  min-height: 42px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 0 16px;
-  border-radius: 11px;
-  font: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
-}
-
-.manager-payment-confirm-actions button:hover:not(:disabled) {
-  transform: translateY(-1px);
-}
-
-.manager-payment-confirm-actions button:disabled {
-  cursor: not-allowed;
-  opacity: 0.65;
-}
-
-.manager-payment-cancel {
-  color: #555064;
-  border: 1px solid #e5e1ed;
-  background: #fff;
-}
-
-.manager-payment-cancel:hover:not(:disabled) {
-  background: #f7f6fa;
-}
-
-.manager-payment-submit {
-  color: #fff;
-  border: 1px solid #6240c4;
-  background: #6240c4;
-  box-shadow: 0 5px 13px rgba(98, 64, 196, 0.2);
-}
-
-.manager-payment-submit:hover:not(:disabled) {
-  background: #5030ad;
-  box-shadow: 0 7px 17px rgba(98, 64, 196, 0.27);
-}
-
-@keyframes payrollFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes payrollModalIn {
-  from { opacity: 0; transform: translateY(9px) scale(0.98); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@media (max-width: 480px) {
-  .manager-payment-confirm {
-    padding: 24px 20px 20px;
-    border-radius: 17px;
-  }
-
-  .manager-payment-confirm-actions {
-    flex-direction: column-reverse;
-  }
-
-  .manager-payment-confirm-actions button {
-    width: 100%;
-  }
-}
-
-
-/* Ensure the payment confirmation is a standalone fixed overlay */
-.manager-payment-confirm-backdrop {
-  position: fixed;
-  inset: 0;
-}
-
 /* =====================================================
-   RESPONSIVE - MANAGER PAYROLL
-   Chỉ chỉnh giao diện theo kích thước màn hình
+   MANAGER PAYROLL - COMPLETE RESPONSIVE CSS
+   Desktop / Tablet / Mobile
 ===================================================== */
 
 .manager-payroll-page,
-.manager-panel.manager-data-page,
-.manager-table-section,
-.responsive-table {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-}
-
 .manager-payroll-page *,
 .manager-payroll-page *::before,
 .manager-payroll-page *::after {
   box-sizing: border-box;
 }
 
+.manager-payroll-page {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  color: #263653;
+  overflow-x: clip;
+}
+
+/* =====================================================
+   PAGE HEADING
+===================================================== */
+
+.manager-payroll-page .manager-data-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  min-width: 0;
+}
+
+.manager-payroll-page .manager-data-heading h1 {
+  margin: 0 0 7px;
+  color: #1e293b;
+  font-size: 25px;
+  font-weight: 750;
+}
+
+.manager-payroll-page .manager-data-heading p {
+  margin: 0;
+  color: #8793a5;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* =====================================================
+   SEARCH
+===================================================== */
+
+.manager-payroll-page .manager-payroll-search,
+.manager-payroll-page .manager-search-filter {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: min(360px, 100%);
+  min-width: 0;
+  padding: 11px 14px;
+  background: #fff;
+  border: 1px solid #e5eaf2;
+  border-radius: 10px;
+}
+
+.manager-payroll-page .manager-payroll-search input,
+.manager-payroll-page .manager-search-filter input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #344965;
+  font: inherit;
+  font-size: 13px;
+}
+
+.manager-payroll-page input:focus {
+  outline: none;
+}
+
+/* =====================================================
+   STATISTICS
+===================================================== */
+
+.manager-payroll-page .manager-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 15px;
+  width: 100%;
+  min-width: 0;
+}
+
+.manager-payroll-page .manager-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-width: 0;
+  padding: 19px;
+  background: #fff;
+  border: 1px solid #e8edf4;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(30, 50, 90, 0.025);
+}
+
+.manager-payroll-page .stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+}
+
+.manager-payroll-page .stat-icon.blue {
+  color: #3479e8;
+  background: #edf4ff;
+}
+
+.manager-payroll-page .stat-icon.green {
+  color: #07966d;
+  background: #e8f8f1;
+}
+
+.manager-payroll-page .stat-icon.orange {
+  color: #d18a17;
+  background: #fff5df;
+}
+
+.manager-payroll-page .stat-icon.purple {
+  color: #7256dc;
+  background: #f0edff;
+}
+
+.manager-payroll-page .stat-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.manager-payroll-page .stat-content span {
+  display: block;
+  color: #8491a4;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.manager-payroll-page .stat-content h2 {
+  margin: 5px 0;
+  color: #263653;
+  font-size: 20px;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.manager-payroll-page .stat-content small {
+  display: block;
+  color: #9aa4b2;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+/* =====================================================
+   TABLE SECTION
+===================================================== */
+
+.manager-payroll-page .manager-table-section {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #e8edf4;
+  border-radius: 14px;
+  box-shadow: 0 3px 12px rgba(30, 50, 90, 0.025);
+}
+
+.manager-payroll-page .panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 20px;
+}
+
+.manager-payroll-page .panel-heading h2 {
+  margin: 0 0 6px;
+  color: #263653;
+  font-size: 17px;
+  font-weight: 750;
+}
+
+.manager-payroll-page .panel-heading p {
+  margin: 0;
+  color: #8793a5;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.manager-payroll-page .manager-payroll-count {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  color: #2864ed;
+  background: #edf3ff;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* =====================================================
+   DESKTOP TABLE
+===================================================== */
+
 .manager-payroll-page .responsive-table {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
@@ -874,108 +226,871 @@
 .manager-payroll-page .manager-payroll-table {
   width: 100%;
   min-width: 1250px;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 12px;
 }
 
-/* TABLET */
+.manager-payroll-page .manager-payroll-table thead th {
+  padding: 14px 12px;
+  color: #74839a;
+  background: #f7f9fc;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+  border-bottom: 1px solid #e9edf3;
+}
+
+.manager-payroll-page .manager-payroll-table tbody td {
+  padding: 14px 12px;
+  color: #43536c;
+  border-bottom: 1px solid #edf0f4;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.manager-payroll-page .manager-payroll-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.manager-payroll-page .manager-payroll-table tbody tr:hover {
+  background: #fafbfe;
+}
+
+.manager-payroll-page .manager-payroll-table td strong {
+  color: #263653;
+  font-weight: 700;
+}
+
+.manager-payroll-page .manager-payroll-table td small {
+  display: block;
+  margin-top: 4px;
+  color: #929eae;
+  font-size: 10px;
+}
+
+/* =====================================================
+   EMPLOYEE CELL
+===================================================== */
+
+.manager-payroll-page .employee-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 150px;
+}
+
+.manager-payroll-page .employee-cell .avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  color: #6658d8;
+  background: #eeecff;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.manager-payroll-page .employee-cell > div:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 3px;
+}
+
+.manager-payroll-page .employee-cell strong {
+  color: #263653;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.manager-payroll-page .employee-cell small {
+  color: #8d99aa;
+  font-size: 10px;
+}
+
+/* =====================================================
+   SALARY
+===================================================== */
+
+.manager-payroll-page .manager-money-basic {
+  color: #263653;
+  font-weight: 700;
+}
+
+.manager-payroll-page .manager-money-positive {
+  color: #07966d;
+  font-weight: 700;
+}
+
+.manager-payroll-page .manager-money-negative {
+  color: #dc5252;
+  font-weight: 700;
+}
+
+.manager-payroll-page .manager-money-total {
+  color: #2864ed;
+  font-weight: 800;
+}
+
+/* =====================================================
+   STATUS
+===================================================== */
+
+.manager-payroll-page .manager-payroll-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  max-width: 100%;
+  padding: 6px 9px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.manager-payroll-page .manager-payroll-status.draft {
+  color: #d18a17;
+  background: #fff5df;
+}
+
+.manager-payroll-page .manager-payroll-status.paid {
+  color: #11985a;
+  background: #e9f8ef;
+}
+
+.manager-payroll-page .manager-payroll-status.not-created {
+  color: #64748b;
+  background: #f1f5f9;
+}
+
+/* =====================================================
+   BUTTONS
+===================================================== */
+
+.manager-payroll-page button {
+  font-family: inherit;
+}
+
+.manager-payroll-page .manager-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: #65758e;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.manager-payroll-page .manager-icon-button:hover {
+  color: #6259e8;
+  background: #f5f3ff;
+  border-color: #d8d2ff;
+}
+
+.manager-payroll-page .manager-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.manager-payroll-page .manager-action-button.primary {
+  color: #fff;
+  background: #6259e8;
+}
+
+.manager-payroll-page .manager-action-button.primary:hover {
+  background: #5046d5;
+  box-shadow: 0 4px 10px rgba(98, 89, 232, 0.2);
+}
+
+.manager-payroll-page .manager-action-button:disabled,
+.manager-payroll-page button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* =====================================================
+   EMPTY STATE / ERROR / NOTE
+===================================================== */
+
+.manager-payroll-page .empty-state {
+  padding: 28px 15px !important;
+  color: #8c98a9 !important;
+  text-align: center;
+  white-space: normal !important;
+}
+
+.manager-payroll-page .manager-payroll-error,
+.manager-payroll-page .manager-error {
+  margin: 0 18px 15px;
+  padding: 12px 14px;
+  color: #c83f3f;
+  background: #fff2f2;
+  border: 1px solid #fee2e2;
+  border-radius: 9px;
+  font-size: 13px;
+}
+
+.manager-payroll-page .manager-payroll-success {
+  padding: 12px 14px;
+  color: #07835e;
+  background: #e8f8f1;
+  border: 1px solid #c9f0df;
+  border-radius: 9px;
+  font-size: 13px;
+}
+
+.manager-payroll-page .manager-payroll-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 14px 18px 18px;
+  padding: 13px;
+  color: #71839b;
+  background: #edf4ff;
+  border: 1px solid #e0ebff;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.manager-payroll-page .manager-payroll-note svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* =====================================================
+   PAGINATION
+===================================================== */
+
+.manager-payroll-page .payroll-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 16px 20px;
+  border-top: 1px solid #edf0f5;
+}
+
+.manager-payroll-page .payroll-pagination-info {
+  color: #8793a5;
+  font-size: 12px;
+}
+
+.manager-payroll-page .payroll-pagination-info strong {
+  color: #263653;
+}
+
+.manager-payroll-page .payroll-pagination-controls,
+.manager-payroll-page .payroll-page-numbers {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.manager-payroll-page .payroll-page-btn,
+.manager-payroll-page .payroll-page-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 35px;
+  height: 35px;
+  padding: 0 10px;
+  color: #526783;
+  background: #fff;
+  border: 1px solid #e3eaf4;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.manager-payroll-page .payroll-page-number.active {
+  color: #fff;
+  background: #6259e8;
+  border-color: #6259e8;
+}
+
+.manager-payroll-page .payroll-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* =====================================================
+   MODAL BASE
+===================================================== */
+
+.manager-payroll-page .manager-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.52);
+  backdrop-filter: blur(3px);
+}
+
+.manager-payroll-page .manager-modal {
+  position: relative;
+  width: min(700px, 100%);
+  max-width: 100%;
+  max-height: calc(100dvh - 40px);
+  min-width: 0;
+  padding: 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #fff;
+  border: 1px solid #edf0f5;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+}
+
+.manager-payroll-page .manager-modal h2,
+.manager-payroll-page .manager-modal h3 {
+  color: #263653;
+}
+
+.manager-payroll-page .manager-modal p {
+  line-height: 1.65;
+}
+
+.manager-payroll-page .manager-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+}
+
+/* =====================================================
+   DETAIL MODAL
+===================================================== */
+
+.manager-payroll-page .manager-payroll-detail-info {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.manager-payroll-page .manager-payroll-detail-info > div {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  padding: 13px;
+  background: #f7f9fc;
+  border: 1px solid #edf0f4;
+  border-radius: 10px;
+}
+
+.manager-payroll-page .manager-payroll-detail-info span {
+  color: #8793a5;
+  font-size: 11px;
+}
+
+.manager-payroll-page .manager-payroll-detail-info strong {
+  color: #263653;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.manager-payroll-page .manager-payroll-breakdown {
+  margin-top: 18px;
+  padding: 15px;
+  border: 1px solid #e8edf4;
+  border-radius: 12px;
+}
+
+.manager-payroll-page .manager-payroll-breakdown > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid #edf0f4;
+  font-size: 13px;
+}
+
+.manager-payroll-page .manager-payroll-breakdown > div:last-child {
+  border-bottom: 0;
+}
+
+.manager-payroll-page .manager-payroll-breakdown span {
+  color: #718097;
+}
+
+.manager-payroll-page .manager-payroll-breakdown strong {
+  color: #263653;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.manager-payroll-page .manager-payroll-breakdown .positive {
+  color: #07966d;
+}
+
+.manager-payroll-page .manager-payroll-breakdown .negative {
+  color: #dc5252;
+}
+
+/* =====================================================
+   HISTORY MODAL
+===================================================== */
+
+.manager-payroll-page .manager-payroll-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+}
+
+.manager-payroll-page .manager-payroll-history-item {
+  min-width: 0;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid #e5eaf2;
+  border-radius: 12px;
+}
+
+.manager-payroll-page .manager-payroll-history-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.manager-payroll-page .manager-payroll-history-heading strong {
+  color: #263653;
+  font-size: 14px;
+}
+
+.manager-payroll-page .manager-payroll-history-paidby,
+.manager-payroll-page .manager-payroll-history-note {
+  margin-top: 12px;
+  padding: 10px 12px;
+  color: #718097;
+  background: #f7f9fc;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.manager-payroll-page .manager-payroll-history-rewards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* =====================================================
+   PAYMENT CONFIRMATION MODAL
+===================================================== */
+
+.manager-payroll-page .manager-payment-confirm-backdrop {
+  z-index: 1300;
+}
+
+.manager-payroll-page .manager-payment-confirm {
+  width: min(490px, 100%);
+  max-width: 100%;
+  max-height: calc(100dvh - 40px);
+  padding: 25px;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 20px 65px rgba(20, 20, 50, 0.24);
+}
+
+.manager-payroll-page .manager-payment-confirm-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  margin-bottom: 15px;
+  color: #6259e8;
+  background: #f0edff;
+  border-radius: 15px;
+}
+
+.manager-payroll-page .manager-payment-confirm-close {
+  position: absolute;
+  top: 17px;
+  right: 17px;
+}
+
+.manager-payroll-page .manager-payment-confirm h3 {
+  margin: 0 35px 9px 0;
+  color: #263653;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.manager-payroll-page .manager-payment-confirm-description {
+  margin: 0;
+  color: #718097;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.manager-payroll-page .manager-payment-bank {
+  width: 100%;
+  margin: 18px 0;
+  padding: 16px;
+  border: 1px solid #e8e4f5;
+  border-radius: 13px;
+  background: #faf9ff;
+}
+
+.manager-payroll-page .manager-payment-bank-heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 13px;
+}
+
+.manager-payroll-page .manager-payment-bank-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  color: #6741c8;
+  background: #eee9ff;
+  border-radius: 11px;
+}
+
+.manager-payroll-page .manager-payment-bank-heading h4 {
+  margin: 0 0 4px;
+  color: #29243b;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.manager-payroll-page .manager-payment-bank-heading p {
+  margin: 0;
+  color: #9290a2;
+  font-size: 11px;
+}
+
+.manager-payroll-page .manager-payment-bank-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-top: 1px solid #eeeaf5;
+}
+
+.manager-payroll-page .manager-payment-bank-row > span {
+  flex-shrink: 0;
+  color: #858197;
+  font-size: 12px;
+}
+
+.manager-payroll-page .manager-payment-bank-row > strong {
+  color: #29243b;
+  font-size: 12px;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.manager-payroll-page .manager-payment-account {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.manager-payroll-page .manager-payment-account strong {
+  color: #5536b4;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.manager-payroll-page .manager-payment-account button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 7px 9px;
+  color: #6040bd;
+  background: #f1edff;
+  border: 1px solid #e2dafb;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.manager-payroll-page .manager-payment-bank-empty {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px;
+  color: #b7791f;
+  background: #fff8e9;
+  border: 1px solid #f7e5bd;
+  border-radius: 9px;
+}
+
+.manager-payroll-page .manager-payment-bank-empty svg {
+  flex-shrink: 0;
+}
+
+.manager-payroll-page .manager-payment-bank-empty strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 12px;
+}
+
+.manager-payroll-page .manager-payment-bank-empty p {
+  margin: 0;
+  color: #987849;
+  font-size: 11px;
+}
+
+.manager-payroll-page .manager-payment-confirm-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 14px;
+  background: #f7f8fc;
+  border-radius: 11px;
+}
+
+.manager-payroll-page .manager-payment-confirm-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.manager-payroll-page .manager-payment-confirm-summary span {
+  color: #8793a5;
+  font-size: 11px;
+}
+
+.manager-payroll-page .manager-payment-confirm-summary strong {
+  color: #263653;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.manager-payroll-page .manager-payment-confirm-summary .manager-payment-confirm-total {
+  grid-column: 1 / -1;
+  padding-top: 12px;
+  border-top: 1px solid #e5eaf2;
+}
+
+.manager-payroll-page .manager-payment-confirm-total strong {
+  color: #6259e8;
+  font-size: 23px;
+  font-weight: 800;
+}
+
+.manager-payroll-page .manager-payment-confirm-note {
+  margin: 14px 0;
+  padding: 11px;
+  color: #8a6b36;
+  background: #fff8e9;
+  border: 1px solid #f7e5bd;
+  border-radius: 9px;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.manager-payroll-page .manager-payment-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 17px;
+}
+
+.manager-payroll-page .manager-payment-confirm-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 10px 15px;
+  border: 0;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.manager-payroll-page .manager-payment-cancel {
+  color: #64748b;
+  background: #f1f5f9;
+}
+
+.manager-payroll-page .manager-payment-submit {
+  color: #fff;
+  background: #6259e8;
+}
+
+.manager-payroll-page .manager-payment-submit:hover {
+  background: #5046d5;
+}
+
+.manager-payroll-page .spin {
+  animation: payroll-spin 1s linear infinite;
+}
+
+@keyframes payroll-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =====================================================
+   TABLET
+===================================================== */
+
 @media (max-width: 1024px) {
   .manager-payroll-page {
-    gap: 16px;
+    gap: 17px;
   }
 
   .manager-payroll-page .manager-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .manager-payroll-page .manager-table-section,
-  .manager-payroll-page .responsive-table {
+  .manager-payroll-page .manager-table-section {
     min-width: 0;
-    max-width: 100%;
   }
 
   .manager-payroll-page .panel-heading {
-    flex-wrap: wrap;
-    gap: 10px;
+    padding: 16px;
   }
 }
 
-/* MOBILE */
+/* =====================================================
+   MOBILE - TABLE TO EMPLOYEE CARDS
+===================================================== */
+
 @media (max-width: 768px) {
   .manager-payroll-page {
-    gap: 14px;
+    gap: 15px;
+    padding: 0;
   }
 
   .manager-payroll-page .manager-data-heading {
     align-items: flex-start;
+    flex-direction: column;
     gap: 12px;
   }
 
-  .manager-payroll-page .manager-filter-row {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-    width: 100%;
+  .manager-payroll-page .manager-data-heading h1 {
+    font-size: 21px;
   }
 
-  .manager-payroll-page .manager-month-filter,
-  .manager-payroll-page .manager-search-filter {
+  .manager-payroll-page .manager-data-heading p {
+    font-size: 12px;
+  }
+
+  .manager-payroll-page .manager-search-filter,
+  .manager-payroll-page .manager-payroll-search {
     width: 100%;
     max-width: 100%;
-    min-width: 0;
   }
 
-  .manager-payroll-page .manager-search-filter input {
-    width: 100%;
-    min-width: 0;
-  }
-
-  /* THỐNG KÊ */
+  /* Statistics */
   .manager-payroll-page .manager-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
 
   .manager-payroll-page .manager-stat-card {
-    min-width: 0;
-    padding: 13px;
-    gap: 8px;
+    gap: 9px;
+    padding: 12px;
+  }
+
+  .manager-payroll-page .stat-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .manager-payroll-page .stat-icon svg {
+    width: 18px;
+    height: 18px;
   }
 
   .manager-payroll-page .stat-content h2 {
-    font-size: clamp(15px, 4vw, 19px);
-    overflow-wrap: anywhere;
+    font-size: 16px;
   }
 
-  /* KHU VỰC BẢNG LƯƠNG */
+  .manager-payroll-page .stat-content span {
+    font-size: 10px;
+  }
+
+  .manager-payroll-page .stat-content small {
+    font-size: 9px;
+  }
+
+  /* Table panel */
   .manager-payroll-page .manager-table-section {
     overflow: hidden;
-    border-radius: 13px;
+    border-radius: 12px;
   }
 
   .manager-payroll-page .panel-heading {
-    padding: 15px;
     align-items: flex-start;
+    padding: 14px;
   }
 
   .manager-payroll-page .panel-heading h2 {
     font-size: 15px;
   }
 
-  .manager-payroll-page .manager-payroll-count {
-    flex-shrink: 0;
+  .manager-payroll-page .panel-heading p {
+    font-size: 11px;
   }
 
-  /* CHUYỂN BẢNG THÀNH THẺ NHÂN VIÊN */
+  /* Hide desktop table header */
   .manager-payroll-page .responsive-table {
     overflow: visible;
-    padding: 0 12px 12px;
+    padding: 0 10px 10px;
   }
 
   .manager-payroll-page .manager-payroll-table {
     display: block;
     width: 100%;
     min-width: 0;
-    border: 0;
+    table-layout: fixed;
   }
 
   .manager-payroll-page .manager-payroll-table thead {
@@ -987,28 +1102,36 @@
     flex-direction: column;
     gap: 12px;
     width: 100%;
+    min-width: 0;
   }
 
+  /* Each employee row becomes a card */
   .manager-payroll-page .manager-payroll-table tbody tr {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 0 12px;
     width: 100%;
-    padding: 8px 12px;
-    border: 1px solid #e8edf5;
+    min-width: 0;
+    padding: 9px 12px;
+    background: #fff;
+    border: 1px solid #e7ebf3;
     border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(30, 50, 90, 0.035);
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr:hover {
     background: #fff;
   }
 
   .manager-payroll-page .manager-payroll-table tbody tr td {
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: flex-start;
-    gap: 5px;
+    justify-content: center;
+    gap: 4px;
     min-width: 0;
     padding: 10px 0;
-    border-top: 0;
+    border: 0;
     border-bottom: 1px solid #f0f2f6;
     white-space: normal;
     overflow-wrap: anywhere;
@@ -1017,115 +1140,153 @@
 
   .manager-payroll-page .manager-payroll-table tbody tr td::before {
     display: block;
-    color: #8793a5;
+    color: #8995a7;
     font-size: 10px;
-    font-weight: 600;
-    line-height: 1.35;
+    font-weight: 700;
+    line-height: 1.4;
   }
 
-  /* TÊN NHÂN VIÊN */
+  /* Column 1: Employee */
   .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(1) {
     grid-column: 1 / -1;
     padding-top: 5px;
   }
 
-  /* TÊN CÁC CỘT */
   .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(1)::before {
     content: "Nhân viên";
   }
 
+  /* Column 2: Department */
   .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(2)::before {
     content: "Phòng ban";
   }
 
+  /* Column 3: Base salary */
   .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(3)::before {
     content: "Lương cơ bản";
   }
 
+  /* Column 4: Allowance */
   .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(4)::before {
-    content: "Ngày công";
+    content: "Phụ cấp";
   }
 
+  /* Column 5: Bonus */
   .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(5)::before {
-    content: "Số lần đi muộn";
-  }
-
-  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(6)::before {
-    content: "Phút đi muộn";
-  }
-
-  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(7)::before {
-    content: "Số lần về sớm";
-  }
-
-  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(8)::before {
     content: "Tiền thưởng";
   }
 
-  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(9)::before {
+  /* Column 6: Penalty */
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(6)::before {
     content: "Tiền phạt";
   }
 
-  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(10)::before {
-    content: "Tổng lương thực nhận";
+  /* Column 7: Additional deduction */
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(7)::before {
+    content: "Khấu trừ bổ sung";
   }
 
-  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(11)::before {
+  /* Column 8: Total */
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(8) {
+    grid-column: 1 / -1;
+    margin: 5px -4px;
+    padding: 12px 10px;
+    background: #f5f6ff;
+    border-radius: 8px;
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(8)::before {
+    content: "Tổng thực nhận";
+  }
+
+  /* Column 9: Status */
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(9)::before {
     content: "Trạng thái";
   }
 
-  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(12)::before {
+  /* Column 10: History */
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(10)::before {
+    content: "Lịch sử";
+  }
+
+  /* Column 11: Detail */
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(11)::before {
     content: "Chi tiết";
   }
 
-  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(13)::before {
+  /* Column 12: Action */
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(12) {
+    grid-column: 1 / -1;
+    border-bottom: 0;
+    padding-top: 12px;
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(12)::before {
     content: "Thao tác";
   }
 
-  /* CÁC DÒNG CHIẾM TOÀN CHIỀU RỘNG */
-  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(10),
-  .manager-payroll-page .manager-payroll-table tbody tr td:nth-child(13) {
-    grid-column: 1 / -1;
-  }
-
-  .manager-payroll-page .manager-payroll-table tbody tr td:last-child {
-    border-bottom: 0;
-  }
-
-  /* THÔNG TIN NHÂN VIÊN */
+  /* Employee cell */
   .manager-payroll-page .manager-payroll-table .employee-cell {
-    min-width: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     gap: 10px;
-  }
-
-  .manager-payroll-page .manager-payroll-table .employee-cell > div:last-child {
     min-width: 0;
   }
 
   .manager-payroll-page .manager-payroll-table .employee-cell strong,
   .manager-payroll-page .manager-payroll-table .employee-cell small {
-    overflow-wrap: anywhere;
-    white-space: normal;
-  }
-
-  /* TIỀN LƯƠNG */
-  .manager-payroll-page .manager-payroll-table .manager-money-basic,
-  .manager-payroll-page .manager-payroll-table .manager-money-total {
     white-space: normal;
     overflow-wrap: anywhere;
   }
 
+  /* Buttons */
   .manager-payroll-page .manager-payroll-table td button {
     max-width: 100%;
   }
 
-  /* GHI CHÚ */
-  .manager-payroll-page .manager-payroll-note {
-    margin: 12px;
+  .manager-payroll-page .manager-action-button {
+    min-height: 38px;
+    padding: 8px 11px;
     font-size: 11px;
   }
 
-  /* MODAL CHI TIẾT */
+  /* Pagination */
+  .manager-payroll-page .payroll-pagination {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px 10px;
+  }
+
+  .manager-payroll-page .payroll-pagination-info {
+    text-align: center;
+    font-size: 11px;
+  }
+
+  .manager-payroll-page .payroll-pagination-controls {
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .manager-payroll-page .payroll-page-btn {
+    min-width: 0;
+    padding: 0 8px;
+    font-size: 10px;
+  }
+
+  .manager-payroll-page .payroll-page-number {
+    min-width: 30px;
+    height: 33px;
+    padding: 0 7px;
+  }
+
+  .manager-payroll-page .manager-payroll-note {
+    margin: 10px;
+    padding: 11px;
+    font-size: 11px;
+  }
+
+  /* Modals */
   .manager-payroll-page .manager-modal-backdrop {
     align-items: flex-end;
     padding: 10px;
@@ -1135,60 +1296,41 @@
     width: 100%;
     max-width: 100%;
     max-height: 90dvh;
-    overflow-y: auto;
-    padding: 16px;
+    padding: 17px;
     border-radius: 16px 16px 12px 12px;
   }
 
   .manager-payroll-page .manager-payroll-detail-info {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+  }
+
+  .manager-payroll-page .manager-payroll-breakdown {
+    padding: 11px;
   }
 
   .manager-payroll-page .manager-payroll-breakdown > div {
     align-items: flex-start;
     gap: 10px;
+    font-size: 12px;
   }
 
-  .manager-payroll-page .manager-payroll-breakdown strong {
-    text-align: right;
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-
-  /* MODAL XÁC NHẬN THANH TOÁN */
+  /* Payment modal */
   .manager-payroll-page .manager-payment-confirm-backdrop {
-    align-items: center;
-    padding: 12px;
+    align-items: flex-end;
+    padding: 10px;
   }
 
   .manager-payroll-page .manager-payment-confirm {
     width: 100%;
-    max-width: 440px;
-    padding: 22px 18px;
-  }
-}
-
-/* ĐIỆN THOẠI NHỎ */
-@media (max-width: 420px) {
-  .manager-payroll-page .manager-stats {
-    gap: 8px;
+    max-width: 100%;
+    max-height: 90dvh;
+    padding: 20px 16px;
+    border-radius: 17px 17px 12px 12px;
   }
 
-  .manager-payroll-page .manager-stat-card {
-    padding: 11px;
-  }
-
-  .manager-payroll-page .manager-stat-card .stat-content h2 {
-    font-size: 15px;
-  }
-
-  .manager-payroll-page .manager-payroll-table tbody tr {
-    padding: 7px 10px;
-    gap: 0 9px;
-  }
-
-  .manager-payroll-page .manager-payroll-detail-info {
-    grid-template-columns: 1fr;
+  .manager-payroll-page .manager-payment-confirm h3 {
+    font-size: 18px;
   }
 
   .manager-payroll-page .manager-payment-confirm-actions {
@@ -1197,441 +1339,535 @@
 
   .manager-payroll-page .manager-payment-confirm-actions button {
     width: 100%;
-  }
-}
-
-/* =====================================
-   THÔNG TIN TÀI KHOẢN NGÂN HÀNG
-===================================== */
-
-.manager-payroll-bank-info {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin: 14px 0 24px;
-}
-
-.manager-payroll-bank-info > div {
-  min-width: 0;
-  padding: 15px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: #f6f8fc;
-  border: 1px solid #e6ebf3;
-  border-radius: 10px;
-}
-
-.manager-payroll-bank-info span {
-  color: #8290a5;
-  font-size: 12px;
-}
-
-.manager-payroll-bank-info strong {
-  color: #172b4d;
-  font-size: 14px;
-  overflow-wrap: anywhere;
-}
-
-.manager-payroll-bank-account {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.manager-payroll-bank-account button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 7px 11px;
-  color: #2878e8;
-  background: #eaf2ff;
-  border: 1px solid #d5e5ff;
-  border-radius: 7px;
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.manager-payroll-bank-account button:hover {
-  background: #dceaff;
-  border-color: #9fc4ff;
-}
-
-@media (max-width: 600px) {
-  .manager-payroll-bank-info {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* =========================================
-   PHÂN TRANG QUẢN LÝ BẢNG LƯƠNG
-========================================= */
-
-.payroll-pagination {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 14px;
-  padding: 18px 20px;
-  border-top: 1px solid #edf0f5;
-  background: #fff;
-}
-
-.payroll-pagination-info {
-  color: #8793a5;
-  font-size: 13px;
-}
-
-.payroll-pagination-info strong {
-  color: #263653;
-  font-weight: 700;
-}
-
-.payroll-pagination-controls {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-
-.payroll-page-numbers {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.payroll-page-btn,
-.payroll-page-number {
-  min-width: 36px;
-  height: 36px;
-  padding: 0 11px;
-  border: 1px solid #e3eaf4;
-  border-radius: 8px;
-  background: #fff;
-  color: #526783;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.payroll-page-btn:hover:not(:disabled),
-.payroll-page-number:hover:not(.active) {
-  border-color: #5b61e8;
-  color: #5b61e8;
-  background: #f5f4ff;
-}
-
-.payroll-page-number.active {
-  border-color: #6259e8;
-  background: #6259e8;
-  color: #fff;
-}
-
-.payroll-page-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-  .payroll-pagination {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 15px 12px;
-  }
-
-  .payroll-pagination-info {
-    text-align: center;
-  }
-
-  .payroll-pagination-controls {
-    justify-content: center;
-  }
-
-  .payroll-page-btn {
-    padding: 0 9px;
-    font-size: 11px;
-  }
-
-  .payroll-page-number {
-    min-width: 32px;
-    height: 34px;
-    padding: 0 8px;
-  }
-}
-
-/* =========================================
-   THÔNG TIN NGÂN HÀNG TRONG MODAL THANH TOÁN
-========================================= */
-
-.manager-payment-bank {
-  width: 100%;
-  margin: 20px 0 16px;
-  padding: 17px;
-  box-sizing: border-box;
-  border: 1px solid #e8e4f5;
-  border-radius: 14px;
-  background: #faf9ff;
-}
-
-.manager-payment-bank-heading {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  margin-bottom: 16px;
-}
-
-.manager-payment-bank-icon {
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6741c8;
-  background: #eee9ff;
-  border-radius: 11px;
-}
-
-.manager-payment-bank-heading h4 {
-  margin: 0 0 4px;
-  color: #29243b;
-  font-size: 14px;
-  font-weight: 750;
-}
-
-.manager-payment-bank-heading p {
-  margin: 0;
-  color: #9290a2;
-  font-size: 12px;
-}
-
-.manager-payment-bank-content {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.manager-payment-bank-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 15px;
-  padding: 11px 0;
-  border-top: 1px solid #eeeaf5;
-}
-
-.manager-payment-bank-row > span {
-  flex-shrink: 0;
-  color: #858197;
-  font-size: 13px;
-}
-
-.manager-payment-bank-row > strong {
-  color: #29243b;
-  font-size: 13px;
-  font-weight: 700;
-  text-align: right;
-  overflow-wrap: anywhere;
-}
-
-.manager-payment-account {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-  gap: 9px;
-  min-width: 0;
-}
-
-.manager-payment-account strong {
-  color: #5536b4;
-  font-size: 14px;
-  font-weight: 800;
-  overflow-wrap: anywhere;
-}
-
-.manager-payment-account button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 6px 9px;
-  border: 1px solid #e2dafb;
-  border-radius: 7px;
-  color: #6040bd;
-  background: #f1edff;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.manager-payment-account button:hover {
-  background: #e7e0ff;
-}
-
-.manager-payment-bank-empty {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 13px;
-  color: #b7791f;
-  background: #fff8e9;
-  border: 1px solid #f7e5bd;
-  border-radius: 9px;
-}
-
-.manager-payment-bank-empty svg {
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.manager-payment-bank-empty strong {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 13px;
-}
-
-.manager-payment-bank-empty p {
-  margin: 0;
-  color: #987849;
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-/* Modal có chiều cao tối đa và cuộn riêng */
-.manager-payment-confirm {
-  width: min(100%, 490px);
-  max-height: calc(100dvh - 40px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  box-sizing: border-box;
-}
-
-.manager-payment-confirm-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 1200;
-  overflow-y: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-/* =========================================
-   RESPONSIVE TABLET
-========================================= */
-
-@media (max-width: 768px) {
-  .manager-payment-confirm {
-    width: min(100%, 470px);
-    padding: 24px;
-  }
-
-  .manager-payment-bank {
-    padding: 14px;
-  }
-}
-
-/* =========================================
-   RESPONSIVE MOBILE
-========================================= */
-
-@media (max-width: 480px) {
-  .manager-payment-confirm-backdrop {
-    align-items: flex-start;
-    padding: 12px;
-  }
-
-  .manager-payment-confirm {
-    width: 100%;
-    max-height: calc(100dvh - 24px);
-    margin: auto 0;
-    padding: 22px 16px 18px;
-    border-radius: 16px;
-  }
-
-  .manager-payment-confirm h3 {
-    font-size: 18px;
-  }
-
-  .manager-payment-confirm-description {
-    font-size: 13px;
-  }
-
-  .manager-payment-bank {
-    margin: 16px 0;
-    padding: 13px;
-  }
-
-  .manager-payment-bank-row {
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .manager-payment-bank-row > span {
-    font-size: 12px;
-  }
-
-  .manager-payment-bank-row > strong {
-    max-width: 60%;
-    font-size: 12px;
-  }
-
-  .manager-payment-account {
-    max-width: 65%;
-  }
-
-  .manager-payment-account strong {
-    font-size: 12px;
-  }
-
-  .manager-payment-confirm-summary {
-    padding: 13px;
-  }
-
-  .manager-payment-confirm-actions {
-    flex-direction: column-reverse;
-  }
-
-  .manager-payment-confirm-actions button {
-    width: 100%;
     min-height: 44px;
   }
 }
 
+/* =====================================================
+   SMALL MOBILE
+===================================================== */
+
+@media (max-width: 420px) {
+  .manager-payroll-page {
+    gap: 13px;
+  }
+
+  .manager-payroll-page .manager-stats {
+    gap: 8px;
+  }
+
+  .manager-payroll-page .manager-stat-card {
+    padding: 10px;
+    gap: 7px;
+  }
+
+  .manager-payroll-page .stat-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .manager-payroll-page .stat-content h2 {
+    font-size: 14px;
+  }
+
+  .manager-payroll-page .stat-content span {
+    font-size: 9px;
+  }
+
+  .manager-payroll-page .stat-content small {
+    font-size: 8px;
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr {
+    padding: 7px 10px;
+    gap: 0 9px;
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td {
+    font-size: 11px;
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td::before {
+    font-size: 9px;
+  }
+
+  .manager-payroll-page .manager-payroll-detail-info {
+    grid-template-columns: 1fr;
+  }
+
+  .manager-payroll-page .manager-payment-confirm-summary {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .manager-payroll-page .manager-payment-confirm-total strong {
+    font-size: 21px;
+  }
+
+  .manager-payroll-page .manager-payment-bank {
+    padding: 12px;
+  }
+
+  .manager-payroll-page .manager-payment-bank-row {
+    align-items: flex-start;
+    gap: 7px;
+  }
+
+  .manager-payroll-page .manager-payment-bank-row > strong {
+    max-width: 65%;
+    font-size: 11px;
+  }
+
+  .manager-payroll-page .manager-payment-account {
+    max-width: 65%;
+  }
+}
+
+/* =====================================================
+   VERY SMALL MOBILE
+===================================================== */
+
 @media (max-width: 360px) {
-  .manager-payment-confirm {
-    padding: 19px 13px 15px;
+  .manager-payroll-page .manager-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
   }
 
-  .manager-payment-bank-heading h4 {
-    font-size: 13px;
+  .manager-payroll-page .manager-stat-card {
+    padding: 9px;
   }
 
-  .manager-payment-bank-row {
+  .manager-payroll-page .manager-payroll-table tbody tr {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 8px;
+  }
+
+  .manager-payroll-page .manager-payroll-table tbody tr td {
+    font-size: 10px;
+  }
+
+  .manager-payroll-page .manager-payment-confirm {
+    padding: 18px 12px 14px;
+  }
+
+  .manager-payroll-page .manager-payment-bank-row {
     flex-direction: column;
     gap: 5px;
   }
 
-  .manager-payment-bank-row > strong {
+  .manager-payroll-page .manager-payment-bank-row > strong {
     max-width: 100%;
     text-align: left;
   }
 
-  .manager-payment-account {
+  .manager-payroll-page .manager-payment-account {
     max-width: 100%;
     justify-content: flex-start;
+  }
+}
+
+/* =====================================================
+   FIX MODAL: CHI TIẾT BẢNG LƯƠNG + LỊCH SỬ THANH TOÁN
+===================================================== */
+
+/* Khung modal chung */
+.manager-payroll-page .manager-payroll-detail {
+  width: min(620px, calc(100vw - 32px));
+  max-width: 620px;
+  max-height: calc(100dvh - 40px);
+  min-width: 0;
+  padding: 24px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 18px 55px rgba(20, 35, 60, 0.18);
+}
+
+/* Tiêu đề modal */
+.manager-payroll-page .manager-modal-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 15px;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 22px;
+}
+
+.manager-payroll-page .manager-modal-heading > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.manager-payroll-page .manager-modal-heading h3 {
+  margin: 0 0 6px;
+  color: #263653;
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.manager-payroll-page .manager-modal-heading p {
+  margin: 0;
+  color: #8a96a8;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.manager-payroll-page .manager-modal-heading .manager-icon-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  margin: 0;
+  color: #64748b;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+/* Thông tin nhân viên */
+.manager-payroll-page .manager-payroll-detail-info {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
+  margin: 0 0 24px;
+}
+
+.manager-payroll-page .manager-payroll-detail-info > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  padding: 13px;
+  background: #f6f8fc;
+  border: 1px solid #e9edf4;
+  border-radius: 10px;
+}
+
+.manager-payroll-page .manager-payroll-detail-info span {
+  color: #8491a4;
+  font-size: 11px;
+}
+
+.manager-payroll-page .manager-payroll-detail-info strong {
+  color: #263653;
+  font-size: 13px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* Tiêu đề chi tiết thu nhập */
+.manager-payroll-page .manager-payroll-detail > h4 {
+  margin: 20px 0 13px;
+  color: #263653;
+  font-size: 14px;
+  font-weight: 750;
+}
+
+/* Bảng chi tiết thu nhập */
+.manager-payroll-page .manager-payroll-breakdown {
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 18px;
+  padding: 12px 14px;
+  background: #fff;
+  border: 1px solid #e3eaf3;
+  border-radius: 11px;
+}
+
+.manager-payroll-page .manager-payroll-breakdown > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  min-width: 0;
+  padding: 12px 0;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.manager-payroll-page .manager-payroll-breakdown > div:last-child {
+  border-bottom: 0;
+}
+
+.manager-payroll-page .manager-payroll-breakdown span {
+  min-width: 0;
+  color: #74839a;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.manager-payroll-page .manager-payroll-breakdown strong {
+  flex-shrink: 0;
+  color: #263653;
+  font-size: 12px;
+  font-weight: 750;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.manager-payroll-page .manager-payroll-breakdown .manager-money-positive {
+  color: #07966d;
+}
+
+.manager-payroll-page .manager-payroll-breakdown .manager-money-negative {
+  color: #e34f55;
+}
+
+.manager-payroll-page .manager-payroll-breakdown .manager-payroll-final {
+  margin-top: 3px;
+  padding-top: 15px;
+  background: #f7f8ff;
+}
+
+.manager-payroll-page .manager-payroll-breakdown .manager-payroll-final span {
+  color: #526783;
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.manager-payroll-page .manager-payroll-breakdown .manager-payroll-final strong {
+  color: #2864ed;
+  font-size: 15px;
+  font-weight: 850;
+}
+
+/* Footer: sửa lỗi nút Đóng bị nằm sát chữ */
+.manager-payroll-page .manager-payroll-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: 100%;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid #edf0f5;
+}
+
+.manager-payroll-page .manager-payroll-modal-footer > span {
+  flex: 1;
+  min-width: 0;
+  color: #718097;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.manager-payroll-page .manager-payroll-modal-footer > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 72px;
+  min-height: 36px;
+  margin: 0;
+  padding: 8px 15px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Lịch sử từng đợt thanh toán */
+.manager-payroll-page .manager-payroll-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+  width: 100%;
+  min-width: 0;
+}
+
+.manager-payroll-page .manager-payroll-history-item {
+  width: 100%;
+  min-width: 0;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid #e3eaf3;
+  border-radius: 11px;
+}
+
+.manager-payroll-page .manager-payroll-history-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.manager-payroll-page .manager-payroll-history-heading > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.manager-payroll-page .manager-payroll-history-heading strong {
+  color: #263653;
+  font-size: 13px;
+}
+
+.manager-payroll-page .manager-payroll-history-heading small {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  color: #8793a5;
+  font-size: 10px;
+}
+
+.manager-payroll-page .manager-payroll-history-paidby,
+.manager-payroll-page .manager-payroll-history-note {
+  margin: 10px 0 0;
+  padding: 10px;
+  color: #718097;
+  background: #f6f8fc;
+  border-radius: 8px;
+  font-size: 11px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+/* Bảng thưởng phạt bên trong modal */
+.manager-payroll-page .manager-payroll-detail .responsive-table {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.manager-payroll-page .manager-payroll-detail .manager-table {
+  width: 100%;
+  min-width: 350px;
+  border-collapse: collapse;
+}
+
+.manager-payroll-page .manager-payroll-detail .manager-table th,
+.manager-payroll-page .manager-payroll-detail .manager-table td {
+  padding: 11px;
+  text-align: left;
+  border-bottom: 1px solid #edf0f5;
+  font-size: 11px;
+}
+
+/* =====================================================
+   MOBILE MODAL
+===================================================== */
+
+@media (max-width: 600px) {
+  .manager-payroll-page .manager-payroll-detail {
+    width: calc(100vw - 24px);
+    max-width: none;
+    max-height: calc(100dvh - 24px);
+    padding: 18px 15px;
+    border-radius: 15px;
+  }
+
+  .manager-payroll-page .manager-modal-heading {
+    gap: 10px;
+    margin-bottom: 17px;
+  }
+
+  .manager-payroll-page .manager-modal-heading h3 {
+    font-size: 17px;
+  }
+
+  .manager-payroll-page .manager-modal-heading p {
+    font-size: 11px;
+  }
+
+  .manager-payroll-page .manager-payroll-detail-info {
+    gap: 8px;
+    margin-bottom: 19px;
+  }
+
+  .manager-payroll-page .manager-payroll-detail-info > div {
+    padding: 10px;
+  }
+
+  .manager-payroll-page .manager-payroll-detail-info span {
+    font-size: 10px;
+  }
+
+  .manager-payroll-page .manager-payroll-detail-info strong {
+    font-size: 12px;
+  }
+
+  .manager-payroll-page .manager-payroll-breakdown {
+    padding: 9px 11px;
+  }
+
+  .manager-payroll-page .manager-payroll-breakdown > div {
+    gap: 9px;
+    padding: 10px 0;
+  }
+
+  .manager-payroll-page .manager-payroll-breakdown span {
+    font-size: 11px;
+  }
+
+  .manager-payroll-page .manager-payroll-breakdown strong {
+    font-size: 11px;
+  }
+
+  .manager-payroll-page .manager-payroll-breakdown .manager-payroll-final strong {
+    font-size: 13px;
+  }
+
+  .manager-payroll-page .manager-payroll-modal-footer {
+    gap: 9px;
+    margin-top: 13px;
+    padding-top: 12px;
+  }
+
+  .manager-payroll-page .manager-payroll-modal-footer > span {
+    font-size: 10px;
+  }
+
+  .manager-payroll-page .manager-payroll-modal-footer > button {
+    min-width: 65px;
+    min-height: 35px;
+    padding: 7px 12px;
+  }
+
+  .manager-payroll-page .manager-payroll-history-item {
+    padding: 11px;
+  }
+
+  .manager-payroll-page .manager-payroll-history-heading {
+    gap: 8px;
+  }
+}
+
+/* Điện thoại rất nhỏ */
+@media (max-width: 380px) {
+  .manager-payroll-page .manager-payroll-detail {
+    padding: 15px 12px;
+  }
+
+  .manager-payroll-page .manager-payroll-detail-info {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .manager-payroll-page .manager-payroll-modal-footer {
+    align-items: stretch;
+  }
+
+  .manager-payroll-page .manager-payroll-modal-footer > span {
+    flex-basis: 100%;
+  }
+
+  .manager-payroll-page .manager-payroll-modal-footer > button {
+    align-self: flex-end;
+  }
+
+  .manager-payroll-page .manager-payroll-breakdown {
+    padding: 8px 9px;
   }
 }

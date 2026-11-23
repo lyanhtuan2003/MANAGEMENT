@@ -4,17 +4,13 @@ import express from "express";
 import {
   getManagerPayrolls,
   createPayroll,
+  createNextPayroll,
+  getManagerEmployeePayrollHistory,
   updatePayroll,
   markPayrollPaid,
   deletePayroll,
   getMyPayrolls,
 } from "../controllers/payroll.controller.js";
-
-import {
-  getPayrollOverview,
-  getEmployeePayrollDetail,
-  updatePayrollSetting,
-} from "../controllers/payrollReport.controller.js";
 
 import {
   protect,
@@ -25,16 +21,13 @@ import {
 
 const router = express.Router();
 
-// =====================================================
-// BẢO VỆ TẤT CẢ API BẢNG LƯƠNG
-// =====================================================
-
+// Bảo vệ tất cả API bảng lương
 router.use(protect);
 
-// =====================================================
-// 1. NHÂN VIÊN / KẾ TOÁN XEM BẢNG LƯƠNG CỦA MÌNH
-// GET /api/payroll/me?month=11&year=2026
-// =====================================================
+// ========================================
+// 1. NHÂN VIÊN / KẾ TOÁN XEM LỊCH SỬ LƯƠNG
+// GET /api/payroll/me
+// ========================================
 
 router.get(
   "/me",
@@ -42,44 +35,10 @@ router.get(
   getMyPayrolls
 );
 
-// =====================================================
-// 2. QUẢN LÝ / KẾ TOÁN XEM TỔNG QUAN
-// GET /api/payroll/manager/overview
-// =====================================================
-
-router.get(
-  "/manager/overview",
-  authorizeCompanyFinance,
-  getPayrollOverview
-);
-
-// =====================================================
-// 3. CÀI ĐẶT NGÀY CÔNG CHUẨN
-// PUT /api/payroll/manager/setting
-// Chỉ quản lý được thay đổi
-// =====================================================
-
-router.put(
-  "/manager/setting",
-  authorizeManager,
-  updatePayrollSetting
-);
-
-// =====================================================
-// 4. XEM CHI TIẾT LƯƠNG NHÂN VIÊN
-// GET /api/payroll/manager/:employeeId/detail
-// =====================================================
-
-router.get(
-  "/manager/:employeeId/detail",
-  authorizeCompanyFinance,
-  getEmployeePayrollDetail
-);
-
-// =====================================================
-// 5. DANH SÁCH BẢNG LƯƠNG THEO THÁNG
-// GET /api/payroll/manager?month=11&year=2026
-// =====================================================
+// ========================================
+// 2. QUẢN LÝ / KẾ TOÁN XEM DANH SÁCH LƯƠNG
+// GET /api/payroll/manager
+// ========================================
 
 router.get(
   "/manager",
@@ -87,10 +46,10 @@ router.get(
   getManagerPayrolls
 );
 
-// =====================================================
-// 6. TẠO BẢNG LƯƠNG CHO MỘT NHÂN VIÊN
+// ========================================
+// 3. TẠO BẢNG LƯƠNG NHÁP
 // POST /api/payroll/manager
-// =====================================================
+// ========================================
 
 router.post(
   "/manager",
@@ -98,10 +57,32 @@ router.post(
   createPayroll
 );
 
-// =====================================================
-// 7. CẬP NHẬT BẢNG LƯƠNG
+// ========================================
+// 4. TẠO ĐỢT LƯƠNG TIẾP THEO
+// POST /api/payroll/manager/:id/next
+// ========================================
+
+router.post(
+  "/manager/:id/next",
+  authorizeCompanyFinance,
+  createNextPayroll
+);
+
+// ========================================
+// 5. XEM LỊCH SỬ LƯƠNG CỦA NHÂN VIÊN
+// GET /api/payroll/manager/:employeeId/history
+// ========================================
+
+router.get(
+  "/manager/:employeeId/history",
+  authorizeCompanyFinance,
+  getManagerEmployeePayrollHistory
+);
+
+// ========================================
+// 6. CẬP NHẬT BẢNG LƯƠNG NHÁP
 // PUT /api/payroll/manager/:id
-// =====================================================
+// ========================================
 
 router.put(
   "/manager/:id",
@@ -109,10 +90,10 @@ router.put(
   updatePayroll
 );
 
-// =====================================================
-// 8. XÁC NHẬN ĐÃ THANH TOÁN
+// ========================================
+// 7. XÁC NHẬN THANH TOÁN
 // PATCH /api/payroll/manager/:id/pay
-// =====================================================
+// ========================================
 
 router.patch(
   "/manager/:id/pay",
@@ -120,11 +101,10 @@ router.patch(
   markPayrollPaid
 );
 
-// =====================================================
-// 9. XÓA BẢNG LƯƠNG
-// Chỉ quản lý được xóa
+// ========================================
+// 8. XÓA BẢNG LƯƠNG NHÁP
 // DELETE /api/payroll/manager/:id
-// =====================================================
+// ========================================
 
 router.delete(
   "/manager/:id",
