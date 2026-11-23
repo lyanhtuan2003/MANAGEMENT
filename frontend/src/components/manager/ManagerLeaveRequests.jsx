@@ -93,6 +93,7 @@ export default function ManagerLeaveRequests({
   const [error, setError] = useState("");
 
   const [rejectModal, setRejectModal] = useState(null);
+  const [approveModal, setApproveModal] = useState(null);
   const [managerNote, setManagerNote] = useState("");
 
   // ========================================
@@ -246,15 +247,25 @@ export default function ManagerLeaveRequests({
   // DUYỆT ĐƠN
   // ========================================
 
-  const handleApprove = (item) => {
-    const confirmed = window.confirm(
-      `Bạn có chắc chắn muốn duyệt đơn nghỉ phép của ${item.employeeName || "nhân viên này"}?`
-    );
+// ========================================
+// MỞ MODAL XÁC NHẬN DUYỆT ĐƠN
+// ========================================
 
-    if (!confirmed) return;
+const handleApprove = (item) => {
+  setError("");
+  setApproveModal(item);
+};
 
-    reviewRequest(item._id, "approved");
-  };
+// ========================================
+// XÁC NHẬN DUYỆT ĐƠN
+// ========================================
+
+const confirmApprove = async () => {
+  if (!approveModal?._id) return;
+
+  await reviewRequest(approveModal._id, "approved");
+  setApproveModal(null);
+};
 
   // ========================================
   // TỪ CHỐI ĐƠN
@@ -672,6 +683,110 @@ export default function ManagerLeaveRequests({
           </div>
         )}
 
+{/* MODAL XÁC NHẬN DUYỆT ĐƠN */}
+{approveModal && (
+  <div
+    className="manager-leave-confirm-overlay"
+    onClick={() => {
+      if (!processingId) {
+        setApproveModal(null);
+      }
+    }}
+  >
+    <div
+      className="manager-leave-confirm-modal"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <button
+        type="button"
+        className="leave-confirm-close"
+        onClick={() => setApproveModal(null)}
+        disabled={Boolean(processingId)}
+        aria-label="Đóng"
+      >
+        <X size={19} />
+      </button>
+
+      <div className="leave-confirm-icon">
+        <CheckCircle2 size={30} />
+      </div>
+
+      <h3>Xác nhận duyệt đơn</h3>
+
+      <p className="leave-confirm-description">
+        Bạn có chắc chắn muốn duyệt đơn nghỉ phép này không?
+      </p>
+
+      <div className="leave-confirm-employee">
+        <div className="leave-confirm-avatar">
+          {(approveModal.employeeName || "N").charAt(0)}
+        </div>
+
+        <div>
+          <span>Nhân viên</span>
+          <strong>
+            {approveModal.employeeName || "Nhân viên"}
+          </strong>
+          <small>
+            {approveModal.employeeCode || "Chưa có mã nhân viên"}
+          </small>
+        </div>
+      </div>
+
+      <div className="leave-confirm-info">
+        <div>
+          <span>Loại nghỉ</span>
+          <strong>{approveModal.type || "--"}</strong>
+        </div>
+
+        <div>
+          <span>Thời gian</span>
+          <strong>
+            {formatDate(approveModal.from)} -{" "}
+            {formatDate(approveModal.to)}
+          </strong>
+        </div>
+
+        <div>
+          <span>Lý do</span>
+          <strong>
+            {approveModal.reason || "Không có lý do"}
+          </strong>
+        </div>
+      </div>
+
+      <div className="leave-confirm-actions">
+        <button
+          type="button"
+          className="leave-confirm-cancel"
+          onClick={() => setApproveModal(null)}
+          disabled={Boolean(processingId)}
+        >
+          Hủy bỏ
+        </button>
+
+        <button
+          type="button"
+          className="leave-confirm-approve"
+          onClick={confirmApprove}
+          disabled={Boolean(processingId)}
+        >
+          {processingId ? (
+            <>
+              <RefreshCw size={16} className="leave-spin" />
+              Đang xử lý...
+            </>
+          ) : (
+            <>
+              <Check size={17} />
+              Xác nhận duyệt
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* MODAL TỪ CHỐI */}
 

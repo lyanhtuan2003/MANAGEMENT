@@ -889,3 +889,92 @@
     flex: 1;
   }
 }
+
+/* ========================================
+   REWARD EMPLOYEE SEARCH
+======================================== */
+
+.reward-employee-field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.reward-employee-search-select {
+  position: relative;
+  width: 100%;
+}
+
+.reward-employee-search-select > input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  outline: none;
+  background: #fff;
+  color: #1f2937;
+  font-size: 14px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.reward-employee-search-select > input:focus {
+  border-color: #7ea6d8;
+  box-shadow: 0 0 0 3px rgba(126, 166, 216, 0.15);
+}
+
+.reward-employee-search-select > input:disabled {
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+
+.reward-employee-dropdown {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.reward-employee-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  width: 100%;
+  padding: 11px 14px;
+  border: none;
+  border-bottom: 1px solid #f1f5f9;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.reward-employee-option:hover {
+  background: #f0f6ff;
+}
+
+.reward-employee-option strong {
+  color: #1f2937;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.reward-employee-option small {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.reward-employee-empty {
+  padding: 15px;
+  color: #6b7280;
+  font-size: 13px;
+  text-align: center;
+}

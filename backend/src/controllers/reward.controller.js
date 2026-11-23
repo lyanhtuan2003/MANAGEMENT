@@ -1,7 +1,9 @@
 
 import mongoose from "mongoose";
+
 import Reward from "../models/Reward.js";
 import User from "../models/User.js";
+import Notification from "../models/Notification.js";
 
 const ACTIVE_ROLES = ["employee", "accountant"];
 
@@ -13,10 +15,44 @@ const INACTIVE_STATUSES = [
 ];
 
 // ======================================
+// GỬI THÔNG BÁO THƯỞNG / PHẠT
+// ======================================
+
+const createRewardNotification = async ({
+  recipient,
+  type,
+  title,
+  message,
+  reward,
+  rewardType,
+}) => {
+  try {
+    await Notification.create({
+      recipient,
+      type,
+      title,
+      message,
+      reward: reward || null,
+
+      // Lưu loại tại thời điểm gửi thông báo.
+      // Không phụ thuộc vào Reward.type sau này.
+      rewardType: rewardType || null,
+    });
+  } catch (error) {
+    // Không để lỗi thông báo làm mất quyết định đã lưu.
+    console.error("Create reward notification error:", error);
+  }
+};
+
+// ======================================
 // KIỂM TRA NHÂN VIÊN / KẾ TOÁN
 // ======================================
+
 const getEmployee = async (employeeId) => {
-  if (!employeeId || !mongoose.Types.ObjectId.isValid(employeeId)) {
+  if (
+    !employeeId ||
+    !mongoose.Types.ObjectId.isValid(employeeId)
+  ) {
     return null;
   }
 
@@ -33,6 +69,7 @@ const getEmployee = async (employeeId) => {
 // ======================================
 // CHUYỂN ĐỔI NGÀY
 // ======================================
+
 const parseDate = (value) => {
   if (!value) return new Date();
 
@@ -48,6 +85,7 @@ const parseDate = (value) => {
 // ======================================
 // KIỂM TRA DỮ LIỆU
 // ======================================
+
 const validateRewardData = (body) => {
   const type = String(body.type || "").trim();
   const reason = String(body.reason || "").trim();
@@ -55,7 +93,9 @@ const validateRewardData = (body) => {
   const date = parseDate(body.date);
 
   if (!["Thưởng", "Phạt"].includes(type)) {
-    return { error: "Hình thức thưởng phạt không hợp lệ." };
+    return {
+      error: "Hình thức thưởng phạt không hợp lệ.",
+    };
   }
 
   if (
@@ -68,7 +108,9 @@ const validateRewardData = (body) => {
   }
 
   if (!reason) {
-    return { error: "Vui lòng nhập lý do." };
+    return {
+      error: "Vui lòng nhập lý do.",
+    };
   }
 
   if (reason.length > 1000) {
@@ -78,7 +120,9 @@ const validateRewardData = (body) => {
   }
 
   if (!date) {
-    return { error: "Ngày áp dụng không hợp lệ." };
+    return {
+      error: "Ngày áp dụng không hợp lệ.",
+    };
   }
 
   return {
@@ -95,6 +139,7 @@ const validateRewardData = (body) => {
 // QUẢN LÝ: DANH SÁCH NHÂN VIÊN THƯỞNG PHẠT
 // GET /api/rewards/manager/employees
 // ======================================
+
 export const getRewardEmployees = async (req, res) => {
   try {
     const employees = await User.find({
@@ -126,6 +171,7 @@ export const getRewardEmployees = async (req, res) => {
 // QUẢN LÝ: DANH SÁCH THƯỞNG PHẠT
 // GET /api/rewards/manager
 // ======================================
+
 export const getManagerRewards = async (req, res) => {
   try {
     const {
@@ -258,6 +304,7 @@ export const getManagerRewards = async (req, res) => {
 // QUẢN LÝ: TẠO QUYẾT ĐỊNH
 // POST /api/rewards/manager
 // ======================================
+
 export const createReward = async (req, res) => {
   try {
     const { employeeId } = req.body;
@@ -289,6 +336,25 @@ export const createReward = async (req, res) => {
       createdBy: req.user._id,
     });
 
+    // Tạo thông báo cho nhân viên.
+    const isReward = record.type === "Thưởng";
+
+    await createRewardNotification({
+      recipient: employee._id,
+      type: "reward_created",
+
+      title: isReward
+        ? "Bạn vừa nhận được quyết định thưởng"
+        : "Bạn vừa nhận được quyết định phạt",
+
+      message: `${isReward ? "Thưởng" : "Phạt"} ${record.amount.toLocaleString("vi-VN")} VNĐ. Lý do: ${record.reason}`,
+
+      reward: record._id,
+
+      // Lưu loại thưởng/phạt tại thời điểm tạo.
+      rewardType: record.type,
+    });
+
     const populated = await Reward.findById(record._id)
       .populate(
         "employee",
@@ -315,6 +381,7 @@ export const createReward = async (req, res) => {
 // QUẢN LÝ: CẬP NHẬT QUYẾT ĐỊNH
 // PUT /api/rewards/manager/:id
 // ======================================
+
 export const updateReward = async (req, res) => {
   try {
     const { id } = req.params;
@@ -335,6 +402,10 @@ export const updateReward = async (req, res) => {
       });
     }
 
+    // Lưu thông tin cũ trước khi cập nhật.
+    const previousEmployeeId = String(record.employee);
+    const previousRewardType = record.type;
+
     const validation = validateRewardData(req.body);
 
     if (validation.error) {
@@ -354,6 +425,7 @@ export const updateReward = async (req, res) => {
       });
     }
 
+    // Cập nhật quyết định.
     record.employee = employee._id;
     record.employeeName = employee.name;
     record.employeeCode = employee.employeeCode || "";
@@ -366,6 +438,50 @@ export const updateReward = async (req, res) => {
     record.updatedBy = req.user._id;
 
     await record.save();
+
+    // ======================================
+    // THÔNG BÁO CHO NHÂN VIÊN HIỆN TẠI
+    // ======================================
+
+    const isReward = record.type === "Thưởng";
+
+    await createRewardNotification({
+      recipient: employee._id,
+      type: "reward_updated",
+
+      title: isReward
+        ? "Quyết định thưởng của bạn đã được cập nhật"
+        : "Quyết định phạt của bạn đã được cập nhật",
+
+      message: `${isReward ? "Thưởng" : "Phạt"} ${record.amount.toLocaleString("vi-VN")} VNĐ. Lý do: ${record.reason}`,
+
+      reward: record._id,
+
+      // Lưu loại MỚI tại thời điểm cập nhật.
+      rewardType: record.type,
+    });
+
+    // ======================================
+    // NẾU ĐỔI NGƯỜI NHẬN
+    // THÔNG BÁO CHO NHÂN VIÊN CŨ
+    // ======================================
+
+    if (previousEmployeeId !== String(employee._id)) {
+      await createRewardNotification({
+        recipient: previousEmployeeId,
+        type: "reward_updated",
+
+        title: "Quyết định thưởng/phạt đã được chuyển",
+
+        message:
+          "Quyết định thưởng/phạt trước đây của bạn đã được chuyển sang nhân viên khác.",
+
+        reward: null,
+
+        // Lưu loại quyết định trước khi chuyển.
+        rewardType: previousRewardType,
+      });
+    }
 
     const populated = await Reward.findById(record._id)
       .populate(
@@ -394,6 +510,7 @@ export const updateReward = async (req, res) => {
 // QUẢN LÝ: XÓA QUYẾT ĐỊNH
 // DELETE /api/rewards/manager/:id
 // ======================================
+
 export const deleteReward = async (req, res) => {
   try {
     const { id } = req.params;
@@ -432,6 +549,7 @@ export const deleteReward = async (req, res) => {
 // NHÂN VIÊN / KẾ TOÁN: LỊCH SỬ CỦA MÌNH
 // GET /api/rewards/me
 // ======================================
+
 export const getMyRewards = async (req, res) => {
   try {
     const records = await Reward.find({

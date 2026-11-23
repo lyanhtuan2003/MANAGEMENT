@@ -1,6 +1,7 @@
 
 import mongoose from "mongoose";
 import User from "../models/User.js";
+import Notification from "../models/Notification.js";
 
 // ==========================================
 // HÀM DÙNG CHUNG
@@ -185,6 +186,22 @@ const createAccount = async (req, res, role) => {
       isActive: true,
       mustChangePassword: true,
     });
+
+      // Gửi thông báo đến tài khoản vừa được tạo
+      try {
+        await Notification.create({
+          recipient: user._id,
+          type: "general",
+          title: "Chào mừng bạn đến với công ty",
+          message: `Tài khoản ${role === "accountant" ? "kế toán" : "nhân viên"} của bạn đã được tạo thành công. Vui lòng đăng nhập và đổi mật khẩu tạm thời.`,
+          isRead: false,
+        });
+      } catch (notificationError) {
+        console.error(
+          "Lỗi tạo thông báo tài khoản mới:",
+          notificationError
+        );
+      }
 
     const response =
       role === "accountant"

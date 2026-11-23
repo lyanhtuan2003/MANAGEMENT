@@ -106,6 +106,36 @@ const formatTime = (value) => {
 const formatMoney = (value) =>
   `${Number(value || 0).toLocaleString("vi-VN")} đ`;
 
+
+
+const safeDisplay = (value, fallback = "--") => {
+  if (value === null || value === undefined || value === "") {
+    return fallback;
+  }
+
+  if (
+    typeof value === "string" ||
+    typeof value === "number"
+  ) {
+    return String(value);
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "Có" : "Không";
+  }
+
+  if (typeof value === "object") {
+    if (typeof value.name === "string") return value.name;
+    if (typeof value.title === "string") return value.title;
+    if (typeof value.label === "string") return value.label;
+    if (typeof value.message === "string") return value.message;
+
+    return fallback;
+  }
+
+  return fallback;
+};
+
 // =====================================================
 // API REQUEST
 // =====================================================
@@ -533,7 +563,7 @@ export default function EmployeeOverview({ setActivePage }) {
           </span>
 
           <h1>
-            Xin chào, {user?.name || "Nhân viên"}! 👋
+            Xin chào, {safeDisplay(user?.name, "Nhân viên")}! 👋
           </h1>
 
           <p>
@@ -765,7 +795,7 @@ export default function EmployeeOverview({ setActivePage }) {
                   ? "Đã thanh toán"
                   : currentPayroll.status === "draft"
                   ? "Chưa thanh toán"
-                  : currentPayroll.status}
+                  : safeDisplay(currentPayroll.status, "Chưa xác định")}
               </small>
             )}
           </div>
@@ -854,20 +884,20 @@ export default function EmployeeOverview({ setActivePage }) {
 
                   <div className="project-card-top">
                     <span className="project-code">
-                      {project.code || "DỰ ÁN"}
+                      {safeDisplay(project.code, "DỰ ÁN")}
                     </span>
 
                     <span className="project-status">
-                      {project.status || "Đang thực hiện"}
+                      {safeDisplay(project.status, "Đang thực hiện")}
                     </span>
                   </div>
 
                   <h3>
-                    {project.name || project.title || "Dự án"}
+                    {safeDisplay(project.name || project.title, "Dự án")}
                   </h3>
 
                   <p>
-                    {project.description || "Chưa có mô tả."}
+                    {safeDisplay(project.description, "Chưa có mô tả.")}
                   </p>
 
                   <div className="project-progress-info">
@@ -959,7 +989,7 @@ export default function EmployeeOverview({ setActivePage }) {
                           ? "Đã hoàn thành"
                           : item.checkIn
                           ? "Đang làm việc"
-                          : item.status || "Chưa ghi nhận"}
+                          : safeDisplay(item.status, "Chưa ghi nhận")}
                       </span>
                     </td>
 

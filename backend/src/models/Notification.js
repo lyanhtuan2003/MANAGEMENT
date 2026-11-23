@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 
 const notificationSchema = new mongoose.Schema(
   {
-    // Người nhận thông báo
     recipient: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -11,28 +10,23 @@ const notificationSchema = new mongoose.Schema(
       index: true,
     },
 
-    // Loại thông báo
     type: {
       type: String,
       enum: [
-        // Dự án
         "project_assigned",
         "project_updated",
-
-        // Nghỉ phép
         "leave_request",
         "leave_approved",
         "leave_rejected",
-
-        // Chấm công
         "work_schedule_updated",
-
-        // Bảng lương
         "payroll_created",
         "payroll_updated",
         "payroll_paid",
 
-        // Thông báo chung
+        // Thông báo thưởng và phạt
+        "reward_created",
+        "reward_updated",
+
         "general",
       ],
       default: "general",
@@ -53,19 +47,17 @@ const notificationSchema = new mongoose.Schema(
       maxlength: 2000,
     },
 
-    // Liên kết dự án nếu có
     project: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Project",
       default: null,
     },
-    // Liên kết nhiệm vụ được giao
-taskId: {
-  type: mongoose.Schema.Types.ObjectId,
-  default: null,
-},
 
-    // Liên kết đơn nghỉ phép nếu có
+    taskId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
+
     leaveRequest: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "LeaveRequest",
@@ -73,12 +65,24 @@ taskId: {
       index: true,
     },
 
-    // Liên kết bảng lương nếu có
     payroll: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Payroll",
       default: null,
       index: true,
+    },
+
+    // Liên kết quyết định thưởng/phạt
+    reward: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Reward",
+      default: null,
+      index: true,
+    },
+    rewardType: {
+      type: String,
+      enum: ["Thưởng", "Phạt"],
+      default: null,
     },
 
     isRead: {
@@ -97,29 +101,11 @@ taskId: {
   }
 );
 
-// Tối ưu truy vấn thông báo của từng tài khoản
-notificationSchema.index({
-  recipient: 1,
-  createdAt: -1,
-});
-
-// Tối ưu truy vấn thông báo chưa đọc
-notificationSchema.index({
-  recipient: 1,
-  isRead: 1,
-});
-
-// Tối ưu truy vấn thông báo theo đơn nghỉ phép
-notificationSchema.index({
-  leaveRequest: 1,
-  type: 1,
-});
-
-// Tối ưu truy vấn thông báo theo bảng lương
-notificationSchema.index({
-  payroll: 1,
-  type: 1,
-});
+notificationSchema.index({ recipient: 1, createdAt: -1 });
+notificationSchema.index({ recipient: 1, isRead: 1 });
+notificationSchema.index({ leaveRequest: 1, type: 1 });
+notificationSchema.index({ payroll: 1, type: 1 });
+notificationSchema.index({ reward: 1, type: 1 });
 
 const Notification = mongoose.model(
   "Notification",

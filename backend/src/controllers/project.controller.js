@@ -333,6 +333,25 @@ export const createProject = async (req, res) => {
       tasks: [],
     });
 
+      // Gửi thông báo cho các thành viên được giao dự án
+      try {
+        await Notification.insertMany(
+          validMembers.map((member) => ({
+            recipient: member._id,
+            type: "project_assigned",
+            title: "Bạn được phân công vào dự án mới",
+            message: `Bạn đã được quản lý phân công tham gia dự án "${project.name}".`,
+            project: project._id,
+            isRead: false,
+          }))
+        );
+      } catch (notificationError) {
+        console.error(
+          "Lỗi gửi thông báo giao dự án:",
+          notificationError
+        );
+      }
+
     const populated = await populateProject(
       Project.findById(project._id)
     );

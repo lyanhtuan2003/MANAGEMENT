@@ -18,6 +18,7 @@ export const getMyNotifications = async (req, res) => {
         .populate("project", "name status progress")
         .populate("leaveRequest", "startDate endDate status")
         .populate("payroll", "month year totalSalary status")
+        .populate("reward")
         .sort({ createdAt: -1 })
         .limit(100)
         .lean(),

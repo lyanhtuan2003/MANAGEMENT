@@ -50,6 +50,7 @@ export default function LeaveRequest() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedDeleteId, setSelectedDeleteId] = useState(null);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState(null);
 
   const [form, setForm] = useState({
     type: "Nghỉ phép năm",
@@ -108,6 +109,16 @@ export default function LeaveRequest() {
     fetchRequests();
   }, [fetchRequests]);
 
+  useEffect(() => {
+  if (!toast) return;
+
+  const timer = setTimeout(() => {
+    setToast(null);
+  }, 3500);
+
+  return () => clearTimeout(timer);
+}, [toast]);
+
   // =====================================
   // GỬI ĐƠN
   // =====================================
@@ -116,16 +127,24 @@ export default function LeaveRequest() {
     e.preventDefault();
 
     if (!form.from || !form.to || !form.reason.trim()) {
+      setToast({
+        type: "error",
+        message: "Vui lòng nhập đầy đủ thông tin đơn xin nghỉ.",
+      });
       return;
     }
 
     if (form.to < form.from) {
-      alert("Ngày kết thúc không được trước ngày bắt đầu.");
+      setToast({
+        type: "error",
+        message: "Ngày kết thúc không được trước ngày bắt đầu.",
+      });
       return;
     }
 
     try {
       setSubmitting(true);
+      setToast(null);
 
       const token = getToken();
 
@@ -157,10 +176,17 @@ export default function LeaveRequest() {
 
       setShowModal(false);
 
-      await fetchRequests();
+      setToast({
+        type: "success",
+        message: "Gửi đơn xin nghỉ phép thành công! Vui lòng chờ quản lý phê duyệt.",
+      });
 
+      await fetchRequests();
     } catch (err) {
-      alert(err.message || "Có lỗi khi gửi đơn.");
+      setToast({
+        type: "error",
+        message: err.message || "Có lỗi khi gửi đơn xin nghỉ.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -264,6 +290,31 @@ export default function LeaveRequest() {
 
   return (
     <div className="employee-page leave-request-page">
+      {toast && (
+  <div
+    className={`leave-toast ${toast.type}`}
+    role="alert"
+  >
+    <div className="leave-toast-icon">
+      {toast.type === "success" ? "✓" : "!"}
+    </div>
+
+    <div className="leave-toast-content">
+      <strong>
+        {toast.type === "success" ? "Thành công" : "Có lỗi xảy ra"}
+      </strong>
+      <span>{toast.message}</span>
+    </div>
+
+    <button
+      type="button"
+      onClick={() => setToast(null)}
+      aria-label="Đóng thông báo"
+    >
+      <X size={17} />
+    </button>
+  </div>
+)}
 
       <style>{`
 
@@ -895,7 +946,103 @@ export default function LeaveRequest() {
             width: 100%;
           }
         }
+/* THÔNG BÁO GỬI ĐƠN NGHỈ PHÉP */
 
+.leave-request-page .leave-toast {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: min(420px, calc(100vw - 32px));
+  padding: 16px;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 12px 40px rgba(15, 23, 42, .16);
+  animation: leaveToastIn .3s ease;
+}
+
+.leave-request-page .leave-toast.success {
+  border: 1px solid #c8efda;
+}
+
+.leave-request-page .leave-toast.error {
+  border: 1px solid #ffd2ce;
+}
+
+.leave-toast-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.leave-toast.success .leave-toast-icon {
+  color: #15945a;
+  background: #e4f8ed;
+}
+
+.leave-toast.error .leave-toast-icon {
+  color: #d93636;
+  background: #fff0ef;
+}
+
+.leave-toast-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.leave-toast-content strong {
+  color: #263449;
+  font-size: 13px;
+}
+
+.leave-toast-content span {
+  color: #718096;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.leave-request-page .leave-toast > button {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 8px;
+  background: #f3f5f9;
+  color: #718096;
+  cursor: pointer;
+}
+
+@keyframes leaveToastIn {
+  from {
+    opacity: 0;
+    transform: translateX(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 520px) {
+  .leave-request-page .leave-toast {
+    top: 12px;
+    right: 12px;
+    width: calc(100vw - 24px);
+  }
+}
       `}</style>
 
       {/* TIÊU ĐỀ */}

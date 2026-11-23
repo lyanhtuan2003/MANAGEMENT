@@ -13,6 +13,8 @@ import {
   X,
   Clock,
   BellRing,
+  Gift,
+  AlertTriangle,
 } from "lucide-react";
 
 // =====================================================
@@ -23,13 +25,76 @@ const RAW_API_URL =
   import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const API_URL = `${RAW_API_URL
+  .trim()
   .replace(/\/+$/, "")
-  .replace(/\/api$/, "")}/api`;
+  .replace(/\/api$/i, "")}/api`;
+
+// =====================================================
+// HELPERS
+// =====================================================
 
 const getToken = () =>
   localStorage.getItem("token") ||
   localStorage.getItem("authToken") ||
   localStorage.getItem("accessToken");
+
+const safeText = (value, fallback = "") => {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+
+  if (
+    typeof value === "string" ||
+    typeof value === "number"
+  ) {
+    return String(value);
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "Có" : "Không";
+  }
+
+  // Không render object trực tiếp trong React.
+  if (typeof value === "object") {
+    if (typeof value.name === "string") return value.name;
+    if (typeof value.title === "string") return value.title;
+    if (typeof value.label === "string") return value.label;
+    if (typeof value.message === "string") return value.message;
+  }
+
+  return fallback;
+};
+
+// =====================================================
+// XÁC ĐỊNH THÔNG BÁO THƯỞNG / PHẠT
+// =====================================================
+
+const isRewardNotification = (notification) => {
+  return (
+    notification?.type === "reward_created" ||
+    notification?.type === "reward_updated"
+  );
+};
+
+const isPenaltyNotification = (notification) => {
+  // Ưu tiên rewardType được lưu tại thời điểm gửi thông báo.
+  if (
+    notification?.rewardType === "Thưởng" ||
+    notification?.rewardType === "Phạt"
+  ) {
+    return notification.rewardType === "Phạt";
+  }
+
+  // Tương thích với thông báo cũ chưa có rewardType.
+  const title = safeText(notification?.title)
+    .toLowerCase();
+
+  if (title.includes("phạt")) return true;
+  if (title.includes("thưởng")) return false;
+
+  // Dự phòng cho thông báo cũ.
+  return notification?.reward?.type === "Phạt";
+};
 
 // =====================================================
 // EMPLOYEE HEADER
@@ -42,7 +107,8 @@ export default function EmployeeHeader({
   user,
   onOpenProjects,
 }) {
-  const [showNotifications, setShowNotifications] = useState(false);
+  const [showNotifications, setShowNotifications] =
+    useState(false);
 
   const [notifications, setNotifications] = useState([]);
 
@@ -51,7 +117,8 @@ export default function EmployeeHeader({
   const [loadingNotifications, setLoadingNotifications] =
     useState(false);
 
-  const [notificationError, setNotificationError] = useState("");
+  const [notificationError, setNotificationError] =
+    useState("");
 
   const displayName =
     employeeName ||
@@ -62,37 +129,40 @@ export default function EmployeeHeader({
   // GỌI API
   // =====================================================
 
-  const apiRequest = useCallback(async (path, options = {}) => {
-    const token = getToken();
+  const apiRequest = useCallback(
+    async (path, options = {}) => {
+      const token = getToken();
 
-    if (!token) {
-      throw new Error("Phiên đăng nhập đã hết hạn.");
-    }
+      if (!token) {
+        throw new Error("Phiên đăng nhập đã hết hạn.");
+      }
 
-    const response = await fetch(`${API_URL}${path}`, {
-      ...options,
+      const response = await fetch(`${API_URL}${path}`, {
+        ...options,
 
-      headers: {
-        ...(options.body
-          ? { "Content-Type": "application/json" }
-          : {}),
+        headers: {
+          ...(options.body
+            ? { "Content-Type": "application/json" }
+            : {}),
 
-        Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
 
-        ...options.headers,
-      },
-    });
+          ...options.headers,
+        },
+      });
 
-    const data = await response.json().catch(() => ({}));
+      const data = await response.json().catch(() => ({}));
 
-    if (!response.ok || data.success === false) {
-      throw new Error(
-        data.message || "Không thể tải thông báo."
-      );
-    }
+      if (!response.ok || data.success === false) {
+        throw new Error(
+          data.message || "Không thể tải thông báo."
+        );
+      }
 
-    return data;
-  }, []);
+      return data;
+    },
+    []
+  );
 
   // =====================================================
   // TẢI THÔNG BÁO
@@ -115,14 +185,24 @@ export default function EmployeeHeader({
 
         setNotifications(list);
 
+        const unread = list.filter(
+          (item) => !item.isRead
+        ).length;
+
         setUnreadCount(
-          Number(data.unreadCount) ||
-            list.filter((item) => !item.isRead).length
+          Number.isFinite(Number(data.unreadCount))
+            ? Number(data.unreadCount)
+            : unread
         );
       } catch (error) {
-        console.error("Load notifications error:", error);
+        console.error(
+          "Load notifications error:",
+          error
+        );
 
-        setNotificationError(error.message);
+        setNotificationError(
+          error.message || "Không thể tải thông báo."
+        );
       } finally {
         if (showLoading) {
           setLoadingNotifications(false);
@@ -165,7 +245,10 @@ export default function EmployeeHeader({
     return () => {
       clearInterval(interval);
 
-      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener(
+        "focus",
+        handleFocus
+      );
 
       document.removeEventListener(
         "visibilitychange",
@@ -206,7 +289,10 @@ export default function EmployeeHeader({
 
       return true;
     } catch (error) {
-      console.error("Mark notification read error:", error);
+      console.error(
+        "Mark notification read error:",
+        error
+      );
 
       setNotificationError(error.message);
 
@@ -233,7 +319,10 @@ export default function EmployeeHeader({
 
       setUnreadCount(0);
     } catch (error) {
-      console.error("Mark all notifications read error:", error);
+      console.error(
+        "Mark all notifications read error:",
+        error
+      );
 
       setNotificationError(error.message);
     }
@@ -264,9 +353,11 @@ export default function EmployeeHeader({
   const formatTime = (date) => {
     if (!date) return "";
 
-    const diff = Date.now() - new Date(date).getTime();
+    const timestamp = new Date(date).getTime();
 
-    if (Number.isNaN(diff)) return "";
+    if (Number.isNaN(timestamp)) return "";
+
+    const diff = Date.now() - timestamp;
 
     const minutes = Math.floor(diff / 60000);
 
@@ -296,6 +387,14 @@ export default function EmployeeHeader({
   // =====================================================
 
   const getNotificationIcon = (notification) => {
+    // THƯỞNG / PHẠT
+    if (isRewardNotification(notification)) {
+      return isPenaltyNotification(notification)
+        ? <AlertTriangle size={20} />
+        : <Gift size={20} />;
+    }
+
+    // DỰ ÁN
     if (
       notification.type === "project_assigned" ||
       notification.type === "project_updated"
@@ -303,10 +402,14 @@ export default function EmployeeHeader({
       return <FolderKanban size={20} />;
     }
 
-    if (notification.type === "work_schedule_updated") {
+    // LỊCH LÀM VIỆC
+    if (
+      notification.type === "work_schedule_updated"
+    ) {
       return <Clock size={20} />;
     }
 
+    // NGHỈ PHÉP ĐƯỢC DUYỆT
     if (
       notification.type === "leave_approved" ||
       notification.status === "approved" ||
@@ -315,6 +418,7 @@ export default function EmployeeHeader({
       return <CalendarCheck size={20} />;
     }
 
+    // NGHỈ PHÉP BỊ TỪ CHỐI
     if (
       notification.type === "leave_rejected" ||
       notification.status === "rejected" ||
@@ -331,6 +435,14 @@ export default function EmployeeHeader({
   // =====================================================
 
   const getNotificationClass = (notification) => {
+    // THƯỞNG / PHẠT
+    if (isRewardNotification(notification)) {
+      return isPenaltyNotification(notification)
+        ? "rejected"
+        : "approved";
+    }
+
+    // DỰ ÁN
     if (
       notification.type === "project_assigned" ||
       notification.type === "project_updated"
@@ -338,20 +450,27 @@ export default function EmployeeHeader({
       return "project";
     }
 
-    if (notification.type === "work_schedule_updated") {
-      return "approved";
-    }
-
+    // LỊCH LÀM VIỆC
     if (
-      notification.type === "leave_approved" ||
-      notification.status === "approved"
+      notification.type === "work_schedule_updated"
     ) {
       return "approved";
     }
 
+    // NGHỈ PHÉP ĐƯỢC DUYỆT
+    if (
+      notification.type === "leave_approved" ||
+      notification.status === "approved" ||
+      notification.status === "Đã duyệt"
+    ) {
+      return "approved";
+    }
+
+    // NGHỈ PHÉP BỊ TỪ CHỐI
     if (
       notification.type === "leave_rejected" ||
-      notification.status === "rejected"
+      notification.status === "rejected" ||
+      notification.status === "Từ chối"
     ) {
       return "rejected";
     }
@@ -369,6 +488,7 @@ export default function EmployeeHeader({
       {/* BÊN TRÁI */}
 
       <div className="employee-header-left">
+
         <button
           className="employee-menu-toggle"
           onClick={() => setOpen?.(true)}
@@ -380,11 +500,12 @@ export default function EmployeeHeader({
 
         <div>
           <div className="employee-breadcrumb">
-            Trang chủ / <strong>{title}</strong>
+            Trang chủ / <strong>{safeText(title)}</strong>
           </div>
 
-          <h3>{title}</h3>
+          <h3>{safeText(title)}</h3>
         </div>
+
       </div>
 
       {/* BÊN PHẢI */}
@@ -396,7 +517,10 @@ export default function EmployeeHeader({
         <div className="employee-header-search">
           <Search size={17} />
 
-          <input placeholder="Tìm kiếm..." />
+          <input
+            placeholder="Tìm kiếm..."
+            aria-label="Tìm kiếm"
+          />
         </div>
 
         {/* CHUÔNG THÔNG BÁO */}
@@ -416,6 +540,7 @@ export default function EmployeeHeader({
               }
             }}
             aria-label="Thông báo"
+            aria-expanded={showNotifications}
           >
             <Bell size={20} />
 
@@ -438,6 +563,7 @@ export default function EmployeeHeader({
                 {/* TIÊU ĐỀ */}
 
                 <div className="employee-notification-heading">
+
                   <div>
                     <h3>Thông báo</h3>
 
@@ -454,6 +580,7 @@ export default function EmployeeHeader({
                   >
                     <X size={18} />
                   </button>
+
                 </div>
 
                 {/* ĐÁNH DẤU TẤT CẢ */}
@@ -475,15 +602,20 @@ export default function EmployeeHeader({
 
                   {loadingNotifications ? (
                     <div className="employee-notification-empty">
+
                       <Clock size={28} />
 
                       <p>Đang tải thông báo...</p>
+
                     </div>
                   ) : notificationError ? (
                     <div className="employee-notification-empty">
+
                       <Bell size={30} />
 
-                      <strong>Không thể tải thông báo</strong>
+                      <strong>
+                        Không thể tải thông báo
+                      </strong>
 
                       <p>{notificationError}</p>
 
@@ -493,6 +625,7 @@ export default function EmployeeHeader({
                       >
                         Thử lại
                       </button>
+
                     </div>
                   ) : notifications.length > 0 ? (
                     notifications.map((item) => (
@@ -506,6 +639,7 @@ export default function EmployeeHeader({
                           handleNotificationClick(item)
                         }
                       >
+
                         <div
                           className={`employee-notification-icon ${getNotificationClass(
                             item
@@ -515,24 +649,35 @@ export default function EmployeeHeader({
                         </div>
 
                         <div className="employee-notification-content">
-                          <strong>{item.title}</strong>
 
-                          <p>{item.message}</p>
+                          <strong>
+                            {safeText(
+                              item.title,
+                              "Thông báo"
+                            )}
+                          </strong>
+
+                          <p>
+                            {safeText(item.message)}
+                          </p>
 
                           <span>
                             <Clock size={12} />
 
                             {formatTime(item.createdAt)}
                           </span>
+
                         </div>
 
                         {!item.isRead && (
                           <span className="employee-notification-unread-dot" />
                         )}
+
                       </button>
                     ))
                   ) : (
                     <div className="employee-notification-empty">
+
                       <Bell size={35} />
 
                       <strong>Chưa có thông báo</strong>
@@ -541,34 +686,42 @@ export default function EmployeeHeader({
                         Các thông báo về dự án, nghỉ phép và
                         thay đổi giờ làm việc sẽ xuất hiện ở đây.
                       </p>
+
                     </div>
                   )}
 
                 </div>
+
               </div>
             </>
           )}
+
         </div>
 
         {/* THÔNG TIN NHÂN VIÊN */}
 
         <div className="employee-header-profile">
+
           <div className="employee-avatar">
-            {(displayName.trim().split(" ").pop() || "NV")
+            {(String(displayName).trim().split(" ").pop() || "NV")
               .slice(0, 2)
               .toUpperCase()}
           </div>
 
           <div className="employee-header-user">
-            <strong>{displayName}</strong>
+
+            <strong>{safeText(displayName, "Nhân viên")}</strong>
 
             <span>Nhân viên</span>
+
           </div>
 
           <ChevronDown size={15} />
+
         </div>
 
       </div>
+
     </header>
   );
 }

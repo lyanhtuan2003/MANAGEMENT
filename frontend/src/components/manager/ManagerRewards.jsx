@@ -1,5 +1,6 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+
 import {
   Gift,
   AlertTriangle,
@@ -13,11 +14,13 @@ import {
   Wallet,
   FileText,
 } from "lucide-react";
+
 import "./ManagerRewards.css";
 
 // ========================================
 // API CONFIG
 // ========================================
+
 const RAW_API_URL =
   import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -31,8 +34,10 @@ const API_URL = `${API_BASE_URL}/api`;
 // ========================================
 // HELPERS
 // ========================================
+
 function getToday() {
   const now = new Date();
+
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, "0");
   const day = String(now.getDate()).padStart(2, "0");
@@ -82,6 +87,7 @@ const getInputDate = (value) => {
 
 const isActiveRewardEmployee = (employee) => {
   const validRole = ["employee", "accountant"].includes(employee?.role);
+
   const inactiveStatuses = [
     "resigned",
     "inactive",
@@ -99,6 +105,7 @@ const isActiveRewardEmployee = (employee) => {
 // ========================================
 // MAIN COMPONENT
 // ========================================
+
 export default function ManagerRewards() {
   const [records, setRecords] = useState([]);
   const [rewardEmployees, setRewardEmployees] = useState([]);
@@ -123,6 +130,12 @@ export default function ManagerRewards() {
   const [form, setForm] = useState(createEmptyForm);
   const [keyword, setKeyword] = useState("");
   const [filterType, setFilterType] = useState("Tất cả");
+
+  // Tìm kiếm nhân viên trong form
+  const [employeeSearch, setEmployeeSearch] = useState("");
+  const [showEmployeeDropdown, setShowEmployeeDropdown] =
+    useState(false);
+
   // PHÂN TRANG
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
@@ -134,6 +147,7 @@ export default function ManagerRewards() {
   // ========================================
   // API REQUEST
   // ========================================
+
   const apiRequest = useCallback(async (path, options = {}) => {
     const token = getToken();
 
@@ -168,6 +182,7 @@ export default function ManagerRewards() {
   // ========================================
   // LOAD REWARD RECORDS
   // ========================================
+
   const fetchRecords = useCallback(async () => {
     try {
       setLoading(true);
@@ -205,6 +220,7 @@ export default function ManagerRewards() {
   // LOAD EMPLOYEES + ACCOUNTANTS
   // GET /api/rewards/manager/employees
   // ========================================
+
   const fetchRewardEmployees = useCallback(async () => {
     try {
       setEmployeesLoading(true);
@@ -234,6 +250,7 @@ export default function ManagerRewards() {
   // ========================================
   // INITIAL LOAD
   // ========================================
+
   useEffect(() => {
     fetchRecords();
     fetchRewardEmployees();
@@ -242,14 +259,46 @@ export default function ManagerRewards() {
   // ========================================
   // ACTIVE EMPLOYEES
   // ========================================
+
   const activeEmployees = useMemo(
     () => rewardEmployees.filter(isActiveRewardEmployee),
     [rewardEmployees]
   );
 
   // ========================================
-  // SEARCH + FILTER
+  // SEARCH EMPLOYEES
   // ========================================
+
+  const filteredRewardEmployees = useMemo(() => {
+    const search = employeeSearch.trim().toLowerCase();
+
+    if (!search) return activeEmployees;
+
+    return activeEmployees.filter((employee) => {
+      const searchableValues = [
+        employee.name,
+        employee.employeeCode,
+        employee.department,
+        employee.position,
+        employee.jobTitle,
+        employee.role === "accountant" ? "kế toán" : "",
+      ];
+
+      return searchableValues.some((value) =>
+        String(value || "").toLowerCase().includes(search)
+      );
+    });
+  }, [activeEmployees, employeeSearch]);
+
+  const selectedRewardEmployee = activeEmployees.find(
+    (employee) =>
+      String(employee._id) === String(form.employeeId)
+  );
+
+  // ========================================
+  // SEARCH + FILTER RECORDS
+  // ========================================
+
   const filteredRecords = useMemo(() => {
     const search = keyword.trim().toLowerCase();
 
@@ -280,62 +329,61 @@ export default function ManagerRewards() {
     });
   }, [records, keyword, filterType]);
 
-    // ========================================
-// PAGINATION
-// ========================================
+  // ========================================
+  // PAGINATION
+  // ========================================
 
-// Tổng số trang sau khi tìm kiếm và lọc
-const totalPages = Math.max(
-  1,
-  Math.ceil(filteredRecords.length / pageSize)
-);
-
-// Danh sách quyết định của trang hiện tại
-const paginatedRecords = useMemo(() => {
-  const startIndex = (currentPage - 1) * pageSize;
-
-  return filteredRecords.slice(
-    startIndex,
-    startIndex + pageSize
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredRecords.length / pageSize)
   );
-}, [filteredRecords, currentPage]);
 
-// Vị trí bản ghi đang hiển thị
-const displayedFrom =
-  filteredRecords.length === 0
-    ? 0
-    : (currentPage - 1) * pageSize + 1;
+  const paginatedRecords = useMemo(() => {
+    const startIndex = (currentPage - 1) * pageSize;
 
-const displayedTo = Math.min(
-  currentPage * pageSize,
-  filteredRecords.length
-);
+    return filteredRecords.slice(
+      startIndex,
+      startIndex + pageSize
+    );
+  }, [filteredRecords, currentPage]);
 
-// Chuyển trang
-const goToPage = (page) => {
-  setCurrentPage(
-    Math.max(1, Math.min(page, totalPages))
+  const displayedFrom =
+    filteredRecords.length === 0
+      ? 0
+      : (currentPage - 1) * pageSize + 1;
+
+  const displayedTo = Math.min(
+    currentPage * pageSize,
+    filteredRecords.length
   );
-};
 
-// Khi tìm kiếm hoặc lọc thì quay về trang đầu
-useEffect(() => {
-  setCurrentPage(1);
-}, [keyword, filterType]);
+  const goToPage = (page) => {
+    setCurrentPage(
+      Math.max(1, Math.min(page, totalPages))
+    );
+  };
 
-// Khi xóa bản ghi làm giảm số trang,
-// tự động chuyển về trang hợp lệ
-useEffect(() => {
-  if (currentPage > totalPages) {
-    setCurrentPage(totalPages);
-  }
-}, [currentPage, totalPages]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [keyword, filterType]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
+
   // ========================================
   // OPEN CREATE FORM
   // ========================================
+
   const openCreateForm = () => {
     setEditingId(null);
     setForm(createEmptyForm());
+
+    setEmployeeSearch("");
+    setShowEmployeeDropdown(false);
+
     setError("");
     setSuccess("");
     setShowForm(true);
@@ -346,6 +394,7 @@ useEffect(() => {
   // ========================================
   // OPEN EDIT FORM
   // ========================================
+
   const openEditForm = (record) => {
     const employeeId =
       record.employee?._id ||
@@ -362,6 +411,9 @@ useEffect(() => {
       date: getInputDate(record.date),
     });
 
+    setEmployeeSearch("");
+    setShowEmployeeDropdown(false);
+
     setError("");
     setSuccess("");
     setShowForm(true);
@@ -372,18 +424,24 @@ useEffect(() => {
   // ========================================
   // CLOSE FORM
   // ========================================
+
   const closeForm = () => {
     if (saving) return;
 
     setShowForm(false);
     setEditingId(null);
     setForm(createEmptyForm());
+
+    setEmployeeSearch("");
+    setShowEmployeeDropdown(false);
+
     setError("");
   };
 
   // ========================================
   // SAVE / UPDATE REWARD
   // ========================================
+
   const saveRecord = async (event) => {
     event.preventDefault();
 
@@ -450,6 +508,9 @@ useEffect(() => {
       setEditingId(null);
       setForm(createEmptyForm());
 
+      setEmployeeSearch("");
+      setShowEmployeeDropdown(false);
+
       setSuccess(
         data.message || "Lưu quyết định thành công."
       );
@@ -469,6 +530,7 @@ useEffect(() => {
   // ========================================
   // OPEN DELETE CONFIRMATION MODAL
   // ========================================
+
   const handleDelete = (record) => {
     setError("");
     setSuccess("");
@@ -478,6 +540,7 @@ useEffect(() => {
   // ========================================
   // CONFIRM DELETE
   // ========================================
+
   const confirmDeleteReward = async () => {
     if (!deleteTarget || deleting) return;
 
@@ -514,6 +577,7 @@ useEffect(() => {
   // ========================================
   // RENDER
   // ========================================
+
   return (
     <section className="manager-panel manager-rewards">
 
@@ -792,58 +856,62 @@ useEffect(() => {
 
         </table>
       </div>
-            {/* PHÂN TRANG */}
-{!loading && filteredRecords.length > 0 && (
-  <div className="reward-pagination">
-    <div className="reward-pagination-info">
-      Đang xem{" "}
-      <strong>
-        {displayedFrom}–{displayedTo}
-      </strong>{" "}
-      trên tổng{" "}
-      <strong>{filteredRecords.length}</strong>{" "}
-      quyết định
-    </div>
 
-    <div className="reward-pagination-controls">
-      <button
-        type="button"
-        className="reward-page-btn"
-        disabled={currentPage === 1}
-        onClick={() => goToPage(currentPage - 1)}
-      >
-        Trang trước
-      </button>
+      {/* PHÂN TRANG */}
+      {!loading && filteredRecords.length > 0 && (
+        <div className="reward-pagination">
 
-      <div className="reward-page-numbers">
-        {Array.from(
-          { length: totalPages },
-          (_, index) => index + 1
-        ).map((page) => (
-          <button
-            key={page}
-            type="button"
-            className={`reward-page-number ${
-              currentPage === page ? "active" : ""
-            }`}
-            onClick={() => goToPage(page)}
-          >
-            {page}
-          </button>
-        ))}
-      </div>
+          <div className="reward-pagination-info">
+            Đang xem{" "}
+            <strong>
+              {displayedFrom}–{displayedTo}
+            </strong>{" "}
+            trên tổng{" "}
+            <strong>{filteredRecords.length}</strong>{" "}
+            quyết định
+          </div>
 
-      <button
-        type="button"
-        className="reward-page-btn"
-        disabled={currentPage === totalPages}
-        onClick={() => goToPage(currentPage + 1)}
-      >
-        Trang sau
-      </button>
-    </div>
-  </div>
-)}
+          <div className="reward-pagination-controls">
+
+            <button
+              type="button"
+              className="reward-page-btn"
+              disabled={currentPage === 1}
+              onClick={() => goToPage(currentPage - 1)}
+            >
+              Trang trước
+            </button>
+
+            <div className="reward-page-numbers">
+              {Array.from(
+                { length: totalPages },
+                (_, index) => index + 1
+              ).map((page) => (
+                <button
+                  key={page}
+                  type="button"
+                  className={`reward-page-number ${
+                    currentPage === page ? "active" : ""
+                  }`}
+                  onClick={() => goToPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="reward-page-btn"
+              disabled={currentPage === totalPages}
+              onClick={() => goToPage(currentPage + 1)}
+            >
+              Trang sau
+            </button>
+
+          </div>
+        </div>
+      )}
 
       {/* CREATE / EDIT FORM */}
       {showForm && (
@@ -893,44 +961,119 @@ useEffect(() => {
               </div>
             )}
 
-            {/* EMPLOYEE */}
-            <label>
+            {/* EMPLOYEE SEARCH */}
+            <label className="reward-employee-field">
               Nhân viên
 
-              <select
-                required
-                value={form.employeeId}
-                onChange={(event) =>
-                  setForm((previous) => ({
-                    ...previous,
-                    employeeId: event.target.value,
-                  }))
-                }
-                disabled={employeesLoading}
-              >
-                <option value="">
-                  {employeesLoading
-                    ? "Đang tải danh sách nhân viên..."
-                    : "Chọn nhân viên"}
-                </option>
+              <div className="reward-employee-search-select">
+                <input
+                  type="text"
+                  required
+                  autoComplete="off"
+                  placeholder={
+                    employeesLoading
+                      ? "Đang tải danh sách nhân viên..."
+                      : "Tìm theo tên, mã, phòng ban, chức vụ..."
+                  }
+                  value={
+                    showEmployeeDropdown
+                      ? employeeSearch
+                      : selectedRewardEmployee
+                        ? `${selectedRewardEmployee.name}${
+                            selectedRewardEmployee.employeeCode
+                              ? ` - ${selectedRewardEmployee.employeeCode}`
+                              : ""
+                          }`
+                        : employeeSearch
+                  }
+                  disabled={employeesLoading}
+                  onFocus={() => {
+                    setEmployeeSearch("");
+                    setShowEmployeeDropdown(true);
+                  }}
+                  onChange={(event) => {
+                    const value = event.target.value;
 
-                {activeEmployees.map((employee) => (
-                  <option
-                    key={employee._id}
-                    value={employee._id}
+                    setEmployeeSearch(value);
+                    setShowEmployeeDropdown(true);
+
+                    setForm((previous) => ({
+                      ...previous,
+                      employeeId: "",
+                    }));
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape") {
+                      setShowEmployeeDropdown(false);
+                    }
+                  }}
+                  aria-expanded={showEmployeeDropdown}
+                  aria-controls="reward-employee-options"
+                />
+
+                {showEmployeeDropdown && !employeesLoading && (
+                  <div
+                    className="reward-employee-dropdown"
+                    id="reward-employee-options"
+                    role="listbox"
                   >
-                    {employee.name}
+                    {filteredRewardEmployees.length > 0 ? (
+                      filteredRewardEmployees.map((employee) => (
+                        <button
+                          type="button"
+                          key={employee._id}
+                          className="reward-employee-option"
+                          role="option"
+                          aria-selected={
+                            String(form.employeeId) ===
+                            String(employee._id)
+                          }
+                          onClick={() => {
+                            setForm((previous) => ({
+                              ...previous,
+                              employeeId: employee._id,
+                            }));
 
-                    {employee.employeeCode
-                      ? ` - ${employee.employeeCode}`
-                      : ""}
+                            setEmployeeSearch("");
+                            setShowEmployeeDropdown(false);
+                          }}
+                        >
+                          <strong>{employee.name}</strong>
 
-                    {employee.role === "accountant"
-                      ? " (Kế toán)"
-                      : ""}
-                  </option>
-                ))}
-              </select>
+                          <small>
+                            {employee.employeeCode || "Chưa có mã"}
+
+                            {employee.department
+                              ? ` • ${employee.department}`
+                              : ""}
+
+                            {employee.position || employee.jobTitle
+                              ? ` • ${
+                                  employee.position ||
+                                  employee.jobTitle
+                                }`
+                              : ""}
+
+                            {employee.role === "accountant"
+                              ? " • Kế toán"
+                              : ""}
+                          </small>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="reward-employee-empty">
+                        Không tìm thấy nhân viên phù hợp.
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {!form.employeeId && (
+                <small>
+                  Vui lòng tìm kiếm và chọn một nhân viên.
+                </small>
+              )}
 
               {!employeesLoading &&
                 activeEmployees.length === 0 && (
