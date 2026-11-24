@@ -1,0 +1,628 @@
+
+/* ========================================
+   MY REWARDS - BASE
+======================================== */
+
+.my-rewards {
+  width: 100%;
+  min-width: 0;
+  color: #1f2937;
+  box-sizing: border-box;
+}
+
+.my-rewards *,
+.my-rewards *::before,
+.my-rewards *::after {
+  box-sizing: border-box;
+}
+
+/* ========================================
+   HEADER
+======================================== */
+
+.my-rewards-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+  min-width: 0;
+}
+
+.my-rewards-heading h2 {
+  margin: 0 0 6px;
+  color: #172033;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.my-rewards-heading p {
+  margin: 0;
+  color: #7b8495;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.my-rewards-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 8px;
+  min-height: 40px;
+  padding: 9px 15px;
+  border: 1px solid #dce3ed;
+  border-radius: 8px;
+  background: #fff;
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.my-rewards-refresh:hover {
+  border-color: #3b82f6;
+  color: #2563eb;
+  background: #f8fbff;
+}
+
+.my-rewards-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   STATISTICS
+======================================== */
+
+.my-rewards-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.my-rewards-stat {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  min-height: 88px;
+  padding: 18px;
+  border: 1px solid #e8edf4;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.035);
+}
+
+.my-rewards-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border-radius: 12px;
+  background: #eef2ff;
+  color: #5369d9;
+}
+
+.reward-stat .my-rewards-stat-icon {
+  background: #eafaf1;
+  color: #16a05d;
+}
+
+.penalty-stat .my-rewards-stat-icon {
+  background: #fff0ef;
+  color: #e05252;
+}
+
+.my-rewards-stat span {
+  display: block;
+  margin-bottom: 6px;
+  color: #7b8495;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.my-rewards-stat strong {
+  display: block;
+  color: #172033;
+  font-size: 19px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* ========================================
+   TABLE CARD
+======================================== */
+
+.my-rewards-table-card {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e8edf4;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 3px 12px rgba(15, 23, 42, 0.035);
+}
+
+.my-rewards-table-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 20px;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.my-rewards-table-heading h3 {
+  margin: 0 0 6px;
+  color: #172033;
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.my-rewards-table-heading p {
+  margin: 0;
+  color: #7b8495;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ========================================
+   TABLE DESKTOP
+======================================== */
+
+.my-rewards-table-wrap {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.my-rewards-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.my-rewards-table th {
+  padding: 14px 16px;
+  background: #f8fafc;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.my-rewards-table td {
+  padding: 16px;
+  border-top: 1px solid #edf0f5;
+  color: #475569;
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.my-rewards-table tbody tr {
+  transition: background 0.2s ease;
+}
+
+.my-rewards-table tbody tr:hover {
+  background: #fafcff;
+}
+
+.my-rewards-reason {
+  max-width: 260px;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+/* ========================================
+   TYPE AND STATUS
+======================================== */
+
+.my-rewards-type,
+.my-rewards-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.my-rewards-type.reward {
+  background: #e9f9ef;
+  color: #16834a;
+}
+
+.my-rewards-type.penalty {
+  background: #fff0ef;
+  color: #d64747;
+}
+
+.my-rewards-status.settled {
+  background: #eaf2ff;
+  color: #3568bb;
+}
+
+.my-rewards-status.pending {
+  background: #fff7e6;
+  color: #a66a0b;
+}
+
+.money-positive {
+  color: #159653;
+  white-space: nowrap;
+}
+
+.money-negative {
+  color: #dc4545;
+  white-space: nowrap;
+}
+
+.my-rewards-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* ========================================
+   LOADING / EMPTY / ERROR
+======================================== */
+
+.my-rewards-state {
+  display: flex;
+  min-height: 190px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 24px;
+  color: #8993a4;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.my-rewards-state strong {
+  color: #475569;
+}
+
+.my-rewards-error {
+  color: #d64747;
+}
+
+.my-rewards-error button {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 7px;
+  background: #fff0ef;
+  color: #d64747;
+  cursor: pointer;
+}
+
+.my-rewards-spinner {
+  animation: my-rewards-spin 1s linear infinite;
+}
+
+@keyframes my-rewards-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========================================
+   TABLET
+======================================== */
+
+@media (max-width: 1024px) {
+  .my-rewards-stats {
+    gap: 12px;
+  }
+
+  .my-rewards-stat {
+    gap: 10px;
+    padding: 15px;
+  }
+
+  .my-rewards-stat strong {
+    font-size: 17px;
+  }
+
+  .my-rewards-table-heading {
+    padding: 17px;
+  }
+}
+
+/* ========================================
+   MOBILE / TABLET NHỎ
+======================================== */
+
+@media (max-width: 768px) {
+  .my-rewards {
+    width: 100%;
+  }
+
+  .my-rewards-heading {
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .my-rewards-heading h2 {
+    font-size: 19px;
+  }
+
+  .my-rewards-heading p {
+    font-size: 12px;
+  }
+
+  .my-rewards-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .my-rewards-stat {
+    min-height: 78px;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .my-rewards-stat:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .my-rewards-stat-icon {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .my-rewards-stat span {
+    font-size: 12px;
+  }
+
+  .my-rewards-stat strong {
+    font-size: 16px;
+  }
+
+  .my-rewards-table-heading {
+    padding: 15px;
+  }
+
+  /* Chuyển bảng thành từng dòng dạng card */
+  .my-rewards-table-wrap {
+    overflow: visible;
+    padding: 12px;
+  }
+
+  .my-rewards-table {
+    display: block;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .my-rewards-table thead {
+    display: none;
+  }
+
+  .my-rewards-table tbody {
+    display: grid;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .my-rewards-table tbody tr {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 12px;
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #e8edf4;
+    border-radius: 10px;
+    background: #fff;
+  }
+
+  .my-rewards-table tbody tr:hover {
+    background: #fafcff;
+  }
+
+  .my-rewards-table td {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-width: 0;
+    padding: 10px 2px;
+    border: 0;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+  }
+
+  .my-rewards-table td::before {
+    display: block;
+    margin-bottom: 6px;
+    color: #94a3b8;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .my-rewards-table td:nth-child(1)::before {
+    content: "STT";
+  }
+
+  .my-rewards-table td:nth-child(2)::before {
+    content: "Loại";
+  }
+
+  .my-rewards-table td:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .my-rewards-table td:nth-child(3)::before {
+    content: "Lý do";
+  }
+
+  .my-rewards-table td:nth-child(4)::before {
+    content: "Số tiền";
+  }
+
+  .my-rewards-table td:nth-child(5)::before {
+    content: "Ngày ghi nhận";
+  }
+
+  .my-rewards-table td:nth-child(6) {
+    grid-column: 1 / -1;
+  }
+
+  .my-rewards-table td:nth-child(6)::before {
+    content: "Trạng thái";
+  }
+
+  .my-rewards-reason {
+    max-width: none;
+  }
+
+  .my-rewards-state {
+    min-height: 160px;
+    padding: 20px 14px;
+    font-size: 13px;
+  }
+}
+
+/* ========================================
+   MOBILE NHỎ
+======================================== */
+
+@media (max-width: 480px) {
+  .my-rewards-heading {
+    align-items: flex-start;
+  }
+
+  .my-rewards-heading h2 {
+    font-size: 17px;
+  }
+
+  .my-rewards-heading p {
+    font-size: 11px;
+  }
+
+  .my-rewards-refresh {
+    min-height: 36px;
+    gap: 5px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .my-rewards-stats {
+    gap: 8px;
+  }
+
+  .my-rewards-stat {
+    min-height: 72px;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .my-rewards-stat-icon {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+    border-radius: 9px;
+  }
+
+  .my-rewards-stat-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .my-rewards-stat span {
+    margin-bottom: 4px;
+    font-size: 11px;
+  }
+
+  .my-rewards-stat strong {
+    font-size: 14px;
+  }
+
+  .my-rewards-table-heading {
+    padding: 13px;
+  }
+
+  .my-rewards-table-heading h3 {
+    font-size: 15px;
+  }
+
+  .my-rewards-table-heading p {
+    font-size: 11px;
+  }
+
+  .my-rewards-table-wrap {
+    padding: 9px;
+  }
+
+  .my-rewards-table tbody {
+    gap: 9px;
+  }
+
+  .my-rewards-table tbody tr {
+    gap: 0 8px;
+    padding: 7px 10px;
+  }
+
+  .my-rewards-table td {
+    padding: 9px 1px;
+    font-size: 12px;
+  }
+
+  .my-rewards-type,
+  .my-rewards-status {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+
+  .my-rewards-date {
+    gap: 4px;
+    font-size: 11px;
+  }
+}
+
+/* ========================================
+   MÀN HÌNH RẤT NHỎ
+======================================== */
+
+@media (max-width: 350px) {
+  .my-rewards-heading {
+    flex-wrap: wrap;
+  }
+
+  .my-rewards-refresh {
+    width: 100%;
+  }
+
+  .my-rewards-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .my-rewards-stat:last-child {
+    grid-column: auto;
+  }
+
+  .my-rewards-table tbody tr {
+    grid-template-columns: 1fr;
+  }
+
+  .my-rewards-table td:nth-child(n) {
+    grid-column: 1;
+  }
+}

@@ -1,3 +1,4 @@
+
 import {
   useState,
   useCallback,
@@ -15,11 +16,13 @@ import MyProjects from "../../components/employee/MyProjects";
 import MyProfile from "../../components/employee/MyProfile";
 import ChangePassword from "../../components/employee/ChangePassword";
 
-// Trang quản lý thu chi dành riêng cho kế toán
+// Kế toán
 import AccountantCompanyFinance from "../../components/accountant/AccountantCompanyFinance";
-
-// Trang quản lý bảng lương toàn công ty
 import ManagerPayroll from "../../components/manager/ManagerPayroll";
+
+// Thưởng và phạt
+import ManagerRewards from "../../components/manager/ManagerRewards";
+import MyRewards from "../../components/employee/MyRewards";
 
 import "./EmployeeDashboard.css";
 
@@ -33,6 +36,8 @@ const pageTitles = {
   attendance: "Chấm công",
   payroll: "Bảng lương cá nhân",
   "manage-payroll": "Quản lý bảng lương nhân viên",
+  "manage-rewards": "Quản lý thưởng & phạt",
+  "my-rewards": "Thưởng & phạt của tôi",
   leave: "Xin nghỉ phép",
   projects: "Dự án của tôi",
   profile: "Hồ sơ cá nhân",
@@ -44,9 +49,7 @@ const pageTitles = {
 // ========================================
 
 const safeText = (value, fallback = "") => {
-  if (value === null || value === undefined) {
-    return fallback;
-  }
+  if (value === null || value === undefined) return fallback;
 
   if (
     typeof value === "string" ||
@@ -55,15 +58,9 @@ const safeText = (value, fallback = "") => {
     return String(value);
   }
 
-  if (value instanceof RegExp) {
-    return value.toString();
-  }
-
   if (typeof value === "object") {
     if (typeof value.name === "string") return value.name;
-    if (typeof value.fullName === "string") {
-      return value.fullName;
-    }
+    if (typeof value.fullName === "string") return value.fullName;
   }
 
   return fallback;
@@ -79,21 +76,13 @@ const getStoredUser = () => {
       localStorage.getItem("user") || "{}"
     );
 
-    if (
-      !user ||
-      typeof user !== "object" ||
-      Array.isArray(user)
-    ) {
+    if (!user || typeof user !== "object" || Array.isArray(user)) {
       return {};
     }
 
     return user;
   } catch (error) {
-    console.error(
-      "Không thể đọc thông tin người dùng:",
-      error
-    );
-
+    console.error("Không thể đọc thông tin người dùng:", error);
     return {};
   }
 };
@@ -133,6 +122,7 @@ export default function EmployeeDashboard({
     .toLowerCase();
 
   const isAccountant = role === "accountant";
+  const isEmployee = role === "employee";
 
   const mustChangePassword = Boolean(
     user?.mustChangePassword
@@ -142,19 +132,24 @@ export default function EmployeeDashboard({
   // ĐĂNG XUẤT
   // ========================================
 
-const handleLogout = useCallback(() => {
-  [
-    "token",
-    "authToken",
-    "accessToken",
-    "user",
-    "userRole",
-  ].forEach((key) => {
-    localStorage.removeItem(key);
-  });
+  const handleLogout = useCallback(() => {
+    if (typeof onLogout === "function") {
+      onLogout();
+      return;
+    }
 
-  window.location.href = "/login";
-}, []);
+    [
+      "token",
+      "authToken",
+      "accessToken",
+      "user",
+      "userRole",
+    ].forEach((key) => {
+      localStorage.removeItem(key);
+    });
+
+    window.location.href = "/login";
+  }, [onLogout]);
 
   // ========================================
   // CẬP NHẬT SAU KHI ĐỔI MẬT KHẨU
@@ -181,20 +176,24 @@ const handleLogout = useCallback(() => {
   );
 
   // ========================================
-  // CHUYỂN TRANG
+  // CHUYỂN TRANG VÀ KIỂM TRA QUYỀN
   // ========================================
 
   const handleChangePage = useCallback(
     (page) => {
-      // Nhân viên không được mở trang thu chi
-      if (page === "finance" && role !== "accountant") {
-        return;
-      }
+      // Chỉ kế toán được quản lý thu chi
+      if (page === "finance" && !isAccountant) return;
 
-      // Chỉ kế toán được quản lý bảng lương công ty
+      // Chỉ kế toán được quản lý bảng lương toàn công ty
+      if (page === "manage-payroll" && !isAccountant) return;
+
+      // Chỉ kế toán được quản lý thưởng phạt toàn công ty
+      if (page === "manage-rewards" && !isAccountant) return;
+
+      // Nhân viên và kế toán chỉ xem thưởng phạt cá nhân
       if (
-        page === "manage-payroll" &&
-        role !== "accountant"
+        page === "my-rewards" &&
+        !["employee", "accountant"].includes(role)
       ) {
         return;
       }
@@ -202,7 +201,7 @@ const handleLogout = useCallback(() => {
       setActivePage(page);
       setSidebarOpen(false);
     },
-    [role]
+    [isAccountant, role]
   );
 
   // ========================================
@@ -214,7 +213,7 @@ const handleLogout = useCallback(() => {
   }, [handleChangePage]);
 
   // ========================================
-  // TIÊU ĐỀ THEO VAI TRÒ
+  // TIÊU ĐỀ
   // ========================================
 
   const currentTitle = useMemo(() => {
@@ -222,12 +221,11 @@ const handleLogout = useCallback(() => {
   }, [activePage]);
 
   // ========================================
-  // HIỂN THỊ TỪNG TRANG
+  // HIỂN THỊ TRANG
   // ========================================
 
   const renderPage = () => {
     switch (activePage) {
-      // TỔNG QUAN
       case "overview":
         return (
           <EmployeeOverview
@@ -235,17 +233,11 @@ const handleLogout = useCallback(() => {
           />
         );
 
-      // QUẢN LÝ THU CHI - CHỈ KẾ TOÁN
+      // QUẢN LÝ THU CHI
       case "finance":
-        if (!isAccountant) {
-          return (
-            <EmployeeOverview
-              setActivePage={handleChangePage}
-            />
-          );
-        }
-
-        return <AccountantCompanyFinance />;
+        return isAccountant
+          ? <AccountantCompanyFinance />
+          : <EmployeeOverview setActivePage={handleChangePage} />;
 
       // CHẤM CÔNG
       case "attendance":
@@ -255,27 +247,33 @@ const handleLogout = useCallback(() => {
       case "payroll":
         return <Payroll />;
 
-      // QUẢN LÝ BẢNG LƯƠNG TOÀN CÔNG TY
+      // QUẢN LÝ BẢNG LƯƠNG
       case "manage-payroll":
-        if (!isAccountant) {
-          return (
-            <EmployeeOverview
-              setActivePage={handleChangePage}
-            />
-          );
-        }
+        return isAccountant
+          ? <ManagerPayroll />
+          : <EmployeeOverview setActivePage={handleChangePage} />;
 
-        return <ManagerPayroll />;
+      // QUẢN LÝ THƯỞNG VÀ PHẠT
+      case "manage-rewards":
+        return isAccountant
+          ? <ManagerRewards />
+          : <EmployeeOverview setActivePage={handleChangePage} />;
+
+      // THƯỞNG VÀ PHẠT CÁ NHÂN
+      case "my-rewards":
+        return ["employee", "accountant"].includes(role)
+          ? <MyRewards />
+          : <EmployeeOverview setActivePage={handleChangePage} />;
 
       // XIN NGHỈ PHÉP
       case "leave":
         return <LeaveRequest />;
 
-      // DỰ ÁN CỦA TÔI
+      // DỰ ÁN
       case "projects":
         return <MyProjects />;
 
-      // HỒ SƠ CÁ NHÂN
+      // HỒ SƠ
       case "profile":
         return <MyProfile />;
 

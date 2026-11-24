@@ -14,6 +14,7 @@ import {
   KeyRound,
   ArrowLeftRight,
   ShieldAlert,
+  Gift,
 } from "lucide-react";
 
 // ========================================
@@ -24,6 +25,7 @@ const commonMenus = [
   { id: "overview", label: "Tổng quan", icon: LayoutDashboard },
   { id: "attendance", label: "Chấm công", icon: Clock },
   { id: "payroll", label: "Bảng lương", icon: Wallet },
+  { id: "my-rewards", label: "Thưởng & phạt của tôi", icon: Gift },
   { id: "leave", label: "Xin nghỉ phép", icon: CalendarDays },
   { id: "projects", label: "Dự án của tôi", icon: BriefcaseBusiness },
   { id: "profile", label: "Hồ sơ cá nhân", icon: UserRound },
@@ -38,10 +40,9 @@ const accountantMenus = [
   { id: "finance", label: "Quản lý thu chi", icon: ArrowLeftRight },
   { id: "attendance", label: "Chấm công", icon: Clock },
   { id: "payroll", label: "Bảng lương", icon: Wallet },
-
-  // MỤC MỚI: QUẢN LÝ BẢNG LƯƠNG TOÀN CÔNG TY
+  { id: "my-rewards", label: "Thưởng & phạt của tôi", icon: Gift },
   { id: "manage-payroll", label: "Quản lý bảng lương", icon: Wallet },
-
+  { id: "manage-rewards", label: "Quản lý thưởng & phạt", icon: Gift },
   { id: "leave", label: "Xin nghỉ phép", icon: CalendarDays },
   { id: "projects", label: "Dự án của tôi", icon: BriefcaseBusiness },
   { id: "profile", label: "Hồ sơ cá nhân", icon: UserRound },
@@ -77,7 +78,6 @@ export default function EmployeeSidebar({
 
   const isAccountant = currentRole === "accountant";
 
-  // Chỉ kế toán có thêm menu quản lý thu chi và bảng lương
   const menus = isAccountant ? accountantMenus : commonMenus;
 
   // ========================================
@@ -102,17 +102,28 @@ export default function EmployeeSidebar({
     .join("");
 
   // ========================================
-  // CHUYỂN MENU
+  // CHUYỂN MENU VÀ KIỂM TRA QUYỀN
   // ========================================
 
   const handleNavigate = (page) => {
-    // Chỉ kế toán được sử dụng quản lý thu chi
+    // Chỉ kế toán được quản lý thu chi
     if (page === "finance" && !isAccountant) {
       return;
     }
 
-    // Chỉ kế toán được quản lý bảng lương toàn công ty
-    if (page === "manage-payroll" && !isAccountant) {
+    // Chỉ kế toán được quản lý bảng lương và thưởng/phạt toàn công ty
+    if (
+      ["manage-payroll", "manage-rewards"].includes(page) &&
+      !isAccountant
+    ) {
+      return;
+    }
+
+    // Nhân viên và kế toán được xem lịch sử thưởng/phạt cá nhân
+    if (
+      page === "my-rewards" &&
+      !["employee", "accountant"].includes(currentRole)
+    ) {
       return;
     }
 

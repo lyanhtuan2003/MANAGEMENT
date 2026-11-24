@@ -1683,3 +1683,307 @@ form.manager-modal {
   outline: 3px solid rgba(98, 86, 223, 0.25);
   outline-offset: 2px;
 }
+
+/* =====================================================
+   FIX RESPONSIVE LỊCH SỬ CHẤM CÔNG - MOBILE
+   Áp dụng riêng cho modal lịch sử nhân viên
+===================================================== */
+
+@media (max-width: 600px) {
+
+  /* Modal nền */
+  .manager-modal-backdrop:has(.attendance-employee-history-modal) {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 100000 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    padding: 10px !important;
+    overflow: hidden !important;
+  }
+
+  /* Khung lịch sử */
+  .manager-modal.attendance-employee-history-modal {
+    display: block !important;
+    flex: 0 1 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    max-height: calc(100dvh - 20px) !important;
+    margin: 0 !important;
+    padding: 16px !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    border-radius: 14px !important;
+  }
+
+  /* Tiêu đề */
+  .attendance-employee-history-modal .manager-modal-heading {
+    align-items: flex-start !important;
+    gap: 10px !important;
+    margin-bottom: 15px !important;
+  }
+
+  .attendance-employee-history-modal .manager-modal-heading h3 {
+    font-size: 16px !important;
+  }
+
+  .attendance-employee-history-modal .manager-modal-heading p {
+    font-size: 11px !important;
+  }
+
+  /* Thông tin nhân viên */
+  .attendance-employee-history-modal .attendance-history-profile {
+    gap: 10px !important;
+    padding: 11px !important;
+    margin-bottom: 15px !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-profile > div:last-child {
+    min-width: 0 !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-profile strong {
+    font-size: 12px !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-profile small {
+    font-size: 10px !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* Bộ lọc ngày */
+  .attendance-employee-history-modal .attendance-history-filter {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+    margin-bottom: 15px !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-filter label {
+    min-width: 0 !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-filter input {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 40px !important;
+    padding: 0 7px !important;
+    font-size: 11px !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-filter button {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    min-height: 40px !important;
+  }
+
+  /* Thống kê 2 cột */
+  .attendance-employee-history-modal .attendance-history-stats {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin-bottom: 15px !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-stat {
+    min-width: 0 !important;
+    min-height: 86px !important;
+    padding: 10px !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-stat span {
+    font-size: 10px !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-stat strong {
+    font-size: 21px !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-stat small {
+    font-size: 9px !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* =================================================
+     CHUYỂN BẢNG LỊCH SỬ THÀNH CÁC THẺ
+  ================================================= */
+
+  .attendance-employee-history-modal .attendance-history-table-wrapper {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-table {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    table-layout: fixed !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-table thead {
+    display: none !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-table tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 11px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-table tbody tr {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0 12px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    padding: 9px 12px !important;
+    background: #fff !important;
+    border: 1px solid #e7ebf3 !important;
+    border-radius: 11px !important;
+    box-shadow: 0 2px 8px rgba(30, 50, 90, 0.035) !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-table tbody tr:hover {
+    background: #fff !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-table tbody td {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    gap: 5px !important;
+    min-width: 0 !important;
+    padding: 10px 0 !important;
+    border: 0 !important;
+    border-bottom: 1px solid #edf0f5 !important;
+    color: #4f5870 !important;
+    font-size: 11px !important;
+    text-align: left !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-table tbody td::before {
+    display: block !important;
+    color: #8994a7 !important;
+    font-size: 9px !important;
+    font-weight: 700 !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Cột 1: Ngày */
+  .attendance-employee-history-modal .attendance-history-table tbody td:nth-child(1) {
+    grid-column: 1 / -1 !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-table tbody td:nth-child(1)::before {
+    content: "Ngày chấm công";
+  }
+
+  /* Cột 2: Giờ vào */
+  .attendance-employee-history-modal .attendance-history-table tbody td:nth-child(2)::before {
+    content: "Giờ vào";
+  }
+
+  /* Cột 3: Giờ ra */
+  .attendance-employee-history-modal .attendance-history-table tbody td:nth-child(3)::before {
+    content: "Giờ ra";
+  }
+
+  /* Cột 4: Đi muộn */
+  .attendance-employee-history-modal .attendance-history-table tbody td:nth-child(4)::before {
+    content: "Đi muộn";
+  }
+
+  /* Cột 5: Về sớm */
+  .attendance-employee-history-modal .attendance-history-table tbody td:nth-child(5)::before {
+    content: "Về sớm";
+  }
+
+  /* Cột 6: Trạng thái */
+  .attendance-employee-history-modal .attendance-history-table tbody td:nth-child(6) {
+    grid-column: 1 / -1 !important;
+    border-bottom: 0 !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-table tbody td:nth-child(6)::before {
+    content: "Trạng thái";
+  }
+
+  /* Không áp dụng kiểu thẻ cho dòng thông báo trống */
+  .attendance-employee-history-modal .attendance-history-table tbody tr:has(td[colspan="6"]) {
+    display: block !important;
+    padding: 15px !important;
+    box-shadow: none !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-table tbody tr:has(td[colspan="6"]) td {
+    display: block !important;
+    width: 100% !important;
+    padding: 12px !important;
+    border: 0 !important;
+    text-align: center !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-table tbody tr:has(td[colspan="6"]) td::before {
+    content: none !important;
+  }
+
+  /* Footer */
+  .attendance-employee-history-modal .attendance-history-footer {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    margin-top: 15px !important;
+    padding-top: 13px !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-footer > span {
+    text-align: center !important;
+    font-size: 11px !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-footer button {
+    width: 100% !important;
+    min-height: 42px !important;
+  }
+}
+
+/* =====================================================
+   ĐIỆN THOẠI RẤT NHỎ
+===================================================== */
+
+@media (max-width: 360px) {
+  .manager-modal.attendance-employee-history-modal {
+    padding: 12px !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-stat {
+    padding: 8px !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-stat strong {
+    font-size: 19px !important;
+  }
+
+  .attendance-employee-history-modal .attendance-history-table tbody tr {
+    gap: 0 8px !important;
+    padding: 8px 9px !important;
+  }
+}

@@ -21,7 +21,9 @@ router.use(protect);
 
 // ======================================
 // NHÂN VIÊN / KẾ TOÁN
+// Xem thưởng phạt của chính tài khoản
 // ======================================
+
 router.get(
   "/me",
   authorize("employee", "accountant"),
@@ -29,41 +31,42 @@ router.get(
 );
 
 // ======================================
-// QUẢN LÝ
+// QUẢN LÝ THƯỞNG / PHẠT
+// QUẢN LÝ VÀ KẾ TOÁN CÓ QUYỀN NHƯ NHAU
 // ======================================
 
-// Danh sách nhân viên và kế toán được phép thưởng/phạt
+// Danh sách nhân viên và kế toán
 router.get(
   "/manager/employees",
-  authorize("manager"),
+  authorize("manager", "accountant"),
   getRewardEmployees
 );
 
-// Danh sách quyết định
+// Danh sách thưởng phạt toàn công ty
 router.get(
   "/manager",
-  authorize("manager"),
+  authorize("manager", "accountant"),
   getManagerRewards
 );
 
-// Tạo quyết định
+// Tạo quyết định thưởng phạt
 router.post(
   "/manager",
-  authorize("manager"),
+  authorize("manager", "accountant"),
   createReward
 );
 
-// Cập nhật quyết định
+// Cập nhật quyết định thưởng phạt
 router.put(
   "/manager/:id",
-  authorize("manager"),
+  authorize("manager", "accountant"),
   updateReward
 );
 
-// Xóa quyết định
+// Xóa quyết định thưởng phạt
 router.delete(
   "/manager/:id",
-  authorize("manager"),
+  authorize("manager", "accountant"),
   deleteReward
 );
 
